@@ -130,9 +130,27 @@
 
 把税率、扣除额、FICA、州税等从前端代码里拿出来，变成版本化数据。后续所有计算都从这些数据读取。
 
+这一步不能信任原型里的硬编码数字。原型数据只作为“待核实线索”，正式规则必须来自官方来源，并把相应官方文档或页面快照保存下来，方便日后数据库入库、检索、diff 和规则覆盖。
+
 ## 要做什么
 
 - 新建 2025 美国税务规则 JSON。
+- 新建官方来源文档归档目录，保存本步使用的 IRS / SSA / 州税局来源文件或页面快照。
+- 新建 source manifest，记录每份来源文档：
+  - `source_id`
+  - `title`
+  - `source_url`
+  - `source_type`
+  - `publisher`
+  - `retrieved_at`
+  - `published_at`
+  - `effective_date`
+  - `tax_year`
+  - `jurisdiction`
+  - `topics`
+  - `local_path`
+  - `content_hash`
+  - `status`
 - 先覆盖原型中已有规则：
   - 联邦税率：single / mfj / hoh。
   - 标准扣除。
@@ -152,10 +170,14 @@
 
 ## 验收标准
 
+- 所有正式规则都有对应的归档 source document 或 source page snapshot。
+- source manifest 可解析，且每个 `local_path` 指向真实文件。
+- source document 有 hash，后续可检测文档是否变化。
 - 数据文件是合法 JSON。
 - 每条规则有来源字段。
 - 2025 美国核心计算所需数据都能在 `data/` 里找到。
 - 没有计算逻辑写在 JSON 里，只保存规则数据。
+- 原型里的数字若无法被官方来源确认，必须标记为 `unverified`、`estimate` 或暂不进入正式规则。
 
 ## 预计更改文件
 
@@ -163,11 +185,16 @@
 - 新增：`data/tax_years/2025/us_fica.json`
 - 新增：`data/tax_years/2025/us_states.json`
 - 新增：`data/tax_years/2025/us_feie.json`
+- 新增：`data/sources/us/2025/source_manifest.json`
+- 新增：`data/sources/us/2025/raw/*`
+- 新增：`docs/step1_tax_rule_data.md`
 
 ## Review 重点
 
 - 数据结构是否适合长期维护。
 - citation 是否够明确。
+- 官方来源文档是否已保存，是否可追溯。
+- source manifest 是否包含 hash 和 retrieved_at。
 - 是否混入了前端展示文案。
 - 是否把“简化估算”标清楚。
 

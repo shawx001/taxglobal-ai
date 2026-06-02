@@ -1,0 +1,63 @@
+{
+  "schema_version": "0.1",
+  "rule_version": "us-2025-capital-gains-v0.1",
+  "tax_year": 2025,
+  "jurisdiction": "US",
+  "status": "effective",
+  "effective_date": "2025-01-01",
+  "source_ids": ["irs_rp_2024_40", "irs_topic_409", "irs_topic_559"],
+  "long_term_capital_gains": {
+    "citation": "Rev. Proc. 2024-40, section 3.03, sets 2025 maximum 0% and 15% rate taxable-income thresholds for net capital gain.",
+    "effective_date": "2025-01-01",
+    "source_ids": ["irs_rp_2024_40"],
+    "brackets": {
+      "single": [
+        {"up_to": 48350, "rate": 0.0},
+        {"up_to": 533400, "rate": 0.15},
+        {"up_to": null, "rate": 0.20}
+      ],
+      "married_filing_jointly": [
+        {"up_to": 96700, "rate": 0.0},
+        {"up_to": 600050, "rate": 0.15},
+        {"up_to": null, "rate": 0.20}
+      ],
+      "qualifying_surviving_spouse": [
+        {"up_to": 96700, "rate": 0.0},
+        {"up_to": 600050, "rate": 0.15},
+        {"up_to": null, "rate": 0.20}
+      ],
+      "head_of_household": [
+        {"up_to": 64750, "rate": 0.0},
+        {"up_to": 566700, "rate": 0.15},
+        {"up_to": null, "rate": 0.20}
+      ],
+      "married_filing_separately": [
+        {"up_to": 48350, "rate": 0.0},
+        {"up_to": 300000, "rate": 0.15},
+        {"up_to": null, "rate": 0.20}
+      ]
+    }
+  },
+  "short_term_capital_gains": {
+    "treatment": "ordinary_income",
+    "ordinary_income_rule_file": "data/tax_years/2025/us_federal.json",
+    "citation": "IRS Topic 409: gains or losses on assets held one year or less are short-term; net short-term capital gains are taxed as ordinary income at graduated tax rates.",
+    "note": "Short-term gains held one year or less are taxed at ordinary rates; use us_federal.json ordinary_income_brackets.",
+    "effective_date": "2025-01-01",
+    "source_ids": ["irs_topic_409"]
+  },
+  "net_investment_income_tax": {
+    "rate": 0.038,
+    "applies_to": "lesser_of_net_investment_income_or_magi_over_threshold",
+    "citation": "IRS Topic 559: 3.8% net investment income tax applies to the lesser of net investment income or MAGI over the filing-status threshold.",
+    "effective_date": "2025-01-01",
+    "source_ids": ["irs_topic_559"],
+    "magi_thresholds": {
+      "single": 200000,
+      "head_of_household": 200000,
+      "married_filing_jointly": 250000,
+      "qualifying_surviving_spouse": 250000,
+      "married_filing_separately": 125000
+    }
+  }
+}

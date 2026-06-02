@@ -1,0 +1,97 @@
+{
+  "schema_version": "0.1",
+  "function": "rsu_tax_estimate",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "vest_only",
+      "input": {
+        "shares_vested": 1000,
+        "fair_market_value_per_share": 50,
+        "vest_date": "2024-03-01",
+        "filing_status": "single",
+        "other_taxable_income": 150000
+      },
+      "expected": {
+        "status": "ok",
+        "vesting": {
+          "ordinary_income": 50000.00,
+          "cost_basis_per_share": 50.00,
+          "vest_income_tax": 12216.00
+        },
+        "hold_vs_sell": null
+      }
+    },
+    {
+      "name": "hold_long",
+      "input": {
+        "shares_vested": 1000,
+        "fair_market_value_per_share": 50,
+        "vest_date": "2024-03-01",
+        "filing_status": "single",
+        "other_taxable_income": 150000,
+        "sale_scenario": {"sale_date": "2025-06-01", "sale_price_per_share": 80}
+      },
+      "expected": {
+        "status": "ok",
+        "vesting": {
+          "ordinary_income": 50000.00,
+          "vest_income_tax": 12216.00
+        },
+        "hold_vs_sell": {
+          "capital_gain": 30000.00,
+          "term": "long",
+          "capital_gains_tax": 4500.00
+        }
+      }
+    },
+    {
+      "name": "sell_short",
+      "input": {
+        "shares_vested": 1000,
+        "fair_market_value_per_share": 50,
+        "vest_date": "2024-03-01",
+        "filing_status": "single",
+        "other_taxable_income": 150000,
+        "sale_scenario": {"sale_date": "2024-09-01", "sale_price_per_share": 80}
+      },
+      "expected": {
+        "status": "ok",
+        "vesting": {
+          "ordinary_income": 50000.00,
+          "vest_income_tax": 12216.00
+        },
+        "hold_vs_sell": {
+          "capital_gain": 30000.00,
+          "term": "short",
+          "capital_gains_tax": 9600.00
+        }
+      }
+    },
+    {
+      "name": "invalid_neg_shares",
+      "input": {
+        "shares_vested": -10,
+        "fair_market_value_per_share": 50,
+        "vest_date": "2024-03-01"
+      },
+      "expected": {
+        "status": "invalid_input",
+        "reason_contains": "shares_vested"
+      }
+    },
+    {
+      "name": "invalid_sale_before_vest",
+      "input": {
+        "shares_vested": 1000,
+        "fair_market_value_per_share": 50,
+        "vest_date": "2024-03-01",
+        "sale_scenario": {"sale_date": "2024-02-29", "sale_price_per_share": 80}
+      },
+      "expected": {
+        "status": "invalid_input",
+        "reason_contains": "sale_date"
+      }
+    }
+  ]
+}

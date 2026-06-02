@@ -7,6 +7,7 @@ from .tax_engine import (
     feie_estimate,
     fica_tax,
     nexus_estimate,
+    rsu_tax_estimate,
     self_employment_tax,
     state_income_tax,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "feie_estimate",
     "fica_tax",
     "nexus_estimate",
+    "rsu_tax_estimate",
     "self_employment_tax",
     "state_income_tax",
 ]

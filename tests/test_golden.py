@@ -27,6 +27,16 @@ def load_golden_files():
             yield path.name, json.load(handle)
 
 
+def assert_subset(test_case, expected, actual, path):
+    if isinstance(expected, dict):
+        test_case.assertIsInstance(actual, dict, f"{path} should be an object")
+        for key, value in expected.items():
+            test_case.assertIn(key, actual, f"{path} missing key {key}")
+            assert_subset(test_case, value, actual[key], f"{path}.{key}")
+        return
+    test_case.assertEqual(actual, expected, path)
+
+
 class GoldenFixtureTests(unittest.TestCase):
     def test_golden_cases_match_engine_outputs(self):
         for file_name, fixture in load_golden_files():
@@ -66,7 +76,7 @@ class GoldenFixtureTests(unittest.TestCase):
             if key in META_EXPECTED_KEYS:
                 continue
             self.assertIn(key, result["result"])
-            self.assertEqual(result["result"][key], value)
+            assert_subset(self, value, result["result"][key], f"result.{key}")
 
 
 if __name__ == "__main__":

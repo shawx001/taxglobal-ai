@@ -7,6 +7,7 @@ from engine import (
     feie_estimate,
     fica_tax,
     nexus_estimate,
+    rsu_tax_estimate,
     self_employment_tax,
     state_income_tax,
 )
@@ -208,6 +209,32 @@ class EngineTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "invalid_input")
         self.assertIn("quantity", result["reason"])
+
+    def test_rsu_sale_exactly_one_year_after_vest_is_short_term(self):
+        result = rsu_tax_estimate(
+            shares_vested=100,
+            fair_market_value_per_share=50,
+            vest_date="2024-03-01",
+            other_taxable_income=100_000,
+            sale_scenario={"sale_date": "2025-03-01", "sale_price_per_share": 80},
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["hold_vs_sell"]["term"], "short")
+
+    def test_rsu_sale_below_fmv_has_zero_capital_gains_tax_and_loss_assumption(self):
+        result = rsu_tax_estimate(
+            shares_vested=100,
+            fair_market_value_per_share=50,
+            vest_date="2024-03-01",
+            other_taxable_income=100_000,
+            sale_scenario={"sale_date": "2025-06-01", "sale_price_per_share": 40},
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["hold_vs_sell"]["capital_gain"], -1000.00)
+        self.assertEqual(result["result"]["hold_vs_sell"]["capital_gains_tax"], 0.00)
+        self.assertIn("$3,000", "\n".join(result["assumptions"]))
 
 
 if __name__ == "__main__":

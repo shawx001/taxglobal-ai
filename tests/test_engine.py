@@ -1,6 +1,4 @@
 import unittest
-import json
-from pathlib import Path
 
 from engine import (
     bracket_tax,
@@ -13,7 +11,6 @@ from engine import (
 )
 from engine.rules_loader import load_state_rules
 
-
 EXPECTED_RESPONSE_KEYS = {
     "status",
     "input",
@@ -24,14 +21,6 @@ EXPECTED_RESPONSE_KEYS = {
     "assumptions",
     "reason",
 }
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-
-
-def load_golden(name):
-    with (REPO_ROOT / "tests" / "golden" / name).open("r", encoding="utf-8") as handle:
-        return json.load(handle)
-
 
 class EngineTests(unittest.TestCase):
     def test_bracket_tax_uses_marginal_rates(self):
@@ -138,37 +127,43 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["tax"], 0.00)
         self.assertEqual(result["result"]["rate"], 0.0)
 
-    def test_self_employment_tax_golden_cases(self):
-        golden = load_golden("self_employment_tax.json")
+    def test_self_employment_tax_negative_profit_clamps_to_zero(self):
+        result = self_employment_tax(-5_000, "single")
 
-        for case in golden["cases"]:
-            with self.subTest(case=case["name"]):
-                result = self_employment_tax(**case["input"])
-                expected = case["expected"]
-                self.assertEqual(result["status"], expected["status"])
-                self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
-                for key, value in expected.items():
-                    if key == "status":
-                        continue
-                    self.assertEqual(result["result"][key], value)
-                self.assertEqual(result["rule_version"], "us-2025-fica-v0.1")
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["net_earnings_from_self_employment"], 0.00)
+        self.assertEqual(result["result"]["total_se_related_tax"], 0.00)
 
-    def test_nexus_estimate_golden_cases(self):
-        golden = load_golden("nexus_estimate.json")
+    def test_self_employment_tax_uses_mfj_additional_medicare_threshold(self):
+        result = self_employment_tax(250_000, "mfj")
 
-        for case in golden["cases"]:
-            with self.subTest(case=case["name"]):
-                result = nexus_estimate(**case["input"])
-                expected = case["expected"]
-                self.assertEqual(result["status"], expected["status"])
-                self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
-                if expected["status"] == "ok":
-                    self.assertEqual(result["result"]["exceeded"], expected["exceeded"])
-                    self.assertEqual(result["result"]["approaching"], expected["approaching"])
-                    self.assertEqual(result["result"]["status_label"], expected["status_label"])
-                    self.assertEqual(result["rule_version"], "us-2025-sales-tax-nexus-v0.1")
-                else:
-                    self.assertIsNone(result["result"])
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["additional_medicare_tax"], 0.00)
+        self.assertEqual(result["result"]["total_se_related_tax"], 28_531.78)
+
+    def test_nexus_ca_equal_threshold_uses_strict_greater_than(self):
+        result = nexus_estimate("CA", 500_000)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertFalse(result["result"]["exceeded"])
+        self.assertTrue(result["result"]["approaching"])
+        self.assertEqual(result["result"]["status_label"], "approaching")
+
+    def test_nexus_tx_equal_threshold_uses_greater_than_or_equal(self):
+        result = nexus_estimate("TX", 500_000)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertTrue(result["result"]["exceeded"])
+        self.assertFalse(result["result"]["approaching"])
+        self.assertEqual(result["result"]["status_label"], "triggered")
+
+    def test_nexus_ny_equal_transaction_threshold_uses_strict_greater_than(self):
+        result = nexus_estimate("NY", 600_000, 100)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertFalse(result["result"]["exceeded"])
+        self.assertTrue(result["result"]["approaching"])
+        self.assertEqual(result["result"]["status_label"], "approaching")
 
     def test_nexus_ny_missing_transaction_count_does_not_trigger(self):
         result = nexus_estimate("NY", 600_000)

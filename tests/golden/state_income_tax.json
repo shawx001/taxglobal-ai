@@ -1,0 +1,77 @@
+{
+  "schema_version": "0.1",
+  "function": "state_income_tax",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "fl_zero",
+      "input": {"state_code": "FL", "taxable_income": 100000},
+      "expected": {
+        "status": "ok",
+        "rate": 0,
+        "tax": 0.00,
+        "citation_source_ids": ["fl_personal_income_tax_faq"]
+      }
+    },
+    {
+      "name": "nv_zero",
+      "input": {"state_code": "NV", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+    },
+    {
+      "name": "wa_zero",
+      "input": {"state_code": "WA", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+    },
+    {
+      "name": "il_flat",
+      "input": {"state_code": "IL", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.0495, "tax": 4950.00}
+    },
+    {
+      "name": "co_flat",
+      "input": {"state_code": "CO", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.044, "tax": 4400.00}
+    },
+    {
+      "name": "ga_flat",
+      "input": {"state_code": "GA", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.0519, "tax": 5190.00}
+    },
+    {
+      "name": "il_zero_income",
+      "input": {"state_code": "IL", "taxable_income": 0},
+      "expected": {"status": "ok", "rate": 0.0495, "tax": 0.00}
+    },
+    {
+      "name": "il_negative",
+      "input": {"state_code": "IL", "taxable_income": -100},
+      "expected": {"status": "ok", "rate": 0.0495, "tax": 0.00}
+    },
+    {
+      "name": "ca_blocked",
+      "input": {"state_code": "CA", "taxable_income": 100000},
+      "expected": {"status": "not_covered", "reason_contains": "pending_extraction"}
+    },
+    {
+      "name": "ny_blocked",
+      "input": {"state_code": "NY", "taxable_income": 100000},
+      "expected": {"status": "not_covered", "reason_contains": "pending_extraction"}
+    },
+    {
+      "name": "ma_blocked",
+      "input": {"state_code": "MA", "taxable_income": 100000},
+      "expected": {"status": "not_covered", "reason_contains": "source_pending"}
+    },
+    {
+      "name": "tx_blocked",
+      "input": {"state_code": "TX", "taxable_income": 100000},
+      "expected": {"status": "not_covered", "reason_contains": "source_pending"}
+    },
+    {
+      "name": "unknown",
+      "input": {"state_code": "ZZ", "taxable_income": 100000},
+      "expected": {"status": "not_covered", "reason_contains": "not present"}
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from .rules_loader import (
@@ -12,7 +12,6 @@ from .rules_loader import (
     load_nexus_rules,
     load_state_rules,
 )
-
 
 SUPPORTED_FILING_STATUSES = {
     "single",
@@ -203,7 +202,8 @@ def fica_tax(wages: float, filing_status: str = "single", tax_year: int = 2025) 
         citations=_citations(ss, med, addl),
         assumptions=[
             "Employee-side FICA only; employer-side taxes are not included.",
-            "Additional Medicare Tax uses annual taxpayer filing-status thresholds, not per-paycheck employer withholding timing.",
+            "Additional Medicare Tax uses annual taxpayer filing-status thresholds, "
+            "not per-paycheck employer withholding timing.",
         ],
     )
 

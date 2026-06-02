@@ -1,0 +1,25 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff pip-audit
+      - name: Lint
+        run: ruff check engine tests
+      - name: Dependency audit (non-blocking until requirements.txt exists)
+        run: pip-audit || true
+      - name: Unit + golden tests
+        run: python -m unittest discover -s tests -v
+      - name: Data layer validation
+        shell: pwsh
+        run: ./tests/validate_step1_data.ps1

@@ -1,0 +1,87 @@
+{
+  "schema_version": "0.1",
+  "function": "federal_income_tax",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "single_120k",
+      "input": {"gross_income": 120000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "taxable_income": 105000.00,
+        "tax": 18047.00,
+        "citation_source_ids": ["irs_rp_2024_40"]
+      }
+    },
+    {
+      "name": "single_50k",
+      "input": {"gross_income": 50000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "taxable_income": 35000.00,
+        "tax": 3961.50,
+        "citation_source_ids": ["irs_rp_2024_40"]
+      }
+    },
+    {
+      "name": "single_at_std_ded",
+      "input": {"gross_income": 15000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "taxable_income": 0.00,
+        "tax": 0.00,
+        "citation_source_ids": ["irs_rp_2024_40"]
+      }
+    },
+    {
+      "name": "single_below_ded",
+      "input": {"gross_income": 10000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "taxable_income": 0.00,
+        "tax": 0.00,
+        "citation_source_ids": ["irs_rp_2024_40"]
+      }
+    },
+    {
+      "name": "single_top_700k",
+      "input": {"gross_income": 700000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "taxable_income": 685000.00,
+        "tax": 210470.25,
+        "citation_source_ids": ["irs_rp_2024_40"]
+      }
+    },
+    {
+      "name": "mfj_120k",
+      "input": {"gross_income": 120000, "filing_status": "mfj"},
+      "expected": {
+        "status": "ok",
+        "taxable_income": 90000.00,
+        "tax": 10323.00,
+        "citation_source_ids": ["irs_rp_2024_40"]
+      }
+    },
+    {
+      "name": "hoh_120k",
+      "input": {"gross_income": 120000, "filing_status": "hoh"},
+      "expected": {
+        "status": "ok",
+        "taxable_income": 97500.00,
+        "tax": 14625.00,
+        "citation_source_ids": ["irs_rp_2024_40"]
+      }
+    },
+    {
+      "name": "single_itemized",
+      "input": {"gross_income": 120000, "filing_status": "single", "deduction": 30000},
+      "expected": {
+        "status": "ok",
+        "taxable_income": 90000.00,
+        "tax": 14714.00,
+        "citation_source_ids": ["irs_rp_2024_40"]
+      }
+    }
+  ]
+}

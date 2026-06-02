@@ -1276,7 +1276,7 @@ function usEff(income,filing,k401){ return (usTaxTotal(income,filing,k401)/incom
 
 /* ════════ 子 Tab ════════ */
 function buildTaxSubtabs(){
-  const subSet=new Set(['normal','feie']);
+  const subSet=new Set(['normal','rsu','feie']);
   selectedTypes.forEach(k=>TYPES[k].taxSub.forEach(s=>subSet.add(s)));
   const labels={normal:'普通收入','rsu':'RSU / 期权','self':'自雇收入','feie':'海外收入 / FEIE','crypto-inline':'加密收益'};
   const order=['normal','rsu','self','feie','crypto-inline'];

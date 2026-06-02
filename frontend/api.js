@@ -35,7 +35,7 @@
               details: apiError.details || [],
             });
           }
-          if (!body || typeof body.status === "undefined") {
+          if (!body || typeof body.status !== "string") {
             throw makeApiError("Server returned an unexpected response.", {
               code: "invalid_response",
               status: response.status,

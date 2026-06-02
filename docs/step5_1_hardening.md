@@ -21,6 +21,7 @@ Address Step 5 review findings without expanding product scope or changing tax c
 - Added a negative CORS test for an untrusted origin.
 - Recorded REQ-003 in `docs/product_backlog.md` for deleting legacy frontend `caStateTax` / `nyStateTax` when remaining modules migrate to backend state tax.
 - Kept the foreign-income / FEIE tax tab visible for all profiles instead of only digital nomad profiles.
+- Kept the RSU / options tab visible for tech employees and digital nomad profiles, without exposing it to every non-RSU profile by default.
 - Rebuilt tax subtabs when profile identity selections change so the tax module stays synchronized with profile changes.
 - Recorded REQ-004 in `docs/product_backlog.md` for separating foreign earned income / FEIE from foreign passive income / FTC.
 
@@ -47,7 +48,7 @@ Address Step 5 review findings without expanding product scope or changing tax c
   - Malicious citation/reason/breakdown/assumption strings render as text and create no `img`, `svg`, `script`, or `b` nodes.
   - A 2xx response with null body is mapped to `invalid_response`.
   - Default tech profile shows `海外收入 / FEIE`.
-  - Switching the profile to digital nomad rebuilds the tax subtabs and keeps `海外收入 / FEIE` visible.
+  - Switching the profile to digital nomad rebuilds the tax subtabs and keeps both `RSU / 期权` and `海外收入 / FEIE` visible.
   - The FEIE panel states that passive foreign income is not FEIE and belongs to future FTC / passive-income handling.
 
 ## Files Changed

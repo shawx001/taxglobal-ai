@@ -1,4 +1,6 @@
+import os
 import unittest
+from unittest.mock import patch
 
 from starlette.testclient import TestClient
 
@@ -8,6 +10,11 @@ from backend.main import app, create_app
 class CalcApiTests(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
+
+    def default_cors_client(self):
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("TAXGLOBAL_CORS_ORIGINS", None)
+            return TestClient(create_app())
 
     def assert_response_has_trace_id(self, response):
         self.assertIn("X-Request-ID", response.headers)
@@ -30,7 +37,8 @@ class CalcApiTests(unittest.TestCase):
         self.assert_response_has_trace_id(response)
 
     def test_local_frontend_origin_gets_cors_headers(self):
-        response = self.client.options(
+        client = self.default_cors_client()
+        response = client.options(
             "/calc/federal-income",
             headers={
                 "Origin": "http://127.0.0.1:5173",
@@ -43,7 +51,8 @@ class CalcApiTests(unittest.TestCase):
         self.assertEqual(response.headers["access-control-allow-origin"], "http://127.0.0.1:5173")
 
     def test_untrusted_origin_does_not_get_cors_allow_origin(self):
-        response = self.client.options(
+        client = self.default_cors_client()
+        response = client.options(
             "/calc/federal-income",
             headers={
                 "Origin": "http://evil.example",

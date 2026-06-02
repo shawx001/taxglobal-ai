@@ -39,7 +39,19 @@ class CalcApiTests(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+        self.assertIn("access-control-allow-origin", response.headers)
         self.assertEqual(response.headers["access-control-allow-origin"], "http://127.0.0.1:5173")
+
+    def test_untrusted_origin_does_not_get_cors_allow_origin(self):
+        response = self.client.options(
+            "/calc/federal-income",
+            headers={
+                "Origin": "http://evil.example",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+        self.assertNotIn("access-control-allow-origin", response.headers)
 
     def test_calc_routes_return_engine_payloads(self):
         cases = [

@@ -35,6 +35,12 @@
               details: apiError.details || [],
             });
           }
+          if (!body || typeof body.status === "undefined") {
+            throw makeApiError("Server returned an unexpected response.", {
+              code: "invalid_response",
+              status: response.status,
+            });
+          }
           return body;
         });
       });

@@ -1178,22 +1178,27 @@ function taxText(key){
   return copy[key]||key;
 }
 function taxMoney(value){ return '$'+f(Number(value)||0); }
+function escapeHtml(value){
+  return String(value==null?'':value).replace(/[&<>"']/g, function(ch){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
+  });
+}
 function taxCitations(citations){
   if(!citations||!citations.length) return '';
-  return citations.map(c=>'<span class="cite" title="'+(c.citation||c.source_id||'')+'">'+(c.source_id||'source')+'</span>').join(' ');
+  return citations.map(c=>'<span class="cite" title="'+escapeHtml(c.citation||c.source_id||'')+'">'+escapeHtml(c.source_id||'source')+'</span>').join(' ');
 }
 function taxAssumptions(items){
   if(!items||!items.length) return '';
-  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+taxText('assumptions')+': '+items.join(' · ')+'</div>';
+  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+taxText('assumptions')+': '+items.map(escapeHtml).join(' · ')+'</div>';
 }
 function taxBreakdown(items){
   if(!items||!items.length) return '';
-  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3);line-height:1.5">'+items.map(i=>i.label+': '+taxMoney(i.amount)).join('<br>')+'</div>';
+  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3);line-height:1.5">'+items.map(i=>escapeHtml(i.label)+': '+taxMoney(i.amount)).join('<br>')+'</div>';
 }
 function taxBlock(title, amount, payload, options){
   options=options||{};
   const amountHtml=options.notCovered?'<span style="color:var(--gold)">'+taxText('notCovered')+'</span>':taxMoney(amount);
-  const reason=options.reason?'<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+options.reason+'</div>':'';
+  const reason=options.reason?'<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+escapeHtml(options.reason)+'</div>':'';
   return '<div style="padding:12px 0;border-bottom:1px solid var(--bd2)">'+
     '<div class="rrow"><span class="rl">'+title+' '+taxCitations(payload&&payload.citations)+'</span><span class="rv">'+amountHtml+'</span></div>'+
     reason+taxBreakdown(payload&&payload.breakdown)+taxAssumptions(payload&&payload.assumptions)+

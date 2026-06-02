@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 import uuid
 from collections.abc import Callable
@@ -18,6 +19,24 @@ from backend.routes.calc import router as calc_router
 
 logger = logging.getLogger("taxglobal.api")
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+DEFAULT_DEV_CORS_ORIGINS = [
+    "http://127.0.0.1",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8000",
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:8000",
+]
+
+
+def _cors_origins() -> list[str]:
+    configured = os.environ.get("TAXGLOBAL_CORS_ORIGINS")
+    if configured:
+        return [origin.strip() for origin in configured.split(",") if origin.strip()]
+    return DEFAULT_DEV_CORS_ORIGINS
 
 
 class RequestIdMiddleware(BaseHTTPMiddleware):
@@ -50,22 +69,12 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 
 def create_app() -> FastAPI:
     app = FastAPI(title="TaxGlobal AI API", version="0.1.0")
-    # Development-only CORS for local static frontend files and localhost servers.
+    # Dev default allows local frontend origins; production should set TAXGLOBAL_CORS_ORIGINS explicitly.
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "null",
-            "http://127.0.0.1",
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:5173",
-            "http://127.0.0.1:8000",
-            "http://localhost",
-            "http://localhost:3000",
-            "http://localhost:5173",
-            "http://localhost:8000",
-        ],
+        allow_origins=_cors_origins(),
         allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["*"],
+        allow_headers=["Content-Type"],
     )
     app.add_middleware(RequestIdMiddleware)
     app.include_router(calc_router)

@@ -1,0 +1,98 @@
+import unittest
+
+from engine import bracket_tax, federal_income_tax, feie_estimate, fica_tax, state_income_tax
+
+
+class EngineTests(unittest.TestCase):
+    def test_bracket_tax_uses_marginal_rates(self):
+        brackets = [
+            {"up_to": 10_000, "rate": 0.10},
+            {"up_to": 20_000, "rate": 0.20},
+            {"up_to": None, "rate": 0.30},
+        ]
+
+        self.assertEqual(bracket_tax(25_000, brackets), 4_500.00)
+
+    def test_federal_income_tax_single_uses_2025_rules(self):
+        result = federal_income_tax(120_000, "single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["taxable_income"], 105_000.00)
+        self.assertEqual(result["result"]["tax"], 18_047.00)
+        self.assertEqual(result["rule_version"], "us-2025-federal-v0.1")
+        self.assertEqual(result["citations"][0]["source_id"], "irs_rp_2024_40")
+
+    def test_federal_income_tax_accepts_prototype_filing_alias_without_using_prototype_rules(self):
+        result = federal_income_tax(120_000, "mfj")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["input"]["filing_status"], "married_filing_jointly")
+        self.assertEqual(result["result"]["taxable_income"], 90_000.00)
+        self.assertEqual(result["result"]["tax"], 10_323.00)
+
+    def test_fica_caps_social_security_and_applies_additional_medicare(self):
+        result = fica_tax(250_000, "single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["social_security_tax"], 10_918.20)
+        self.assertEqual(result["result"]["medicare_tax"], 3_625.00)
+        self.assertEqual(result["result"]["additional_medicare_tax"], 450.00)
+        self.assertEqual(result["result"]["total"], 14_993.20)
+
+    def test_fica_uses_mfj_additional_medicare_threshold(self):
+        result = fica_tax(250_000, "married_filing_jointly")
+
+        self.assertEqual(result["result"]["additional_medicare_tax"], 0.00)
+
+    def test_feie_estimate_physical_presence_passes_at_330_days(self):
+        result = feie_estimate(140_000, 330)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertTrue(result["result"]["qualifies_physical_presence_test"])
+        self.assertEqual(result["result"]["excluded_income"], 130_000.00)
+        self.assertEqual(result["result"]["remaining_income"], 10_000.00)
+
+    def test_feie_estimate_physical_presence_fails_below_330_days(self):
+        result = feie_estimate(140_000, 329)
+
+        self.assertFalse(result["result"]["qualifies_physical_presence_test"])
+        self.assertEqual(result["result"]["excluded_income"], 0.00)
+        self.assertEqual(result["result"]["remaining_income"], 140_000.00)
+
+    def test_state_income_tax_effective_zero_tax_state(self):
+        result = state_income_tax("FL", 100_000)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["tax"], 0.00)
+        self.assertEqual(result["citations"][0]["source_id"], "fl_personal_income_tax_faq")
+
+    def test_state_income_tax_effective_flat_tax_state(self):
+        result = state_income_tax("IL", 100_000)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["tax"], 4_950.00)
+        self.assertEqual(result["result"]["rate"], 0.0495)
+
+    def test_state_income_tax_blocks_pending_extraction_states(self):
+        result = state_income_tax("CA", 100_000)
+
+        self.assertEqual(result["status"], "not_covered")
+        self.assertIn("pending_extraction", result["reason"])
+        self.assertIsNone(result["result"])
+
+    def test_state_income_tax_blocks_source_pending_states(self):
+        result = state_income_tax("TX", 100_000)
+
+        self.assertEqual(result["status"], "not_covered")
+        self.assertIn("source_pending", result["reason"])
+        self.assertIsNone(result["result"])
+
+    def test_state_income_tax_blocks_unknown_states(self):
+        result = state_income_tax("ZZ", 100_000)
+
+        self.assertEqual(result["status"], "not_covered")
+        self.assertIn("not present", result["reason"])
+
+
+if __name__ == "__main__":
+    unittest.main()

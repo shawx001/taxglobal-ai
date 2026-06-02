@@ -1,0 +1,47 @@
+{
+  "schema_version": "0.1",
+  "function": "feie_estimate",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "pass_330_over_cap",
+      "input": {"foreign_earned_income": 140000, "days_abroad": 330},
+      "expected": {
+        "status": "ok",
+        "qualifies_physical_presence_test": true,
+        "excluded_income": 130000.00,
+        "remaining_income": 10000.00
+      }
+    },
+    {
+      "name": "fail_329",
+      "input": {"foreign_earned_income": 140000, "days_abroad": 329},
+      "expected": {
+        "status": "ok",
+        "qualifies_physical_presence_test": false,
+        "excluded_income": 0.00,
+        "remaining_income": 140000.00
+      }
+    },
+    {
+      "name": "pass_under_cap",
+      "input": {"foreign_earned_income": 100000, "days_abroad": 330},
+      "expected": {
+        "status": "ok",
+        "qualifies_physical_presence_test": true,
+        "excluded_income": 100000.00,
+        "remaining_income": 0.00
+      }
+    },
+    {
+      "name": "pass_at_cap",
+      "input": {"foreign_earned_income": 130000, "days_abroad": 365},
+      "expected": {
+        "status": "ok",
+        "qualifies_physical_presence_test": true,
+        "excluded_income": 130000.00,
+        "remaining_income": 0.00
+      }
+    }
+  ]
+}

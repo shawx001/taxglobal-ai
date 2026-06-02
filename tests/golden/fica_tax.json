@@ -1,0 +1,73 @@
+{
+  "schema_version": "0.1",
+  "function": "fica_tax",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "single_100k",
+      "input": {"wages": 100000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "social_security_tax": 6200.00,
+        "medicare_tax": 1450.00,
+        "additional_medicare_tax": 0.00,
+        "total": 7650.00
+      }
+    },
+    {
+      "name": "single_200k",
+      "input": {"wages": 200000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "social_security_tax": 10918.20,
+        "medicare_tax": 2900.00,
+        "additional_medicare_tax": 0.00,
+        "total": 13818.20
+      }
+    },
+    {
+      "name": "single_250k",
+      "input": {"wages": 250000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "social_security_tax": 10918.20,
+        "medicare_tax": 3625.00,
+        "additional_medicare_tax": 450.00,
+        "total": 14993.20
+      }
+    },
+    {
+      "name": "single_300k",
+      "input": {"wages": 300000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "social_security_tax": 10918.20,
+        "medicare_tax": 4350.00,
+        "additional_medicare_tax": 900.00,
+        "total": 16168.20
+      }
+    },
+    {
+      "name": "mfj_250k",
+      "input": {"wages": 250000, "filing_status": "mfj"},
+      "expected": {
+        "status": "ok",
+        "social_security_tax": 10918.20,
+        "medicare_tax": 3625.00,
+        "additional_medicare_tax": 0.00,
+        "total": 14543.20
+      }
+    },
+    {
+      "name": "mfs_200k",
+      "input": {"wages": 200000, "filing_status": "mfs"},
+      "expected": {
+        "status": "ok",
+        "social_security_tax": 10918.20,
+        "medicare_tax": 2900.00,
+        "additional_medicare_tax": 675.00,
+        "total": 14493.20
+      }
+    }
+  ]
+}

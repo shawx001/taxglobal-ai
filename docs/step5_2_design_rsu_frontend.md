@@ -6,7 +6,7 @@
 分支：`feature/step5_2-rsu-frontend`
 角色：Claude 出设计；Codex 实现。
 
-> 目标：把前端 RSU 面板从"原型假算"改为调用 `/calc/rsu`,显示后端真实结果 + 法条。消化上轮 [Minor](RSU tab 默认可见却跑前端假算)。只动 RSU 面板 + api.js;不动根 index.html、不动其余模块、前端不算税。
+> 目标：把前端 RSU 面板从"原型假算"改为调用 `/calc/rsu`,显示后端真实结果 + 法条。消化上轮 Minor（RSU tab 默认可见却跑前端假算）。只动 RSU 面板 + api.js;不动根 index.html、不动其余模块、前端不算税。
 
 ---
 

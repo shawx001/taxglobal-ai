@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1",
+  "rule_version": "us-2025-federal-v0.1",
+  "tax_year": 2025,
+  "jurisdiction": "US",
+  "status": "effective",
+  "sources": ["irs_rp_2024_40"],
+  "standard_deduction": {
+    "single": 15000,
+    "married_filing_separately": 15000,
+    "married_filing_jointly": 30000,
+    "qualifying_surviving_spouse": 30000,
+    "head_of_household": 22500,
+    "citation": "Rev. Proc. 2024-40, standard deduction amounts for tax year 2025",
+    "source_ids": ["irs_rp_2024_40"]
+  },
+  "ordinary_income_brackets": {
+    "single": [
+      {"up_to": 11925, "rate": 0.10},
+      {"up_to": 48475, "rate": 0.12},
+      {"up_to": 103350, "rate": 0.22},
+      {"up_to": 197300, "rate": 0.24},
+      {"up_to": 250525, "rate": 0.32},
+      {"up_to": 626350, "rate": 0.35},
+      {"up_to": null, "rate": 0.37}
+    ],
+    "married_filing_jointly": [
+      {"up_to": 23850, "rate": 0.10},
+      {"up_to": 96950, "rate": 0.12},
+      {"up_to": 206700, "rate": 0.22},
+      {"up_to": 394600, "rate": 0.24},
+      {"up_to": 501050, "rate": 0.32},
+      {"up_to": 751600, "rate": 0.35},
+      {"up_to": null, "rate": 0.37}
+    ],
+    "head_of_household": [
+      {"up_to": 17000, "rate": 0.10},
+      {"up_to": 64850, "rate": 0.12},
+      {"up_to": 103350, "rate": 0.22},
+      {"up_to": 197300, "rate": 0.24},
+      {"up_to": 250500, "rate": 0.32},
+      {"up_to": 626350, "rate": 0.35},
+      {"up_to": null, "rate": 0.37}
+    ],
+    "married_filing_separately": [
+      {"up_to": 11925, "rate": 0.10},
+      {"up_to": 48475, "rate": 0.12},
+      {"up_to": 103350, "rate": 0.22},
+      {"up_to": 197300, "rate": 0.24},
+      {"up_to": 250525, "rate": 0.32},
+      {"up_to": 375800, "rate": 0.35},
+      {"up_to": null, "rate": 0.37}
+    ],
+    "citation": "Rev. Proc. 2024-40, tax rate schedules for tax year 2025",
+    "source_ids": ["irs_rp_2024_40"]
+  }
+}

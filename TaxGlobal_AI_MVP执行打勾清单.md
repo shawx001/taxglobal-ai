@@ -33,7 +33,8 @@
 - [x] 新建 `frontend/`，先把 `index.html` 放进去跑静态服务，不急着迁 Next.js。
 - [ ] 新建 `engine/`，放 Python 纯函数税务引擎。
 - [ ] 新建 `backend/`，用 FastAPI 暴露最小 API。
-- [ ] 新建 `data/tax_years/2025/`，放联邦、州税、FICA、FEIE 等 JSON 税率表。
+- [x] 新建 `data/tax_years/2025/`，放联邦、州税、FICA、FEIE 等 JSON 税率表。
+- [x] 新建 `data/sources/us/2025/raw/`，归档本步使用的官方来源文件。
 - [ ] 新建 `tests/golden/`，保存黄金测试输入和期望输出。
 - [ ] 本地启动：
   - [ ] 前端静态服务。

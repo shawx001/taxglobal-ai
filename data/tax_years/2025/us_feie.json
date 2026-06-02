@@ -1,0 +1,16 @@
+{
+  "schema_version": "0.1",
+  "rule_version": "us-2025-feie-v0.1",
+  "tax_year": 2025,
+  "jurisdiction": "US",
+  "status": "effective",
+  "sources": ["irs_feie_figuring_exclusion", "irs_i2555_2025"],
+  "foreign_earned_income_exclusion": {
+    "maximum_exclusion": 130000,
+    "physical_presence_days": 330,
+    "physical_presence_period_months": 12,
+    "housing_expense_general_limit": 39000,
+    "citation": "IRS FEIE page and 2025 Form 2555 instructions state the 2025 maximum exclusion is $130,000 and describe the 330-day physical presence test.",
+    "source_ids": ["irs_feie_figuring_exclusion", "irs_i2555_2025"]
+  }
+}

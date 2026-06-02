@@ -1,0 +1,49 @@
+{
+  "schema_version": "0.1",
+  "rule_version": "us-2025-sales-tax-nexus-v0.1",
+  "tax_year": 2025,
+  "jurisdiction": "US_STATES",
+  "status": "partial",
+  "thresholds": {
+    "CA": {
+      "name": "California",
+      "sales_amount": 500000,
+      "transaction_count": null,
+      "measurement_period": "preceding_or_current_calendar_year",
+      "marketplace_sales_included_in_threshold": true,
+      "source_ids": ["ca_marketplace_facilitator_act", "ca_wayfair_general_information"],
+      "citation": "CDTFA guidance states California economic nexus applies when sales of tangible merchandise for delivery in California exceed $500,000 in the preceding or current calendar year."
+    },
+    "NY": {
+      "name": "New York",
+      "sales_amount": 500000,
+      "transaction_count": 100,
+      "condition": "amount_and_transactions",
+      "measurement_period": "immediately_preceding_four_sales_tax_quarters",
+      "source_ids": ["ny_sales_tax_nexus"],
+      "citation": "New York Tax Department guidance requires more than $500,000 in gross receipts and more than 100 sales transactions into New York."
+    },
+    "TX": {
+      "name": "Texas",
+      "sales_amount": 500000,
+      "transaction_count": null,
+      "measurement_period": "past_12_months",
+      "source_ids": ["tx_remote_sellers_sales_tax", "tx_sales_use_tax_permit_faq"],
+      "citation": "Texas Comptroller remote seller guidance references the $500,000 safe harbor amount and permit FAQ references $500,000 or more in Texas revenue in the past 12 months."
+    },
+    "FL": {
+      "name": "Florida",
+      "sales_amount": 100000,
+      "transaction_count": null,
+      "measurement_period": "previous_calendar_year",
+      "source_ids": ["fl_registration_remote_seller"],
+      "citation": "Florida Department of Revenue registration guidance states out-of-state retailers must collect and remit sales tax on remote sales into Florida if taxable remote Florida sales exceeded $100,000 over the previous calendar year."
+    },
+    "WA": {
+      "name": "Washington",
+      "status": "source_pending",
+      "source_ids": ["wa_retail_sales_tax"],
+      "notes": "Washington retail sales tax source archived, but economic nexus threshold source has not yet been archived. Do not use the prototype $100,000 threshold until sourced."
+    }
+  }
+}

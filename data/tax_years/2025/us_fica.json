@@ -1,0 +1,42 @@
+{
+  "schema_version": "0.1",
+  "rule_version": "us-2025-fica-v0.1",
+  "tax_year": 2025,
+  "jurisdiction": "US",
+  "status": "effective",
+  "sources": ["irs_topic_751", "irs_topic_560", "irs_pub15_2026_prior_year_table", "irs_pub15a_2025"],
+  "social_security": {
+    "employee_rate": 0.062,
+    "employer_rate": 0.062,
+    "self_employment_combined_rate": 0.124,
+    "wage_base": 176100,
+    "citation": "IRS Topic 751 and Publication 15 Table 3 list 2025 Social Security wage base and rates.",
+    "source_ids": ["irs_topic_751", "irs_pub15_2026_prior_year_table"]
+  },
+  "medicare": {
+    "employee_rate": 0.0145,
+    "employer_rate": 0.0145,
+    "self_employment_combined_rate": 0.029,
+    "wage_base": null,
+    "citation": "IRS Topic 751 states there is no wage base limit for Medicare tax.",
+    "source_ids": ["irs_topic_751", "irs_pub15_2026_prior_year_table"]
+  },
+  "additional_medicare": {
+    "employee_rate": 0.009,
+    "employer_withholding_threshold": 200000,
+    "taxpayer_thresholds": {
+      "single": 200000,
+      "head_of_household": 200000,
+      "qualifying_surviving_spouse": 200000,
+      "married_filing_jointly": 250000,
+      "married_filing_separately": 125000
+    },
+    "citation": "IRS Topic 560 lists filing-status thresholds; IRS Topic 751 lists employer withholding over $200,000.",
+    "source_ids": ["irs_topic_560", "irs_topic_751"]
+  },
+  "self_employment": {
+    "net_earnings_multiplier": 0.9235,
+    "citation": "Publication 15-A references the 92.35% net earnings base used for self-employment tax calculations.",
+    "source_ids": ["irs_pub15a_2025"]
+  }
+}

@@ -49,14 +49,46 @@
       "expected": {"status": "ok", "rate": 0.0495, "tax": 0.00}
     },
     {
-      "name": "ca_blocked",
-      "input": {"state_code": "CA", "taxable_income": 100000},
-      "expected": {"status": "not_covered", "reason_contains": "pending_extraction"}
+      "name": "ca_single_200k",
+      "input": {"state_code": "CA", "taxable_income": 200000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 15038.64,
+        "citation_source_ids": ["ca_2025_540_tax_rate_schedules"],
+        "assumption_contains": "Mental Health Services Tax"
+      }
     },
     {
-      "name": "ny_blocked",
-      "input": {"state_code": "NY", "taxable_income": 100000},
-      "expected": {"status": "not_covered", "reason_contains": "pending_extraction"}
+      "name": "ca_mfj_125k",
+      "input": {"state_code": "CA", "taxable_income": 125000, "filing_status": "mfj"},
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 4768.10,
+        "citation_source_ids": ["ca_2025_540_tax_rate_schedules"]
+      }
+    },
+    {
+      "name": "ny_single_100k",
+      "input": {"state_code": "NY", "taxable_income": 100000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 5431.75,
+        "citation_source_ids": ["ny_2025_it201_instructions", "ny_2025_tax_tables"],
+        "assumption_contains": "tax benefit recapture"
+      }
+    },
+    {
+      "name": "ny_mfj_100k",
+      "input": {"state_code": "NY", "taxable_income": 100000, "filing_status": "mfj"},
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 5167.50,
+        "citation_source_ids": ["ny_2025_it201_instructions", "ny_2025_tax_tables"]
+      }
     },
     {
       "name": "ma_blocked",

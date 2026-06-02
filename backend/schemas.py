@@ -37,6 +37,7 @@ class FicaRequest(TaxYearModel):
 class StateIncomeRequest(TaxYearModel):
     state_code: str = Field(min_length=2, max_length=2)
     taxable_income: float
+    filing_status: FilingStatus = "single"
 
 
 class SelfEmploymentRequest(TaxYearModel):

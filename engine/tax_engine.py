@@ -373,15 +373,26 @@ def feie_estimate(foreign_earned_income: float, days_abroad: int, tax_year: int 
     )
 
 
-def state_income_tax(state_code: str, taxable_income: float, tax_year: int = 2025) -> dict[str, Any]:
+def state_income_tax(
+    state_code: str,
+    taxable_income: float,
+    filing_status: str = "single",
+    tax_year: int = 2025,
+) -> dict[str, Any]:
     """Calculate supported state income tax, or explicitly decline unsupported states."""
 
     rules = load_state_rules(tax_year)
     code = state_code.upper()
     state = rules["states"].get(code)
+    input_data = {
+        "state": code,
+        "taxable_income": taxable_income,
+        "filing_status": filing_status,
+        "tax_year": tax_year,
+    }
     if not state:
         return _not_covered(
-            input_data={"state": code, "taxable_income": taxable_income, "tax_year": tax_year},
+            input_data=input_data,
             rule_version=rules["rule_version"],
             reason=f"State {code} is not present in stored 2025 state rules.",
         )
@@ -389,14 +400,14 @@ def state_income_tax(state_code: str, taxable_income: float, tax_year: int = 202
     status = state["status"]
     if status in {"pending_extraction", "source_pending"}:
         return _not_covered(
-            input_data={"state": code, "taxable_income": taxable_income, "tax_year": tax_year},
+            input_data=input_data,
             rule_version=rules["rule_version"],
             citations=_citations(state),
             reason=f"State {code} rule status is {status}; calculation is blocked until sourced and extracted.",
         )
     if status != "effective":
         return _not_covered(
-            input_data={"state": code, "taxable_income": taxable_income, "tax_year": tax_year},
+            input_data=input_data,
             rule_version=rules["rule_version"],
             citations=_citations(state),
             reason=f"State {code} rule status is {status}.",
@@ -409,7 +420,7 @@ def state_income_tax(state_code: str, taxable_income: float, tax_year: int = 202
         tax = taxable * rate
         return _response(
             status="ok",
-            input_data={"state": code, "taxable_income": taxable_income, "tax_year": tax_year},
+            input_data=input_data,
             result={
                 "state": code,
                 "tax": _money(tax),
@@ -424,8 +435,31 @@ def state_income_tax(state_code: str, taxable_income: float, tax_year: int = 202
             assumptions=["State-specific deductions and credits are not included."],
         )
 
+    if tax_type == "progressive":
+        filing = _normalize_filing_status(filing_status)
+        tax = bracket_tax(taxable, state["brackets"][filing])
+        return _response(
+            status="ok",
+            input_data={**input_data, "filing_status": filing},
+            result={
+                "state": code,
+                "tax": tax,
+                "income_tax_type": "progressive",
+            },
+            breakdown=[
+                {"label": "taxable_income", "amount": _money(taxable)},
+                {"label": "state_income_tax", "amount": tax},
+            ],
+            rule_version=rules["rule_version"],
+            citations=_citations(state),
+            assumptions=[
+                "State-specific deductions and credits are not included.",
+                state["notes"],
+            ],
+        )
+
     return _not_covered(
-        input_data={"state": code, "taxable_income": taxable_income, "tax_year": tax_year},
+        input_data=input_data,
         rule_version=rules["rule_version"],
         citations=_citations(state),
         reason=f"State {code} income_tax_type {tax_type} is not implemented.",

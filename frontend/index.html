@@ -1231,6 +1231,7 @@ async function calcTax(){
     const state=await TaxGlobalApi.stateIncome({
       state_code:document.getElementById('tx-state').value,
       taxable_income:federal.result.taxable_income,
+      filing_status:filing,
     });
     if(requestId!==taxRequestSeq) return;
 

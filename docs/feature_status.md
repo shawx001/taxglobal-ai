@@ -15,7 +15,7 @@
 | `federal_income_tax`（联邦所得税） | ✅ | 2 | `step2_tax_engine.md` | `110376e` | Rev. Proc. 2024-40 |
 | `fica_tax`（社保+医保+附加医保） | ✅ | 2 | `step2_tax_engine.md` | `110376e` | IRS Topic 751/560, Pub 15 |
 | `feie_estimate`（海外收入豁免） | ✅ | 2 | `step2_tax_engine.md` | `110376e` | IRS FEIE / Form 2555 |
-| `state_income_tax`（州所得税，无数据州拒算） | ✅ | 2 | `step2_tax_engine.md` | `110376e` | 各州 DOR |
+| `state_income_tax`（州所得税，CA/NY 累进+无数据州拒算） | ✅ | 1.2 / 2 | `step1_2_design_ca_ny_state.md` | `this PR` | 各州 DOR |
 | `self_employment_tax`（自雇税） | ✅ | 2.1 | `step2_1_design_se_nexus.md` | `e31deea` | IRS Pub 15-A, Topic 560 |
 | `nexus_estimate`（电商经济联结预警） | ✅ | 2.1 | `step2_1_design_se_nexus.md` | `e31deea` | CDTFA / NY / TX / FL DOR |
 | `crypto_gain_estimate`（加密成本基+资本利得税） | ✅ | 2.2 | `step2_2_design_crypto.md` | `1f98a60` | IRS Topic 409/559, Rev. Proc. 2024-40 |
@@ -29,7 +29,7 @@
 | `us_federal.json`（联邦档+标准扣除） | ✅ | 1 | Rev. Proc. 2024-40 | |
 | `us_fica.json`（FICA/附加医保/自雇基数） | ✅ | 1 | IRS Topic 751/560, Pub 15/15-A | |
 | `us_feie.json`（FEIE 上限/330天） | ✅ | 1 | IRS FEIE / Form 2555 | |
-| `us_states.json`（10 州） | ✅ | 1 | 各州 DOR | CA/NY=待抽取，MA/TX=待来源 |
+| `us_states.json`（10 州） | ✅ | 1 / 1.2 | 各州 DOR | CA/NY=累进可算，MA/TX=待来源 |
 | `us_nexus.json`（经济联结阈值+`comparison`） | ✅ | 1 / 2.1 | CDTFA/NY/TX/FL | WA=待来源 |
 | `us_capital_gains.json`（LTCG/STCG/NIIT） | ✅ | 1.1 | Rev. Proc. 2024-40, IRS Topic 409/559 | |
 | `knowledge/us_core_knowledge.json`（知识候选） | ✅ | 1 | 同上 | 入库待 Step 6 |
@@ -69,6 +69,7 @@
 | 2.1 SE+Nexus | `step2_1_design_se_nexus.md` | `step2_1_se_nexus_engine.md` |
 | 3 黄金测试+CI（曾称 M3） | `step3_design_golden_tests.md` | `step3_golden_tests.md` |
 | 1.1 资本利得数据 | `step1_1_design_capital_gains.md` | `step1_1_capital_gains_data.md` |
+| 1.2 CA/NY 州税累进数据 | `step1_2_design_ca_ny_state.md` | `step1_2_ca_ny_state.md` |
 | 2.2 加密计算 | `step2_2_design_crypto.md` | `step2_2_crypto_engine.md` |
 | 2.3 RSU | `step2_3_design_rsu.md` | `step2_3_rsu_engine.md` |
 | 4 FastAPI 后端 | `step4_design_fastapi.md` | `step4_fastapi_backend.md` |

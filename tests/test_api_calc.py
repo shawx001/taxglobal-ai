@@ -16,6 +16,10 @@ class CalcApiTests(unittest.TestCase):
             os.environ.pop("TAXGLOBAL_CORS_ORIGINS", None)
             return TestClient(create_app())
 
+    def cors_client_with_env(self, value):
+        with patch.dict(os.environ, {"TAXGLOBAL_CORS_ORIGINS": value}, clear=False):
+            return TestClient(create_app())
+
     def assert_response_has_trace_id(self, response):
         self.assertIn("X-Request-ID", response.headers)
         self.assertTrue(response.headers["X-Request-ID"])
@@ -61,6 +65,40 @@ class CalcApiTests(unittest.TestCase):
         )
 
         self.assertNotIn("access-control-allow-origin", response.headers)
+
+    def test_blank_cors_env_falls_back_to_default_dev_origins(self):
+        client = self.cors_client_with_env(" , ")
+        response = client.options(
+            "/calc/federal-income",
+            headers={
+                "Origin": "http://127.0.0.1:5173",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers["access-control-allow-origin"], "http://127.0.0.1:5173")
+
+    def test_configured_cors_env_overrides_default_dev_origins(self):
+        client = self.cors_client_with_env("https://app.example.com")
+        allowed = client.options(
+            "/calc/federal-income",
+            headers={
+                "Origin": "https://app.example.com",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+        default_dev = client.options(
+            "/calc/federal-income",
+            headers={
+                "Origin": "http://127.0.0.1:5173",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+        self.assertEqual(allowed.status_code, 200)
+        self.assertEqual(allowed.headers["access-control-allow-origin"], "https://app.example.com")
+        self.assertNotIn("access-control-allow-origin", default_dev.headers)
 
     def test_calc_routes_return_engine_payloads(self):
         cases = [

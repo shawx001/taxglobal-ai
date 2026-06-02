@@ -34,8 +34,10 @@ DEFAULT_DEV_CORS_ORIGINS = [
 
 def _cors_origins() -> list[str]:
     configured = os.environ.get("TAXGLOBAL_CORS_ORIGINS")
-    if configured:
-        return [origin.strip() for origin in configured.split(",") if origin.strip()]
+    if configured is not None:
+        origins = [origin.strip() for origin in configured.split(",") if origin.strip()]
+        if origins:
+            return origins
     return DEFAULT_DEV_CORS_ORIGINS
 
 

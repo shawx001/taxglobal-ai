@@ -1266,7 +1266,7 @@ async function calcTax(){
   }catch(error){
     if(requestId!==taxRequestSeq) return;
     const message=error&&error.code==='service_unavailable'?taxText('backendDown'):(error&&error.message?error.message:taxText('backendDown'));
-    res.innerHTML = '<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+message+'</div></div>';
+    res.innerHTML = '<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+escapeHtml(message)+'</div></div>';
     adv.innerHTML = taxText('apiDriven');
   }
 }

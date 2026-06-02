@@ -51,5 +51,13 @@
     federalIncome: function (payload) { return postCalc("/calc/federal-income", payload); },
     fica: function (payload) { return postCalc("/calc/fica", payload); },
     stateIncome: function (payload) { return postCalc("/calc/state-income", payload); },
+    rsu: function (payload) {
+      var apiPayload = Object.assign({}, payload);
+      if (typeof apiPayload.fair_market_value_per_share !== "undefined") {
+        apiPayload.fmv_per_share = apiPayload.fair_market_value_per_share;
+        delete apiPayload.fair_market_value_per_share;
+      }
+      return postCalc("/calc/rsu", apiPayload);
+    },
   };
 }());

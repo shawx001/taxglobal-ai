@@ -627,6 +627,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
     <div class="g2">
       <div class="card"><div class="ch"><div class="ct">海外收入豁免</div></div><div class="cb">
         <div class="field"><label class="flabel">海外赚取收入</label><input class="inp mono" type="number" id="feie-income" value="140000" oninput="calcFEIE()"></div>
+        <div style="font-size:12px;color:var(--ink3);line-height:1.55;margin:-4px 0 14px">FEIE 只适用于海外劳动/服务赚取收入；海外股息、利息、租金、资本利得等被动收入后续走 FTC / 被动收入模块。</div>
         <div class="field"><label class="flabel">海外居住天数（330天测试）</label><input class="inp mono" type="number" id="feie-days" value="340" oninput="calcFEIE()"></div>
         <div class="field"><label class="flabel">居住国</label>
           <select class="sel" id="feie-country" onchange="calcFEIE()">
@@ -963,7 +964,7 @@ function toggleType(k, container){
   if(i>=0) selectedTypes.splice(i,1); else selectedTypes.push(k);
   renderObTypes(container, true);
   if(container==='obTypes') document.getElementById('ob0next').disabled = selectedTypes.length===0;
-  if(container==='profileTypes'){ if(selectedTypes.length===0) selectedTypes.push(k); buildNav(); renderEnabled(); renderIdDetails(); renderDash(); setCopilotContext('profile'); toast('功能与方案已实时更新'); }
+  if(container==='profileTypes'){ if(selectedTypes.length===0) selectedTypes.push(k); buildNav(); buildTaxSubtabs(); renderEnabled(); renderIdDetails(); renderDash(); setCopilotContext('profile'); toast('功能与方案已实时更新'); }
 }
 function obNext(){ if(obStep===0 && selectedTypes.length===0) return; obStep++; showObStep(); }
 function obBack(){ obStep--; showObStep(); }
@@ -1178,22 +1179,27 @@ function taxText(key){
   return copy[key]||key;
 }
 function taxMoney(value){ return '$'+f(Number(value)||0); }
+function escapeHtml(value){
+  return String(value==null?'':value).replace(/[&<>"']/g, function(ch){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
+  });
+}
 function taxCitations(citations){
   if(!citations||!citations.length) return '';
-  return citations.map(c=>'<span class="cite" title="'+(c.citation||c.source_id||'')+'">'+(c.source_id||'source')+'</span>').join(' ');
+  return citations.map(c=>'<span class="cite" title="'+escapeHtml(c.citation||c.source_id||'')+'">'+escapeHtml(c.source_id||'source')+'</span>').join(' ');
 }
 function taxAssumptions(items){
   if(!items||!items.length) return '';
-  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+taxText('assumptions')+': '+items.join(' · ')+'</div>';
+  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+taxText('assumptions')+': '+items.map(escapeHtml).join(' · ')+'</div>';
 }
 function taxBreakdown(items){
   if(!items||!items.length) return '';
-  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3);line-height:1.5">'+items.map(i=>i.label+': '+taxMoney(i.amount)).join('<br>')+'</div>';
+  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3);line-height:1.5">'+items.map(i=>escapeHtml(i.label)+': '+taxMoney(i.amount)).join('<br>')+'</div>';
 }
 function taxBlock(title, amount, payload, options){
   options=options||{};
   const amountHtml=options.notCovered?'<span style="color:var(--gold)">'+taxText('notCovered')+'</span>':taxMoney(amount);
-  const reason=options.reason?'<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+options.reason+'</div>':'';
+  const reason=options.reason?'<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+escapeHtml(options.reason)+'</div>':'';
   return '<div style="padding:12px 0;border-bottom:1px solid var(--bd2)">'+
     '<div class="rrow"><span class="rl">'+title+' '+taxCitations(payload&&payload.citations)+'</span><span class="rv">'+amountHtml+'</span></div>'+
     reason+taxBreakdown(payload&&payload.breakdown)+taxAssumptions(payload&&payload.assumptions)+
@@ -1260,7 +1266,7 @@ async function calcTax(){
   }catch(error){
     if(requestId!==taxRequestSeq) return;
     const message=error&&error.code==='service_unavailable'?taxText('backendDown'):(error&&error.message?error.message:taxText('backendDown'));
-    res.innerHTML = '<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+message+'</div></div>';
+    res.innerHTML = '<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+escapeHtml(message)+'</div></div>';
     adv.innerHTML = taxText('apiDriven');
   }
 }
@@ -1270,9 +1276,10 @@ function usEff(income,filing,k401){ return (usTaxTotal(income,filing,k401)/incom
 
 /* ════════ 子 Tab ════════ */
 function buildTaxSubtabs(){
-  const subSet=new Set(['normal']);
+  const subSet=new Set(['normal','feie']);
+  if(selectedTypes.includes('nomad')) subSet.add('rsu');
   selectedTypes.forEach(k=>TYPES[k].taxSub.forEach(s=>subSet.add(s)));
-  const labels={normal:'普通收入','rsu':'RSU / 期权','self':'自雇收入','feie':'海外 FEIE','crypto-inline':'加密收益'};
+  const labels={normal:'普通收入','rsu':'RSU / 期权','self':'自雇收入','feie':'海外收入 / FEIE','crypto-inline':'加密收益'};
   const order=['normal','rsu','self','feie','crypto-inline'];
   const subs=order.filter(s=>subSet.has(s));
   document.getElementById('taxSubtabs').innerHTML=subs.map((s,i)=>

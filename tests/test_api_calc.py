@@ -1,4 +1,6 @@
+import os
 import unittest
+from unittest.mock import patch
 
 from starlette.testclient import TestClient
 
@@ -8,6 +10,15 @@ from backend.main import app, create_app
 class CalcApiTests(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
+
+    def default_cors_client(self):
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("TAXGLOBAL_CORS_ORIGINS", None)
+            return TestClient(create_app())
+
+    def cors_client_with_env(self, value):
+        with patch.dict(os.environ, {"TAXGLOBAL_CORS_ORIGINS": value}, clear=False):
+            return TestClient(create_app())
 
     def assert_response_has_trace_id(self, response):
         self.assertIn("X-Request-ID", response.headers)
@@ -30,7 +41,34 @@ class CalcApiTests(unittest.TestCase):
         self.assert_response_has_trace_id(response)
 
     def test_local_frontend_origin_gets_cors_headers(self):
-        response = self.client.options(
+        client = self.default_cors_client()
+        response = client.options(
+            "/calc/federal-income",
+            headers={
+                "Origin": "http://127.0.0.1:5173",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access-control-allow-origin", response.headers)
+        self.assertEqual(response.headers["access-control-allow-origin"], "http://127.0.0.1:5173")
+
+    def test_untrusted_origin_does_not_get_cors_allow_origin(self):
+        client = self.default_cors_client()
+        response = client.options(
+            "/calc/federal-income",
+            headers={
+                "Origin": "http://evil.example",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+        self.assertNotIn("access-control-allow-origin", response.headers)
+
+    def test_blank_cors_env_falls_back_to_default_dev_origins(self):
+        client = self.cors_client_with_env(" , ")
+        response = client.options(
             "/calc/federal-income",
             headers={
                 "Origin": "http://127.0.0.1:5173",
@@ -40,6 +78,27 @@ class CalcApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["access-control-allow-origin"], "http://127.0.0.1:5173")
+
+    def test_configured_cors_env_overrides_default_dev_origins(self):
+        client = self.cors_client_with_env("https://app.example.com")
+        allowed = client.options(
+            "/calc/federal-income",
+            headers={
+                "Origin": "https://app.example.com",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+        default_dev = client.options(
+            "/calc/federal-income",
+            headers={
+                "Origin": "http://127.0.0.1:5173",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+        self.assertEqual(allowed.status_code, 200)
+        self.assertEqual(allowed.headers["access-control-allow-origin"], "https://app.example.com")
+        self.assertNotIn("access-control-allow-origin", default_dev.headers)
 
     def test_calc_routes_return_engine_payloads(self):
         cases = [

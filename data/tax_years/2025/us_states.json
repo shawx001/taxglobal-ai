@@ -3,11 +3,13 @@
   "rule_version": "us-2025-states-v0.1",
   "tax_year": 2025,
   "jurisdiction": "US_STATES",
+  "effective_date": "2025-01-01",
   "states": {
     "CA": {
       "name": "California",
       "income_tax_type": "progressive",
       "status": "pending_extraction",
+      "effective_date": null,
       "source_ids": ["ca_2025_540_tax_rate_schedules"],
       "notes": "Official 2025 FTB tax rate schedules are archived. Bracket extraction is intentionally deferred until a reliable PDF/table extraction path is added."
     },
@@ -15,6 +17,7 @@
       "name": "New York",
       "income_tax_type": "progressive",
       "status": "pending_extraction",
+      "effective_date": null,
       "source_ids": ["ny_2025_it201_instructions", "ny_2025_tax_tables"],
       "notes": "Official 2025 NY IT-201 instructions and tax tables are archived. Bracket extraction is deferred to avoid hand-copying complex table values."
     },
@@ -22,6 +25,7 @@
       "name": "Illinois",
       "income_tax_type": "flat",
       "status": "effective",
+      "effective_date": "2025-01-01",
       "flat_rate": 0.0495,
       "source_ids": ["il_2025_individual_income_tax_whats_new"],
       "citation": "Illinois Department of Revenue 2025 individual income tax instructions state the Illinois income tax rate is 4.95%."
@@ -30,6 +34,7 @@
       "name": "Colorado",
       "income_tax_type": "flat",
       "status": "effective",
+      "effective_date": "2025-01-01",
       "flat_rate": 0.044,
       "source_ids": ["co_individual_income_tax_guide"],
       "citation": "Colorado Individual Income Tax Guide lists the 2025 Colorado income tax rate as 4.4%."
@@ -38,6 +43,7 @@
       "name": "Georgia",
       "income_tax_type": "flat",
       "status": "effective",
+      "effective_date": "2025-01-01",
       "flat_rate": 0.0519,
       "source_ids": ["ga_2025_it511_booklet"],
       "citation": "Georgia 2025 IT-511 booklet states the 2025 income tax rate is 5.19%."
@@ -46,6 +52,7 @@
       "name": "Florida",
       "income_tax_type": "none",
       "status": "effective",
+      "effective_date": "2025-01-01",
       "flat_rate": 0,
       "source_ids": ["fl_personal_income_tax_faq"],
       "citation": "Florida Department of Revenue FAQ states Florida does not impose a personal income tax."
@@ -54,6 +61,7 @@
       "name": "Washington",
       "income_tax_type": "none",
       "status": "effective",
+      "effective_date": "2025-01-01",
       "flat_rate": 0,
       "source_ids": ["wa_income_tax"],
       "citation": "Washington Department of Revenue states Washington does not have an individual income tax."
@@ -62,6 +70,7 @@
       "name": "Nevada",
       "income_tax_type": "none",
       "status": "effective",
+      "effective_date": "2025-01-01",
       "flat_rate": 0,
       "source_ids": ["nv_tax_notes_194"],
       "citation": "Nevada Department of Taxation Tax Notes states Nevada does not impose an individual income tax."
@@ -70,6 +79,7 @@
       "name": "Massachusetts",
       "income_tax_type": "flat",
       "status": "source_pending",
+      "effective_date": null,
       "source_ids": [],
       "notes": "Massachusetts official tax-rate page returned 403 during scripted archive. Do not use a Massachusetts rate until an official source is archived."
     },
@@ -77,6 +87,7 @@
       "name": "Texas",
       "income_tax_type": "none",
       "status": "source_pending",
+      "effective_date": null,
       "source_ids": [],
       "notes": "No official individual income tax source has been archived yet. Treat Texas state income tax as not ready for calculation despite prototype assumptions."
     }

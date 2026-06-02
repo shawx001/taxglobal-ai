@@ -4,10 +4,12 @@
   "tax_year": 2025,
   "jurisdiction": "US_STATES",
   "status": "partial",
+  "effective_date": "2025-01-01",
   "thresholds": {
     "CA": {
       "name": "California",
       "sales_amount": 500000,
+      "effective_date": "2025-01-01",
       "transaction_count": null,
       "measurement_period": "preceding_or_current_calendar_year",
       "marketplace_sales_included_in_threshold": true,
@@ -17,6 +19,7 @@
     "NY": {
       "name": "New York",
       "sales_amount": 500000,
+      "effective_date": "2025-01-01",
       "transaction_count": 100,
       "condition": "amount_and_transactions",
       "measurement_period": "immediately_preceding_four_sales_tax_quarters",
@@ -26,6 +29,7 @@
     "TX": {
       "name": "Texas",
       "sales_amount": 500000,
+      "effective_date": "2025-01-01",
       "transaction_count": null,
       "measurement_period": "past_12_months",
       "source_ids": ["tx_remote_sellers_sales_tax", "tx_sales_use_tax_permit_faq"],
@@ -34,6 +38,7 @@
     "FL": {
       "name": "Florida",
       "sales_amount": 100000,
+      "effective_date": "2025-01-01",
       "transaction_count": null,
       "measurement_period": "previous_calendar_year",
       "source_ids": ["fl_registration_remote_seller"],
@@ -42,6 +47,7 @@
     "WA": {
       "name": "Washington",
       "status": "source_pending",
+      "effective_date": null,
       "source_ids": ["wa_retail_sales_tax"],
       "notes": "Washington retail sales tax source archived, but economic nexus threshold source has not yet been archived. Do not use the prototype $100,000 threshold until sourced."
     }

@@ -4,7 +4,8 @@
   "tax_year": 2025,
   "jurisdiction": "US",
   "status": "effective",
-  "sources": ["irs_rp_2024_40"],
+  "effective_date": "2025-01-01",
+  "source_ids": ["irs_rp_2024_40"],
   "standard_deduction": {
     "single": 15000,
     "married_filing_separately": 15000,
@@ -12,6 +13,7 @@
     "qualifying_surviving_spouse": 30000,
     "head_of_household": 22500,
     "citation": "Rev. Proc. 2024-40, standard deduction amounts for tax year 2025",
+    "effective_date": "2025-01-01",
     "source_ids": ["irs_rp_2024_40"]
   },
   "ordinary_income_brackets": {
@@ -52,6 +54,7 @@
       {"up_to": null, "rate": 0.37}
     ],
     "citation": "Rev. Proc. 2024-40, tax rate schedules for tax year 2025",
+    "effective_date": "2025-01-01",
     "source_ids": ["irs_rp_2024_40"]
   }
 }

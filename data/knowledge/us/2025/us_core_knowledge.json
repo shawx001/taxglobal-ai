@@ -3,10 +3,13 @@
   "knowledge_version": "us-2025-core-knowledge-v0.1",
   "tax_year": 2025,
   "jurisdiction": "US",
+  "effective_date": "2025-01-01",
   "items": [
     {
       "knowledge_id": "us_2025_additional_medicare_tax",
       "topic": "additional_medicare_tax",
+      "jurisdiction": "US",
+      "effective_date": "2025-01-01",
       "summary": "Additional Medicare Tax applies at 0.9% above filing-status thresholds. Employers withhold it on wages paid over $200,000 without regard to filing status.",
       "trigger_conditions": {
         "wages_or_self_employment_income_over": {
@@ -22,6 +25,8 @@
     {
       "knowledge_id": "us_2025_feie_physical_presence",
       "topic": "foreign_earned_income_exclusion",
+      "jurisdiction": "US",
+      "effective_date": "2025-01-01",
       "summary": "For 2025, the maximum foreign earned income exclusion is $130,000 per qualifying person. The physical presence test generally requires 330 full days in a foreign country during a 12-month period.",
       "trigger_conditions": {
         "foreign_earned_income_present": true,
@@ -34,6 +39,7 @@
       "knowledge_id": "us_2025_ca_sales_tax_nexus",
       "topic": "sales_tax_nexus",
       "jurisdiction": "CA",
+      "effective_date": "2025-01-01",
       "summary": "California economic nexus generally applies when sales of tangible merchandise for delivery in California exceed $500,000 in the preceding or current calendar year.",
       "trigger_conditions": {
         "state": "CA",
@@ -46,6 +52,7 @@
       "knowledge_id": "us_2025_ny_sales_tax_nexus",
       "topic": "sales_tax_nexus",
       "jurisdiction": "NY",
+      "effective_date": "2025-01-01",
       "summary": "New York sales tax registration is required when the prior four sales tax quarters exceed both $500,000 in gross receipts and more than 100 sales transactions into New York.",
       "trigger_conditions": {
         "state": "NY",
@@ -59,6 +66,7 @@
       "knowledge_id": "us_2025_fl_no_personal_income_tax",
       "topic": "state_income_tax",
       "jurisdiction": "FL",
+      "effective_date": "2025-01-01",
       "summary": "Florida does not impose a personal income tax, so there are no Florida personal income tax filing requirements.",
       "trigger_conditions": {
         "state": "FL"

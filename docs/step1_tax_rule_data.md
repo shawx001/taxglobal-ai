@@ -22,6 +22,11 @@ This step serves the future calculation engine, alert engine, and Copilot retrie
   - `data/knowledge/us/2025/us_core_knowledge.json`
 - Added validation script:
   - `tests/validate_step1_data.ps1`
+- Hardened rule metadata before engine work:
+  - effective rules now include `effective_date`
+  - top-level rule files use `source_ids`
+  - validation checks rule-file source references, not only knowledge references
+  - validation blocks pending state rules from carrying usable rates or brackets
 
 ## Acceptance Criteria
 
@@ -31,6 +36,9 @@ This step serves the future calculation engine, alert engine, and Copilot retrie
 - JSON files parse successfully.
 - Core federal/FICA/FEIE fields match the verified official-source values.
 - Knowledge items reference known source IDs.
+- Effective rules and knowledge items include `effective_date`.
+- Rule files do not use the deprecated `sources` key.
+- `source_pending` / `pending_extraction` state rules cannot carry usable rates or brackets.
 - Prototype files remain untouched.
 
 ## Validation Commands
@@ -56,3 +64,4 @@ git diff --check
 - Whether effective rules are appropriately sourced.
 - Whether pending/unverified state rules are clearly blocked from calculation.
 - Whether validation catches missing source files, hash drift, and bad JSON.
+- Whether validation now catches rule-file source reference drift and unsafe pending-state rates.

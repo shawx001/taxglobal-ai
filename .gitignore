@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Node / frontend
+node_modules/
+dist/
+build/
+.next/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local artifacts
+*.log
+.DS_Store
+Thumbs.db
+
+# Generated reports
+coverage/
+htmlcov/

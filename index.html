@@ -1,0 +1,1885 @@
+<!-- TaxGlobal AI — 完整交互式原型 -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0C0F1A;--ink2:#2A2E3F;--ink3:#6B7280;--ink4:#9CA3AF;
+  --surf:#F4F3EF;--white:#FAFAF8;
+  --g:#1A6B4A;--g2:#2D9E6B;--gbg:#E8F5EE;
+  --gold:#C9A84C;--goldbg:#FBF5E6;
+  --blue:#1A4B8C;--bluebg:#EBF2FF;
+  --red:#C0392B;--redbg:#FDECEA;
+  --purple:#534AB7;--purplebg:#EEEDFE;
+  --bd:rgba(12,15,26,.10);--bd2:rgba(12,15,26,.06);
+}
+html,body{background:var(--surf)}
+body{font-family:'DM Sans',sans-serif;background:var(--surf);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+.mono{font-family:'DM Mono',monospace}
+.serif{font-family:'DM Serif Display',serif}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--g2);animation:pulse 2s infinite;display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+button{font-family:'DM Sans',sans-serif}
+input,select{font-family:'DM Sans',sans-serif}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:4px}
+
+/* ───── ONBOARDING ───── */
+.ob{position:fixed;inset:0;background:var(--surf);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+.ob.hide{display:none}
+.ob-card{max-width:680px;width:100%;animation:fi .4s ease}
+.ob-logo{display:flex;align-items:center;gap:9px;justify-content:center;margin-bottom:26px;font-family:'DM Serif Display',serif;font-size:18px}
+.ob-mark{width:30px;height:30px;background:var(--ink);border-radius:7px;display:flex;align-items:center;justify-content:center}
+.ob-mark svg{width:16px;height:16px;fill:var(--white)}
+.ob-steps{display:flex;gap:6px;justify-content:center;margin-bottom:30px}
+.ob-dot{width:34px;height:4px;border-radius:2px;background:var(--bd);transition:all .3s}
+.ob-dot.on{background:var(--g)}
+.ob-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--g);background:var(--gbg);padding:4px 12px;border-radius:14px;margin-bottom:14px}
+.ob-h{font-family:'DM Serif Display',serif;font-size:32px;line-height:1.1;letter-spacing:-.02em;margin-bottom:8px}
+.ob-h em{font-style:italic;color:var(--g)}
+.ob-sub{font-size:13px;color:var(--ink3);line-height:1.6;margin-bottom:24px;max-width:480px}
+.ob-types{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px}
+.ob-type{border:0.5px solid var(--bd);border-radius:13px;padding:16px 14px;background:var(--white);cursor:pointer;transition:all .18s;text-align:left;position:relative}
+.ob-type:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.06);border-color:var(--g2)}
+.ob-type.sel{border-color:var(--g);background:var(--gbg)}
+.ob-type.sel::after{content:'✓';position:absolute;top:12px;right:13px;width:18px;height:18px;background:var(--g);color:#fff;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.ob-type-emoji{font-size:24px;margin-bottom:9px}
+.ob-type-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.ob-type-desc{font-size:11px;color:var(--ink3);line-height:1.45}
+.ob-field{margin-bottom:18px}
+.ob-flabel{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:7px;display:block}
+.ob-input,.ob-select{width:100%;padding:11px 14px;border:0.5px solid var(--bd);border-radius:10px;font-size:14px;color:var(--ink);background:var(--white);outline:none;transition:border .15s}
+.ob-input:focus,.ob-select:focus{border-color:var(--g)}
+.ob-input.mono{font-family:'DM Mono',monospace}
+.ob-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ob-preview{background:var(--white);border:0.5px solid var(--bd);border-radius:13px;padding:20px;margin-bottom:24px}
+.ob-pv-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--bd2);font-size:13px}
+.ob-pv-row:last-child{border:none}
+.ob-pv-check{width:20px;height:20px;border-radius:6px;background:var(--gbg);color:var(--g);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.ob-nav{display:flex;gap:10px;justify-content:space-between;align-items:center}
+.ob-btn{padding:11px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.ob-btn.pri{background:var(--ink);color:var(--white)}
+.ob-btn.pri:hover{background:var(--g)}
+.ob-btn.pri:disabled{background:var(--ink4);cursor:not-allowed}
+.ob-btn.ghost{background:none;color:var(--ink3);border:0.5px solid var(--bd)}
+.ob-btn.ghost:hover{color:var(--ink);border-color:var(--ink3)}
+.ob-skip{font-size:12px;color:var(--ink4);cursor:pointer;text-decoration:underline}
+.ob-skip:hover{color:var(--ink3)}
+
+/* ───── APP SHELL ───── */
+.app{display:none}
+.app.on{display:block}
+nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;background:rgba(244,243,239,.95);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--bd);position:sticky;top:0;z-index:100}
+.n-logo{display:flex;align-items:center;gap:8px;font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink);flex-shrink:0}
+.n-mark{width:24px;height:24px;background:var(--ink);border-radius:5px;display:flex;align-items:center;justify-content:center}
+.n-mark svg{width:13px;height:13px;fill:var(--white)}
+.ntabs{display:flex;gap:2px;overflow-x:auto;flex:1;scrollbar-width:none}
+.ntabs::-webkit-scrollbar{display:none}
+.ntab{padding:5px 12px;border-radius:16px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border:none;background:none;transition:all .15s;white-space:nowrap}
+.ntab:hover{background:var(--bd2);color:var(--ink)}
+.ntab.on{background:var(--ink);color:var(--white)}
+.n-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.n-chip{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:14px;border:0.5px solid var(--bd);font-size:11px;font-weight:500;color:var(--ink2);background:var(--white);cursor:pointer}
+.n-chip:hover{border-color:var(--g)}
+
+.pg{display:none}.pg.on{display:block;animation:fi .25s ease}
+.wrap{max-width:1140px;margin:0 auto;padding:24px 28px 90px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--white);border:0.5px solid var(--bd);border-radius:14px;overflow:hidden}
+.ch{padding:13px 18px;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.ct{font-size:13px;font-weight:600;color:var(--ink)}
+.cb{padding:16px 18px}
+.mcard{background:var(--white);border:0.5px solid var(--bd);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden}
+.mac{position:absolute;top:0;left:0;width:3px;height:100%}
+.mlabel{font-size:11px;color:var(--ink3);margin-bottom:5px}
+.mval{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);line-height:1}
+.msub{font-size:11px;color:var(--ink4);margin-top:3px}
+.badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;display:inline-block}
+.bg{background:var(--gbg);color:var(--g)}
+.bb{background:var(--bluebg);color:var(--blue)}
+.by{background:var(--goldbg);color:#7A6000}
+.br2{background:var(--redbg);color:var(--red)}
+.bp{background:var(--purplebg);color:var(--purple)}
+.bgr{background:var(--surf);color:var(--ink3);border:0.5px solid var(--bd)}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--g);background:var(--gbg);padding:4px 12px;border-radius:14px;margin-bottom:14px}
+.h1{font-family:'DM Serif Display',serif;font-size:34px;line-height:1.08;letter-spacing:-.02em;color:var(--ink);margin-bottom:10px}
+.h1 em{font-style:italic;color:var(--g)}
+.sub{font-size:13px;color:var(--ink3);line-height:1.7;max-width:540px;margin-bottom:22px}
+.divider{display:flex;align-items:center;gap:12px;margin:28px 0 18px}
+.div-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--ink);white-space:nowrap}
+.div-line{flex:1;height:0.5px;background:var(--bd)}
+.div-badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;white-space:nowrap}
+
+/* generic inputs */
+.field{margin-bottom:14px}
+.flabel{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.inp{width:100%;padding:9px 12px;border:0.5px solid var(--bd);border-radius:9px;font-size:13px;color:var(--ink);background:var(--surf);outline:none;transition:border .15s}
+.inp:focus{border-color:var(--g)}
+.inp.mono{font-family:'DM Mono',monospace}
+.sel{width:100%;padding:9px 12px;border:0.5px solid var(--bd);border-radius:9px;font-size:13px;color:var(--ink);background:var(--surf);outline:none;cursor:pointer}
+.btn{padding:9px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn.pri{background:var(--ink);color:var(--white)}
+.btn.pri:hover{background:var(--g)}
+.btn.ghost{background:var(--surf);color:var(--ink2);border:0.5px solid var(--bd)}
+.btn.ghost:hover{border-color:var(--g);color:var(--g)}
+.range{width:100%;accent-color:var(--g)}
+
+/* result rows */
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:0.5px solid var(--bd2);font-size:13px}
+.rrow:last-child{border:none}
+.rrow .rl{color:var(--ink2);display:flex;align-items:center;gap:7px}
+.rrow .rv{font-family:'DM Mono',monospace;font-weight:500;color:var(--ink)}
+.rrow.tot{border-top:1px solid var(--bd);margin-top:4px;padding-top:12px}
+.rrow.tot .rl{font-weight:600;font-size:14px}
+.rrow.tot .rv{font-family:'DM Serif Display',serif;font-size:20px;color:var(--g)}
+.cite{font-family:'DM Mono',monospace;font-size:10px;color:var(--g);background:var(--gbg);padding:1px 5px;border-radius:4px;cursor:help}
+.subtabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.subtab{padding:6px 14px;border-radius:18px;font-size:12px;font-weight:500;color:var(--ink3);cursor:pointer;border:0.5px solid var(--bd);background:var(--white);transition:all .15s}
+.subtab:hover{border-color:var(--g);color:var(--g)}
+.subtab.on{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.subpg{display:none}.subpg.on{display:block;animation:fi .2s ease}
+
+/* dashboard */
+.todo{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:0.5px solid var(--bd2);cursor:pointer;transition:all .15s}
+.todo:last-child{border:none}
+.todo:hover{padding-left:4px}
+.todo-ico{width:30px;height:30px;border-radius:9px;background:var(--gbg);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.todo.off .todo-ico{background:var(--surf);opacity:.6}
+.todo-body{flex:1}
+.todo-text{font-size:13px;color:var(--ink);font-weight:500;line-height:1.4}
+.todo.off .todo-text{color:var(--ink3)}
+.todo-meta{font-size:11px;color:var(--ink4);margin-top:2px}
+.todo-arr{color:var(--ink4);font-size:14px;align-self:center}
+.wdg{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:0.5px solid var(--bd2)}
+.wdg:last-child{border:none}
+.wdg-ico{width:30px;height:30px;border-radius:9px;background:var(--bluebg);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.wdg-body{flex:1}
+.wdg-text{font-size:13px;color:var(--ink);font-weight:500}
+.wdg-sub{font-size:11px;color:var(--ink4);margin-top:1px}
+.prog-mini{height:5px;background:var(--bd2);border-radius:3px;overflow:hidden;margin-top:6px}
+.prog-mini-fill{height:100%;border-radius:3px;transition:width .6s}
+</style>
+<style>
+/* ── jurisdiction / city cards ── */
+.jur-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px}
+.jur-card{background:var(--white);border:0.5px solid var(--bd);border-radius:14px;padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.jur-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.07)}
+.jur-card.best{border-color:var(--g)}
+.jur-card.best::after{content:'推荐';position:absolute;top:-1px;right:12px;font-size:9px;font-weight:700;background:var(--g);color:#fff;padding:2px 8px;border-radius:0 0 6px 6px}
+.jur-flag{font-size:22px;margin-bottom:8px}
+.jur-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.jur-sub{font-size:10px;color:var(--ink3);margin-bottom:12px}
+.jur-rate{font-family:'DM Serif Display',serif;font-size:28px;line-height:1;margin-bottom:3px}
+.jur-rate.low{color:var(--g)}.jur-rate.mid{color:var(--gold)}.jur-rate.high{color:var(--red)}
+.jur-note{font-size:11px;color:var(--ink3);margin-bottom:10px;line-height:1.4}
+.jur-bar{height:3px;background:var(--bd2);border-radius:2px;overflow:hidden}
+.jur-fill{height:100%;border-radius:2px;transition:width .6s}
+.jur-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.jur-tag{font-size:9px;padding:2px 7px;border-radius:6px;font-weight:600}
+
+/* ── nomad ranking ── */
+.nomad-card{background:var(--white);border:0.5px solid var(--bd);border-radius:14px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .18s}
+.nomad-card:hover{transform:translateX(3px);box-shadow:0 6px 16px rgba(0,0,0,.06)}
+.nomad-card.top{border-color:var(--g);background:linear-gradient(to right,var(--gbg),var(--white) 60%)}
+.nomad-rank{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink4);width:36px;text-align:center;flex-shrink:0}
+.nomad-card.top .nomad-rank{color:var(--g)}
+.nomad-flag{font-size:30px;flex-shrink:0}
+.nomad-info{flex:1;min-width:0}
+.nomad-city{font-size:15px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+.nomad-regime{font-size:11px;color:var(--ink3);margin-top:2px}
+.nomad-metrics{display:flex;gap:18px;flex-shrink:0}
+.nomad-metric{text-align:center}
+.nomad-mval{font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:var(--ink)}
+.nomad-mlabel{font-size:9px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+.nomad-score{font-family:'DM Serif Display',serif;font-size:24px;color:var(--g);width:54px;text-align:right;flex-shrink:0}
+
+/* ── W2 ── */
+.w2-grid{display:grid;grid-template-columns:360px 1fr;gap:16px}
+.drop-zone{border:1.5px dashed var(--bd);border-radius:11px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surf);margin-bottom:14px}
+.drop-zone:hover{border-color:var(--g);background:var(--gbg)}
+.drop-icon{width:46px;height:46px;border-radius:13px;background:var(--ink);display:flex;align-items:center;justify-content:center;margin:0 auto 11px;font-size:21px}
+.drop-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.drop-sub{font-size:11px;color:var(--ink3);line-height:1.5}
+.drop-fmts{display:flex;gap:5px;justify-content:center;margin-top:11px}
+.dfmt{font-size:10px;font-weight:600;padding:2px 8px;border-radius:7px;background:var(--white);color:var(--ink3);border:0.5px solid var(--bd)}
+.or-div{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.or-line{flex:1;height:0.5px;background:var(--bd)}
+.or-txt{font-size:11px;color:var(--ink4)}
+.prog-wrap{margin-top:10px;display:none}.prog-wrap.show{display:block}
+.prog-label2{font-size:11px;color:var(--ink3);margin-bottom:5px;display:flex;justify-content:space-between}
+.prog-track{height:4px;background:var(--bd2);border-radius:2px;overflow:hidden}
+.prog-fill2{height:100%;background:var(--g);border-radius:2px;transition:width .4s;width:0}
+.w2-preview{display:none;margin-top:14px}.w2-preview.show{display:block;animation:fi .3s ease}
+.w2fg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.w2f{padding:9px 11px;background:var(--surf);border-radius:8px;border:0.5px solid var(--bd2)}
+.wf-box{font-size:9px;font-weight:700;color:var(--ink4);letter-spacing:.06em;margin-bottom:1px}
+.wf-label{font-size:10px;color:var(--ink3);margin-bottom:3px}
+.wf-val{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--ink)}
+.rph{text-align:center;padding:48px 20px;color:var(--ink3)}
+.rph-icon{width:54px;height:54px;border-radius:15px;background:var(--surf);border:0.5px solid var(--bd);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px}
+.rph-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:5px}
+.rc-content{display:none}.rc-content.show{display:block;animation:fi .3s ease}
+.refund-banner{background:var(--gbg);border:0.5px solid rgba(45,158,107,.3);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.rb-amount{font-family:'DM Serif Display',serif;font-size:30px;color:var(--ink);line-height:1}
+.rb-label{font-size:11px;font-weight:600;color:var(--g);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.rb-sub{font-size:11px;color:var(--ink3);margin-top:3px}
+.form1040{border:0.5px solid var(--bd);border-radius:11px;overflow:hidden;margin-bottom:14px}
+.f-head{background:var(--ink);color:var(--white);padding:11px 15px;display:flex;align-items:center;justify-content:space-between}
+.f-head-title{font-family:'DM Serif Display',serif;font-size:14px}
+.f-head-sub{font-size:10px;color:rgba(255,255,255,.5)}
+.f-year{font-family:'DM Mono',monospace;font-size:18px;color:var(--gold)}
+.f-sec{padding:11px 15px;border-bottom:0.5px solid var(--bd)}
+.f-sec:last-child{border:none}
+.f-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px}
+.f-label{color:var(--ink2)}
+.f-linenum{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink4);margin-right:6px}
+.f-val{font-family:'DM Mono',monospace;font-weight:500;color:var(--ink)}
+.f-total{background:var(--surf);padding:11px 15px;display:flex;justify-content:space-between;align-items:center}
+.f-total-label{font-size:12px;font-weight:600;color:var(--ink)}
+.f-total-val{font-family:'DM Serif Display',serif;font-size:20px;color:var(--g)}
+.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.doc-card{padding:10px 12px;border:0.5px solid var(--bd);border-radius:9px;background:var(--surf);display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .15s}
+.doc-card:hover{border-color:var(--g);background:var(--gbg)}
+.doc-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.doc-name{font-size:12px;font-weight:600;color:var(--ink)}
+.doc-desc{font-size:10px;color:var(--ink3)}
+
+/* ── ecom nexus ── */
+.nexus-row{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:0.5px solid var(--bd2)}
+.nexus-row:last-child{border:none}
+.nexus-state{font-size:13px;font-weight:600;color:var(--ink);width:90px;flex-shrink:0}
+.nexus-bar-wrap{flex:1}
+.nexus-bar{height:8px;background:var(--bd2);border-radius:4px;overflow:hidden}
+.nexus-bar-fill{height:100%;border-radius:4px;transition:width .8s}
+.nexus-nums{display:flex;justify-content:space-between;font-size:10px;color:var(--ink4);margin-top:3px}
+.nexus-pct{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;width:54px;text-align:right;flex-shrink:0}
+.alert-box{background:var(--redbg);border:0.5px solid rgba(192,57,43,.3);border-radius:11px;padding:14px 16px;display:flex;gap:12px;margin-bottom:16px}
+.alert-ico{font-size:20px;flex-shrink:0}
+.alert-title{font-size:13px;font-weight:600;color:var(--red);margin-bottom:3px}
+.alert-text{font-size:12px;color:var(--ink2);line-height:1.5}
+.txn-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:0.5px solid var(--bd2);font-size:12px}
+.txn-row:last-child{border:none}
+.txn-cat{padding:2px 9px;border-radius:7px;font-size:10px;font-weight:600;flex-shrink:0}
+.txn-conf{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3);width:46px;text-align:right}
+.txn-act{font-size:11px;color:var(--g);cursor:pointer;font-weight:600;flex-shrink:0}
+.txn-act:hover{text-decoration:underline}
+
+/* ── crypto ── */
+.crypto-method{display:flex;gap:8px;margin-bottom:16px}
+.cm-btn{flex:1;padding:12px;border:0.5px solid var(--bd);border-radius:11px;background:var(--white);cursor:pointer;text-align:center;transition:all .15s}
+.cm-btn:hover{border-color:var(--g)}
+.cm-btn.sel{border-color:var(--g);background:var(--gbg)}
+.cm-name{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:var(--ink)}
+.cm-desc{font-size:10px;color:var(--ink3);margin-top:3px}
+.cm-gain{font-family:'DM Serif Display',serif;font-size:18px;margin-top:6px}
+
+/* ── floating AI ── */
+.float-btn{position:fixed;bottom:26px;right:26px;width:54px;height:54px;border-radius:27px;background:var(--ink);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(12,15,26,.25);transition:all .25s cubic-bezier(.34,1.56,.64,1);z-index:500;overflow:hidden}
+.float-btn::before{content:'';position:absolute;inset:0;background:conic-gradient(from 0deg,var(--g2),#6C8EF5,var(--gold),var(--g2));border-radius:27px;opacity:0;transition:opacity .3s}
+.float-btn:hover{transform:scale(1.08)}.float-btn:hover::before{opacity:1}
+.float-btn svg{width:21px;height:21px;fill:var(--white);position:relative;z-index:1;transition:transform .3s}
+.float-btn.open svg{transform:rotate(45deg)}
+.float-ring{position:fixed;bottom:20px;right:20px;width:66px;height:66px;border-radius:33px;border:1px solid rgba(45,158,107,.3);z-index:499;pointer-events:none;animation:ring 3s ease-in-out infinite}
+@keyframes ring{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.12);opacity:.2}}
+.chat-panel{position:fixed;bottom:90px;right:26px;width:350px;max-width:calc(100vw - 40px);background:var(--white);border-radius:18px;box-shadow:0 20px 56px rgba(12,15,26,.2);border:0.5px solid var(--bd);z-index:499;overflow:hidden;transform:scale(.88) translateY(18px);opacity:0;pointer-events:none;transform-origin:bottom right;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.chat-panel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+.cp-head{background:var(--ink);padding:13px 16px;display:flex;align-items:center;gap:10px}
+.cp-av{width:30px;height:30px;border-radius:50%;background:conic-gradient(from 0deg,var(--g2) 0%,#6C8EF5 50%,var(--gold) 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.cp-name{font-size:13px;font-weight:600;color:var(--white)}
+.cp-status{font-size:10px;color:rgba(255,255,255,.55);display:flex;align-items:center;gap:4px;margin-top:1px}
+.cp-close{width:24px;height:24px;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;margin-left:auto}
+.cp-close:hover{background:rgba(255,255,255,.2);color:var(--white)}
+.cp-msgs{padding:13px;display:flex;flex-direction:column;gap:11px;height:300px;overflow-y:auto}
+.cp-msg{display:flex;gap:7px;align-items:flex-start}
+.cp-msg.u{flex-direction:row-reverse}
+.cpav{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.cpav-ai{background:var(--ink);color:var(--white)}
+.cpav-u{background:var(--gbg);color:var(--g)}
+.cp-bub{max-width:84%;padding:9px 12px;border-radius:13px;font-size:12.5px;line-height:1.6}
+.bai{background:var(--surf);color:var(--ink);border-radius:3px 13px 13px 13px}
+.bu{background:var(--ink);color:var(--white);border-radius:13px 3px 13px 13px}
+.cp-cite{font-family:'DM Mono',monospace;font-size:10px;color:var(--g);background:var(--gbg);padding:1px 4px;border-radius:4px;margin:0 1px;white-space:nowrap}
+.td-wrap{display:flex;gap:3px;padding:9px 13px;background:var(--surf);border-radius:3px 13px 13px 13px;width:fit-content}
+.td{width:5px;height:5px;border-radius:50%;background:var(--ink3);animation:td .8s infinite}
+.td:nth-child(2){animation-delay:.15s}.td:nth-child(3){animation-delay:.3s}
+@keyframes td{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+.cp-qp{padding:9px 12px;border-top:0.5px solid var(--bd);display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
+.cp-qp::-webkit-scrollbar{display:none}
+.qp{font-size:11px;padding:4px 10px;border-radius:10px;border:0.5px solid var(--bd);background:var(--surf);color:var(--ink2);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s}
+.qp:hover{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.cp-inp{padding:10px 12px;border-top:0.5px solid var(--bd);display:flex;gap:7px}
+.cp-inp input{flex:1;border:0.5px solid var(--bd);border-radius:16px;padding:7px 13px;font-size:12.5px;color:var(--ink);background:var(--surf);outline:none}
+.cp-inp input:focus{border-color:var(--g)}
+.cp-send{width:30px;height:30px;border-radius:50%;background:var(--ink);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cp-send:hover{background:var(--g)}
+.cp-send svg{width:12px;height:12px;fill:var(--white)}
+
+/* toast */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--white);padding:12px 22px;border-radius:11px;font-size:13px;z-index:700;opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 28px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Google 登录 */
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px 14px;border:0.5px solid var(--bd);border-radius:10px;background:var(--white);font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer;transition:all .15s}
+.gbtn:hover{border-color:var(--ink3);box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.gbtn svg{width:18px;height:18px}
+.g-or{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--ink4);font-size:11px}
+.g-or::before,.g-or::after{content:'';flex:1;height:0.5px;background:var(--bd)}
+.g-demo{font-size:10.5px;color:var(--ink4);text-align:center;margin-top:9px;line-height:1.5}
+.gauth{position:fixed;inset:0;background:rgba(12,15,26,.42);backdrop-filter:blur(3px);z-index:900;display:none;align-items:center;justify-content:center;padding:20px}
+.gauth.on{display:flex}
+.gauth-card{background:#fff;border-radius:14px;max-width:380px;width:100%;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.3);animation:gpop .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes gpop{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+.gauth-top{padding:22px 24px 14px;border-bottom:0.5px solid var(--bd)}
+.gauth-logo{font-family:Arial,sans-serif;font-size:21px;font-weight:500;margin-bottom:10px}
+.gauth-logo b:nth-child(1){color:#4285F4}.gauth-logo b:nth-child(2){color:#EA4335}.gauth-logo b:nth-child(3){color:#FBBC05}.gauth-logo b:nth-child(4){color:#4285F4}.gauth-logo b:nth-child(5){color:#34A853}.gauth-logo b:nth-child(6){color:#EA4335}
+.gauth-h{font-size:16px;color:var(--ink);font-weight:500}.gauth-s{font-size:13px;color:var(--ink3);margin-top:3px}
+.gacct{display:flex;align-items:center;gap:13px;padding:13px 24px;cursor:pointer;transition:background .12s}
+.gacct:hover{background:#F7F8FA}
+.gacct-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;flex-shrink:0}
+.gacct-name{font-size:13px;color:var(--ink);font-weight:500}.gacct-email{font-size:12px;color:var(--ink3)}
+.gauth-foot{padding:14px 24px;font-size:11px;color:var(--ink4);background:#FAFAF8;border-top:0.5px solid var(--bd);line-height:1.5}
+.oauth-spin{width:26px;height:26px;border:3px solid var(--bd);border-top-color:var(--g);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cp-src{font-size:10px;color:var(--ink4);margin-top:6px;display:flex;align-items:center;gap:5px}
+.cp-src b{color:var(--g);font-weight:600}
+/* 店铺连接 */
+.store-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px}
+.store-btn{border:0.5px solid var(--bd);border-radius:11px;padding:14px 10px;background:var(--white);cursor:pointer;text-align:center;transition:all .15s;position:relative}
+.store-btn:hover{border-color:var(--g)}
+.store-btn.connected{border-color:var(--g);background:var(--gbg)}
+.store-btn.connected::after{content:'✓';position:absolute;top:8px;right:9px;width:16px;height:16px;background:var(--g);color:#fff;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.store-emoji{font-size:22px;margin-bottom:5px}.store-name{font-size:12px;font-weight:600;color:var(--ink2)}.store-stat{font-size:10px;color:var(--ink3);margin-top:2px}
+.empty-state{text-align:center;padding:34px 20px;color:var(--ink3)}.empty-state .es-ico{font-size:32px;margin-bottom:10px;opacity:.5}.empty-state .es-t{font-size:13px}
+/* 个性化方案 */
+.plan-item{display:flex;gap:12px;padding:13px 0;border-bottom:0.5px solid var(--bd2)}
+.plan-item:last-child{border-bottom:none}
+.plan-num{width:22px;height:22px;border-radius:7px;background:var(--gbg);color:var(--g);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace}
+.plan-body{flex:1}.plan-t{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.plan-d{font-size:12px;color:var(--ink3);line-height:1.55}
+.plan-save{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--g);white-space:nowrap}
+.al-row{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:0.5px solid var(--bd2);cursor:pointer}
+.al-row:last-child{border-bottom:none}
+.al-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.al-body{flex:1}.al-t{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.al-d{font-size:12px;color:var(--ink3);line-height:1.5}
+.al-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;white-space:nowrap;align-self:center}
+.idcard{border:0.5px solid var(--bd);border-radius:11px;padding:13px 14px;margin-bottom:10px;background:var(--surf)}
+.idcard-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:10px}
+@media(max-width:720px){
+  .g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr}
+  .jur-grid{grid-template-columns:1fr 1fr}.w2-grid{grid-template-columns:1fr}
+  .ob-types{grid-template-columns:1fr 1fr}.nomad-metrics{display:none}
+  .store-grid{grid-template-columns:1fr 1fr}
+  .h1{font-size:27px}.wrap{padding:18px 16px 90px}
+}
+</style>
+
+<!-- ════════════ ONBOARDING ════════════ -->
+<div class="ob" id="ob">
+  <div class="ob-card">
+    <div class="ob-logo">
+      <div class="ob-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 5v6l6 4 6-4V5L8 1zm0 2.2L12.5 6 8 8.8 3.5 6 8 3.2zM3 7.2l4.5 3V14L3 11.2V7.2zm5.5 3l4.5-3v4L8.5 14V10.2z"/></svg></div>
+      TaxGlobal AI
+    </div>
+    <div class="ob-steps"><div class="ob-dot on" id="dot0"></div><div class="ob-dot" id="dot1"></div><div class="ob-dot" id="dot2"></div></div>
+
+    <!-- Step 1: type -->
+    <div id="obStep0">
+      <div id="gSignedOut">
+        <button class="gbtn" onclick="openAuth('google')">
+          <svg viewBox="0 0 48 48"><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 3-2.2 5.5-4.7 7.2l7.3 5.7c4.3-3.9 6.7-9.7 6.7-17.4z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.6 2.2-8.6 2.2-6.6 0-12.2-4.5-14.2-10.5l-7.6 5.9C5.9 42.4 14.2 48 24 48z"/><path fill="#FBBC05" d="M9.8 28.2c-.5-1.4-.8-3-.8-4.7s.3-3.3.8-4.7l-7.6-5.9C.7 16.1 0 19.9 0 24s.7 7.9 2.2 11.1l7.6-5.9z"/><path fill="#EA4335" d="M24 9.5c3.7 0 7 1.3 9.6 3.8l7.1-7.1C36.3 2 30.8 0 24 0 14.2 0 5.9 5.6 2.2 13.9l7.6 5.9C11.8 14 17.4 9.5 24 9.5z"/></svg>
+          使用 Google 账号登录
+        </button>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="gbtn" style="flex:1" onclick="openAuth('apple')">
+            <svg viewBox="0 0 24 24" fill="var(--ink)"><path d="M17.05 12.04c-.03-2.6 2.12-3.84 2.22-3.9-1.21-1.77-3.09-2.01-3.76-2.04-1.6-.16-3.12.94-3.93.94-.81 0-2.06-.92-3.39-.89-1.74.03-3.35 1.01-4.25 2.57-1.81 3.14-.46 7.79 1.3 10.34.86 1.25 1.88 2.65 3.22 2.6 1.29-.05 1.78-.83 3.34-.83 1.55 0 2 .83 3.37.81 1.39-.03 2.27-1.27 3.12-2.53.98-1.45 1.39-2.85 1.41-2.92-.03-.01-2.7-1.04-2.73-4.11M14.6 4.3c.71-.86 1.19-2.06 1.06-3.25-1.02.04-2.26.68-2.99 1.54-.66.76-1.23 1.98-1.08 3.15 1.14.09 2.3-.58 3.01-1.44"/></svg>
+            Apple
+          </button>
+          <button class="gbtn" style="flex:1" onclick="openAuth('wechat')">
+            <svg viewBox="0 0 24 24" fill="#07C160"><path d="M8.69 4C4.62 4 1.32 6.72 1.32 10.08c0 1.86 1.01 3.52 2.61 4.66.13.09.21.24.21.4l-.36 1.34c-.04.14.1.26.23.19l1.74-1.01c.12-.07.27-.08.4-.04.66.18 1.36.28 2.09.29-.09-.4-.14-.81-.14-1.23 0-3.06 2.86-5.45 6.31-5.45.2 0 .39.01.58.03C14.3 6.05 11.77 4 8.69 4m-2.4 3.42a.92.92 0 110 1.84.92.92 0 010-1.84m4.79 0a.92.92 0 110 1.84.92.92 0 010-1.84M22.68 14c0-2.82-2.74-5.1-6.12-5.1s-6.12 2.28-6.12 5.1 2.74 5.1 6.12 5.1c.62 0 1.21-.08 1.77-.23.12-.03.25-.02.35.04l1.45.85c.12.06.24-.05.21-.18l-.3-1.12a.34.34 0 01.18-.34C21.84 17.02 22.68 15.6 22.68 14m-8.13-1.06a.77.77 0 110 1.54.77.77 0 010-1.54m4.02 0a.77.77 0 110 1.54.77.77 0 010-1.54"/></svg>
+            微信
+          </button>
+        </div>
+        <div class="g-demo">⚠ 沙盒内为演示流程；生产环境分别接入 Google OAuth、Sign in with Apple、微信开放平台扫码登录（均需对应 Client ID + 授权域名 + 后端换 token）。</div>
+        <div class="g-or">或选择身份直接开始</div>
+      </div>
+      <div id="gSignedIn" style="display:none;align-items:center;gap:10px;padding:10px 12px;border:0.5px solid var(--bd);border-radius:10px;background:var(--gbg);margin-bottom:18px">
+        <div class="gacct-av" id="gChipAv" style="width:30px;height:30px;font-size:13px"></div>
+        <div style="flex:1"><div class="gacct-name" id="gChipName"></div><div class="gacct-email" id="gChipEmail"></div></div>
+        <span class="badge bg">已登录</span>
+      </div>
+      <div class="ob-eyebrow">第 1 步 · 选择身份</div>
+      <h1 class="ob-h">你是<em>哪种</em>纳税人？</h1>
+      <p class="ob-sub">可多选。你的选择决定了开启哪些功能模块——我们不会用你用不到的功能塞满界面。</p>
+      <div class="ob-types" id="obTypes"></div>
+      <div class="ob-nav">
+        <span class="ob-skip" onclick="skipOnboard()">跳过，用默认配置（科技员工）</span>
+        <button class="ob-btn pri" id="ob0next" onclick="obNext()" disabled>下一步 →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: info -->
+    <div id="obStep1" style="display:none">
+      <div class="ob-eyebrow">第 2 步 · 基本信息</div>
+      <h1 class="ob-h">告诉我们<em>基本情况</em></h1>
+      <p class="ob-sub">这些信息用于实时计算税额。全部可在档案设置里修改，数据本地处理不出境。</p>
+      <div class="ob-field">
+        <label class="ob-flabel">居住国 / 报税国</label>
+        <select class="ob-select" id="obCountry">
+          <option value="us">🇺🇸 美国</option>
+          <option value="pt">🇵🇹 葡萄牙</option>
+          <option value="sg">🇸🇬 新加坡</option>
+          <option value="ae">🇦🇪 阿联酋（迪拜）</option>
+          <option value="uk">🇬🇧 英国</option>
+          <option value="de">🇩🇪 德国</option>
+        </select>
+      </div>
+      <div class="ob-row2">
+        <div class="ob-field">
+          <label class="ob-flabel">年收入（USD）</label>
+          <input class="ob-input mono" type="number" id="obIncome" value="120000">
+        </div>
+        <div class="ob-field">
+          <label class="ob-flabel">申报状态</label>
+          <select class="ob-select" id="obFiling">
+            <option value="single">单身申报</option>
+            <option value="mfj">已婚联合申报</option>
+            <option value="hoh">户主申报</option>
+          </select>
+        </div>
+      </div>
+      <div class="ob-nav">
+        <button class="ob-btn ghost" onclick="obBack()">← 返回</button>
+        <button class="ob-btn pri" onclick="obNext()">下一步 →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: preview -->
+    <div id="obStep2" style="display:none">
+      <div class="ob-eyebrow">第 3 步 · 确认</div>
+      <h1 class="ob-h">为你<em>开启</em>这些功能</h1>
+      <p class="ob-sub">基于你的身份，以下功能将出现在你的导航栏。其他功能已隐藏，随时可在设置里开启。</p>
+      <div class="ob-preview" id="obPreview"></div>
+      <div class="ob-nav">
+        <button class="ob-btn ghost" onclick="obBack()">← 返回</button>
+        <button class="ob-btn pri" onclick="enterApp()">进入 TaxGlobal AI →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 第三方登录（演示）════════════ -->
+<div class="gauth" id="gAuth">
+  <div class="gauth-card">
+    <div class="gauth-top">
+      <div class="gauth-logo" id="authLogo"></div>
+      <div class="gauth-h" id="authH">选择账号</div>
+      <div class="gauth-s">以继续前往 TaxGlobal AI</div>
+    </div>
+    <div id="gAcctList"></div>
+    <div class="gauth-foot" id="authFoot"></div>
+  </div>
+</div>
+<!-- ════════════ 电商 OAuth 跳转（演示）════════════ -->
+<div class="gauth" id="oauthRedirect">
+  <div class="gauth-card" style="max-width:360px;text-align:center;padding:30px 26px">
+    <div id="oauthIcon" style="font-size:40px;margin-bottom:14px"></div>
+    <div class="gauth-h" id="oauthTitle" style="font-size:16px"></div>
+    <div class="gauth-s" id="oauthDesc" style="margin-top:8px;line-height:1.6"></div>
+    <div class="oauth-spin" id="oauthSpin" style="margin:18px auto 0"></div>
+  </div>
+</div>
+<div class="app" id="app">
+<nav>
+  <div class="n-logo">
+    <div class="n-mark"><svg viewBox="0 0 16 16"><path d="M8 1L2 5v6l6 4 6-4V5L8 1zm0 2.2L12.5 6 8 8.8 3.5 6 8 3.2zM3 7.2l4.5 3V14L3 11.2V7.2zm5.5 3l4.5-3v4L8.5 14V10.2z"/></svg></div>
+    TaxGlobal AI
+  </div>
+  <div class="ntabs" id="ntabs"></div>
+  <div class="n-right">
+    <div class="n-chip"><div class="pulse"></div>实时同步</div>
+  </div>
+</nav>
+
+<!-- ── 仪表盘 ── -->
+<div class="pg on" id="pg-dash">
+<div class="wrap">
+  <div class="eyebrow" id="dashEyebrow">个性化仪表盘</div>
+  <h1 class="h1" id="dashTitle">欢迎回来</h1>
+  <p class="sub" id="dashSub"></p>
+  <div class="g4" id="dashMetrics" style="margin-bottom:8px"></div>
+  <div class="card" style="margin-top:18px;border-color:var(--g)"><div class="ch"><div class="ct">⚡ 你最需要知道的事</div><span class="badge by" id="alertCount"></span></div>
+    <div class="cb" id="dashAlerts"></div></div>
+  <div class="card" style="margin-top:18px"><div class="ch"><div class="ct">🎯 为你定制的税务方案</div><span class="badge by" id="planSave"></span></div>
+    <div class="cb" id="dashPlan"></div></div>
+  <div class="g2" style="margin-top:18px">
+    <div class="card">
+      <div class="ch"><div class="ct">📋 待办事项</div><span class="badge bg" id="todoCount"></span></div>
+      <div class="cb" id="dashTodos"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">📊 专属组件</div><span class="badge bb">实时</span></div>
+      <div class="cb" id="dashWidgets"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── 税务计算 ── -->
+<div class="pg" id="pg-tax">
+<div class="wrap">
+  <div class="eyebrow">个人所得税</div>
+  <h1 class="h1">输入收入，<em>实时</em>计算精确税额</h1>
+  <p class="sub">税额由规则引擎精确计算（不依赖 LLM），每项结论附对应法律条款，可审计可追溯。</p>
+  <div class="subtabs" id="taxSubtabs"></div>
+
+  <!-- 普通收入 -->
+  <div class="subpg on" id="sub-normal">
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><div class="ct">收入与扣除</div></div>
+        <div class="cb">
+          <div class="field"><label class="flabel">报税国</label>
+            <select class="sel" id="tx-country" onchange="onTaxCountry();calcTax()">
+              <option value="us">🇺🇸 美国</option>
+              <option value="sg">🇸🇬 新加坡</option>
+              <option value="pt">🇵🇹 葡萄牙（NHR）</option>
+              <option value="ae">🇦🇪 迪拜（0%）</option>
+              <option value="uk">🇬🇧 英国</option>
+              <option value="de">🇩🇪 德国</option>
+            </select>
+          </div>
+          <div class="field" id="tx-state-wrap"><label class="flabel">所在州（决定州所得税）</label>
+            <select class="sel" id="tx-state" onchange="calcTax()">
+              <option value="CA">加州 CA（累进，最高 12.3%）</option>
+              <option value="NY">纽约 NY（累进，最高 10.9%）</option>
+              <option value="TX">德州 TX（无个人所得税）</option>
+              <option value="FL">佛州 FL（无个人所得税）</option>
+              <option value="WA">华盛顿 WA（无个人所得税）</option>
+              <option value="NV">内华达 NV（无个人所得税）</option>
+              <option value="IL">伊利诺伊 IL（4.95% 平税）</option>
+              <option value="MA">麻省 MA（5% 平税）</option>
+              <option value="CO">科罗拉多 CO（4.4% 平税）</option>
+              <option value="GA">乔治亚 GA（5.39% 平税）</option>
+            </select>
+          </div>
+          <div class="field"><label class="flabel"><span>年度工资收入</span><span class="mono" id="tx-income-lbl" style="color:var(--g)">$120,000</span></label>
+            <input class="inp mono" type="number" id="tx-income" value="120000" oninput="calcTax()"></div>
+          <div class="field"><label class="flabel">申报状态</label>
+            <select class="sel" id="tx-filing" onchange="calcTax()">
+              <option value="single">单身申报</option><option value="mfj">已婚联合申报</option><option value="hoh">户主申报</option>
+            </select></div>
+          <div class="field"><label class="flabel"><span>401(k) 供款</span><span class="mono" style="color:var(--ink3)">上限 $23,500</span></label>
+            <input class="inp mono" type="number" id="tx-401k" value="15000" oninput="calcTax()"></div>
+          <div class="field"><label class="flabel">扣除方式</label>
+            <select class="sel" id="tx-ded" onchange="calcTax()">
+              <option value="std">标准扣除</option><option value="item">分项扣除（输入下方）</option>
+            </select></div>
+          <div class="field" id="tx-item-wrap" style="display:none"><label class="flabel">分项扣除总额</label>
+            <input class="inp mono" type="number" id="tx-itemamt" value="20000" oninput="calcTax()"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">税额分解</div><span class="badge bg">规则引擎</span></div>
+        <div class="cb" id="taxResult"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="ch"><div class="ct">💡 AI 节税建议</div><span class="badge by">实时生成</span></div>
+      <div class="cb" id="taxAdvice" style="font-size:13px;color:var(--ink2);line-height:1.7"></div>
+    </div>
+  </div>
+
+  <!-- RSU/期权 -->
+  <div class="subpg" id="sub-rsu">
+    <div class="g2">
+      <div class="card"><div class="ch"><div class="ct">RSU / 期权参数</div></div><div class="cb">
+        <div class="field"><label class="flabel">基础工资</label><input class="inp mono" type="number" id="rsu-base" value="180000" oninput="calcRSU()"></div>
+        <div class="field"><label class="flabel">本年 RSU 归属价值</label><input class="inp mono" type="number" id="rsu-vest" value="80000" oninput="calcRSU()"></div>
+        <div class="field"><label class="flabel">未行权期权价值</label><input class="inp mono" type="number" id="rsu-opt" value="50000" oninput="calcRSU()"></div>
+        <div class="field"><label class="flabel"><span>预期明年股价涨幅</span><span class="mono" id="rsu-growth-lbl" style="color:var(--g)">20%</span></label>
+          <input class="range" type="range" id="rsu-growth" min="-20" max="60" value="20" oninput="calcRSU()"></div>
+      </div></div>
+      <div class="card"><div class="ch"><div class="ct">行权时机对比</div><span class="badge bp">analyze_rsu_options</span></div>
+        <div class="cb" id="rsuResult"></div></div>
+    </div>
+  </div>
+
+  <!-- 自雇 -->
+  <div class="subpg" id="sub-self">
+    <div class="g2">
+      <div class="card"><div class="ch"><div class="ct">自雇收入</div></div><div class="cb">
+        <div class="field"><label class="flabel">净自雇收入</label><input class="inp mono" type="number" id="se-net" value="150000" oninput="calcSE()"></div>
+        <div class="field"><label class="flabel">业务支出</label><input class="inp mono" type="number" id="se-exp" value="30000" oninput="calcSE()"></div>
+        <div class="field"><label class="flabel">SEP-IRA 供款</label><input class="inp mono" type="number" id="se-sep" value="20000" oninput="calcSE()"></div>
+      </div></div>
+      <div class="card"><div class="ch"><div class="ct">Schedule SE 自雇税</div><span class="badge bp">calculate_se_tax</span></div>
+        <div class="cb" id="seResult"></div></div>
+    </div>
+  </div>
+
+  <!-- 海外FEIE -->
+  <div class="subpg" id="sub-feie">
+    <div class="g2">
+      <div class="card"><div class="ch"><div class="ct">海外收入豁免</div></div><div class="cb">
+        <div class="field"><label class="flabel">海外赚取收入</label><input class="inp mono" type="number" id="feie-income" value="140000" oninput="calcFEIE()"></div>
+        <div class="field"><label class="flabel">海外居住天数（330天测试）</label><input class="inp mono" type="number" id="feie-days" value="340" oninput="calcFEIE()"></div>
+        <div class="field"><label class="flabel">居住国</label>
+          <select class="sel" id="feie-country" onchange="calcFEIE()">
+            <option value="pt">🇵🇹 葡萄牙（NHR）</option><option value="sg">🇸🇬 新加坡</option><option value="ae">🇦🇪 迪拜</option><option value="es">🇪🇸 西班牙（Beckham）</option>
+          </select></div>
+      </div></div>
+      <div class="card"><div class="ch"><div class="ct">FEIE 测算</div><span class="badge bp">assess_feie · IRC §911</span></div>
+        <div class="cb" id="feieResult"></div></div>
+    </div>
+  </div>
+
+  <!-- 加密收益 -->
+  <div class="subpg" id="sub-crypto-inline">
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:14px">加密资产税务详见 <strong style="color:var(--g);cursor:pointer" onclick="go('crypto')">₿ 加密专区 →</strong></p>
+  </div>
+</div>
+</div>
+
+<!-- ── Remote 智选 ── -->
+<div class="pg" id="pg-nomad">
+<div class="wrap">
+  <div class="eyebrow">🌍 Remote 智选</div>
+  <h1 class="h1">住哪里<em>最合算</em>？40+ 城市实时排名</h1>
+  <p class="sub">输入年薪和优先级偏好，系统综合税后收入、生活成本、购买力、宜居度、签证便利度给城市排名。调整下方权重，排名实时变化。</p>
+  <div class="card" style="margin-bottom:18px"><div class="cb">
+    <div class="g3" style="gap:20px">
+      <div class="field"><label class="flabel"><span>年薪（USD）</span><span class="mono" id="nm-sal-lbl" style="color:var(--g)">$150,000</span></label>
+        <input class="inp mono" type="number" id="nm-salary" value="150000" oninput="rankCities()"></div>
+      <div class="field"><label class="flabel"><span>税负权重</span><span class="mono" id="nm-tax-lbl">50%</span></label>
+        <input class="range" type="range" id="nm-tax" min="0" max="100" value="50" oninput="rankCities()"></div>
+      <div class="field"><label class="flabel"><span>生活品质权重</span><span class="mono" id="nm-qol-lbl">50%</span></label>
+        <input class="range" type="range" id="nm-qol" min="0" max="100" value="50" oninput="rankCities()"></div>
+    </div>
+  </div></div>
+  <div class="divider"><div class="div-title">城市综合排名</div><div class="div-line"></div><span class="div-badge badge bg" id="nomadCount">rank_nomad_cities</span></div>
+  <div id="nomadList"></div>
+</div>
+</div>
+
+<!-- ── W-2 报税 ── -->
+<div class="pg" id="pg-w2">
+<div class="wrap">
+  <div class="eyebrow">📄 W-2 报税</div>
+  <h1 class="h1">上传 W-2，<em>一键生成</em> Form 1040</h1>
+  <p class="sub">Qwen-VL 自动识别全部字段（本地处理不出境），AI 填写报税表草稿，实时计算退税金额。</p>
+  <div class="w2-grid">
+    <div class="card">
+      <div class="ch"><div class="ct">上传税务文件</div><span class="badge bg">VLM 识别</span></div>
+      <div class="cb">
+        <div class="drop-zone" id="dropZone" onclick="startUpload()">
+          <div class="drop-icon">📄</div>
+          <div class="drop-title">点击模拟上传 W-2</div>
+          <div class="drop-sub">AI 自动识别 Box 1-17 全部字段<br>数据本地处理，不发送外部服务器</div>
+          <div class="drop-fmts"><span class="dfmt">PDF</span><span class="dfmt">JPG</span><span class="dfmt">PNG</span><span class="dfmt">HEIC</span></div>
+        </div>
+        <div class="prog-wrap" id="progWrap">
+          <div class="prog-label2"><span id="progLabel">VLM 初始化…</span><span id="progPct">0%</span></div>
+          <div class="prog-track"><div class="prog-fill2" id="progFill"></div></div>
+        </div>
+        <div class="or-div"><div class="or-line"></div><span class="or-txt">或</span><div class="or-line"></div></div>
+        <button class="btn ghost" style="width:100%" onclick="startUpload()">✏️ 手动填写 W-2 字段</button>
+        <div class="w2-preview" id="w2Preview">
+          <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:12px 0 7px">W-2 解析结果</div>
+          <div class="w2fg">
+            <div class="w2f"><div class="wf-box">BOX 1</div><div class="wf-label">工资及薪金</div><div class="wf-val">$120,000</div></div>
+            <div class="w2f"><div class="wf-box">BOX 2</div><div class="wf-label">联邦税代扣</div><div class="wf-val">$18,400</div></div>
+            <div class="w2f"><div class="wf-box">BOX 3</div><div class="wf-label">社保工资</div><div class="wf-val">$120,000</div></div>
+            <div class="w2f"><div class="wf-box">BOX 4</div><div class="wf-label">社保税代扣</div><div class="wf-val">$7,440</div></div>
+            <div class="w2f"><div class="wf-box">BOX 12a</div><div class="wf-label">401(k) 供款</div><div class="wf-val">$15,000</div></div>
+            <div class="w2f"><div class="wf-box">BOX 16</div><div class="wf-label">州税代扣</div><div class="wf-val">$7,800</div></div>
+          </div>
+          <div style="margin-top:10px;padding:9px 11px;background:var(--gbg);border-radius:8px;font-size:11px;color:var(--g)">✓ 雇主：Google LLC · EIN 77-0493581 · California</div>
+          <div style="margin-top:8px;padding:9px 11px;background:var(--bluebg);border-radius:8px;font-size:11px;color:var(--blue)">💡 检测到 401(k) 供款 $15,000，已自动计入扣除项</div>
+          <button class="btn pri" style="width:100%;margin-top:12px" onclick="generateReport()">生成 Form 1040 →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">报税表生成</div><span class="badge bp" id="w2Skill" style="display:none">generate_tax_form</span></div>
+      <div class="report-body" style="padding:0">
+        <div class="rph" id="rph">
+          <div class="rph-icon">📋</div>
+          <div class="rph-title">等待 W-2 上传</div>
+          <div class="rph-sub" style="font-size:12px;color:var(--ink3)">上传后将自动生成 Form 1040 草稿<br>并计算退税 / 补税金额</div>
+        </div>
+        <div class="rc-content" id="rcContent" style="padding:18px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── 税收协定 ── -->
+<div class="pg" id="pg-treaty">
+<div class="wrap">
+  <div class="eyebrow">⚖ 税收协定</div>
+  <h1 class="h1">双边税收协定<em>查询</em></h1>
+  <p class="sub">选择两个国家，查询是否存在税收协定及具体豁免条款，计算使用 FEIE 后的实际税负，给出"合法最低税负"路径。</p>
+  <div class="card"><div class="cb">
+    <div class="g2" style="gap:14px;margin-bottom:14px">
+      <div class="field" style="margin:0"><label class="flabel">居住国</label>
+        <select class="sel" id="tr-from" onchange="calcTreaty()">
+          <option value="us">🇺🇸 美国</option><option value="cn">🇨🇳 中国</option><option value="pt">🇵🇹 葡萄牙</option><option value="sg">🇸🇬 新加坡</option>
+        </select></div>
+      <div class="field" style="margin:0"><label class="flabel">收入来源国 / 雇主所在国</label>
+        <select class="sel" id="tr-to" onchange="calcTreaty()">
+          <option value="pt">🇵🇹 葡萄牙</option><option value="sg">🇸🇬 新加坡</option><option value="uk">🇬🇧 英国</option><option value="de">🇩🇪 德国</option><option value="jp">🇯🇵 日本</option><option value="cn">🇨🇳 中国</option>
+        </select></div>
+    </div>
+    <div id="treatyResult" style="padding:14px 16px;border-radius:11px"></div>
+  </div></div>
+</div>
+</div>
+
+<!-- ── 电商 ── -->
+<div class="pg" id="pg-ecom">
+<div class="wrap">
+  <div class="eyebrow">🛍 电商合规</div>
+  <h1 class="h1">Nexus <em>主动预警</em>，不再被动盯数据</h1>
+  <p class="sub">连接你的电商平台，实时拉取各州销售额，对照经济 Nexus 阈值自动预警——接近时算出"预计几周触发"和"需补缴税额"。</p>
+
+  <div class="card" style="margin-bottom:18px"><div class="ch"><div class="ct">连接电商平台</div><span class="badge bp" id="storeCount">未连接</span></div>
+    <div class="cb">
+      <div class="store-grid" id="storeGrid"></div>
+      <div style="font-size:11px;color:var(--ink4);line-height:1.5;margin-top:6px">⚠ 沙盒内连接为演示：点击即模拟 OAuth 授权并拉取该平台的分州销售数据。下方 Nexus 阈值判定、触发周数与补缴估算均为<strong>真实计算逻辑</strong>。生产环境需各平台 API 密钥 + 后端代理。</div>
+    </div>
+  </div>
+
+  <div id="ecomEmpty" class="card"><div class="cb"><div class="empty-state">
+    <div class="es-ico">🔌</div>
+    <div class="es-t">还没有连接任何平台。连接后这里会实时显示各州 Nexus 风险与待分类交易。</div>
+  </div></div></div>
+
+  <div id="ecomConnected" style="display:none">
+  <div id="ecomAbroad" class="alert-box" style="display:none;border-color:var(--blue);background:var(--bluebg)">
+    <div class="alert-ico" style="background:var(--blue)">🌐</div>
+    <div id="ecomAbroadBody"></div>
+  </div>
+  <div class="alert-box" id="nexusAlert" style="display:none">
+    <div class="alert-ico">⚠</div>
+    <div id="nexusAlertBody"></div>
+  </div>
+  <div class="g4" style="margin-bottom:18px" id="ecomMetrics"></div>
+  <div class="card" id="storeBreakdownCard" style="margin-bottom:18px;display:none"><div class="ch"><div class="ct">各平台销售拆分</div><span class="badge bp">多平台</span></div>
+    <div class="cb" id="storeBreakdown"></div></div>
+  <div class="g2">
+    <div class="card"><div class="ch"><div class="ct">各州 Nexus 监控（你的注册义务）</div><span class="badge bp">detect_nexus</span></div>
+      <div class="cb" id="nexusList"></div></div>
+    <div class="card"><div class="ch"><div class="ct">交易自动分类</div><span class="badge bp">classify_transaction</span></div>
+      <div class="cb" id="txnList"></div></div>
+  </div>
+  </div>
+</div>
+</div>
+
+<!-- ── 加密 ── -->
+<div class="pg" id="pg-crypto">
+<div class="wrap">
+  <div class="eyebrow">₿ 加密税务</div>
+  <h1 class="h1">成本法一键对比，<em>自动</em>生成 Form 8949</h1>
+  <p class="sub">接入交易所，HIFO / FIFO / LIFO 成本法实时切换对比，选最省税方案，自动生成加密资产申报表。</p>
+  <div class="card" style="margin-bottom:16px"><div class="cb">
+    <div class="field"><label class="flabel"><span>本年加密资产卖出总额</span><span class="mono" id="cr-proceeds-lbl" style="color:var(--g)">$120,000</span></label>
+      <input class="inp mono" type="number" id="cr-proceeds" value="120000" oninput="calcCrypto()"></div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:10px">选择成本基础法 —— 点击对比省税效果：</div>
+    <div class="crypto-method" id="cryptoMethods"></div>
+    <div id="cryptoResult"></div>
+  </div></div>
+</div>
+</div>
+
+<!-- ── 企业税务 ── -->
+<div class="pg" id="pg-biz">
+<div class="wrap">
+  <div class="eyebrow">🏛 企业税务</div>
+  <h1 class="h1">选择最优<em>注册地</em>，降低整体税负</h1>
+  <p class="sub">AI 综合企业所得税、IP Box、研发优惠，给出最优跨国架构建议，每项结论附法律依据。点击卡片看详情。</p>
+  <div class="alert-box" style="border-color:var(--gold);background:var(--goldbg)">
+    <div class="alert-ico" style="background:var(--gold)">🚧</div>
+    <div><div class="alert-title">本模块为预览版（后续迭代）</div>
+    <div class="alert-text">企业架构、转让定价、Pillar 2 等完整功能按规划在后续阶段开发，当前页面为示意。优先级集中在个人/数字游民/电商场景。</div></div>
+  </div>
+  <div class="g4" style="margin-bottom:18px">
+    <div class="mcard"><div class="mac" style="background:var(--purple)"></div><div class="mlabel">当前注册地税率</div><div class="mval">21%</div><div class="msub">美国联邦企业税</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--g)"></div><div class="mlabel">最优注册地</div><div class="mval">12.5%</div><div class="msub">爱尔兰</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--gold)"></div><div class="mlabel">R&D 抵免</div><div class="mval">$48K</div><div class="msub">已识别可申请额度</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--blue)"></div><div class="mlabel">架构优化年节税</div><div class="mval" id="bizSaveTop">$320K</div><div class="msub">基于当前业务规模</div></div>
+  </div>
+  <div class="divider"><div class="div-title">注册地税率对比</div><div class="div-line"></div><span class="div-badge badge by">点击查看详情</span></div>
+  <div class="jur-grid" id="jurGrid"></div>
+  <div id="jurDetail" style="display:none;margin-bottom:18px"></div>
+  <div class="divider"><div class="div-title">架构税负模拟</div><div class="div-line"></div><span class="div-badge badge bg">实时计算</span></div>
+  <div class="card"><div class="cb">
+    <div class="g3" style="gap:16px;margin-bottom:8px">
+      <div class="field" style="margin:0"><label class="flabel">年度营业利润</label><input class="inp mono" type="number" id="biz-profit" value="2000000" oninput="calcBiz()"></div>
+      <div class="field" style="margin:0"><label class="flabel">IP 收入占比</label>
+        <select class="sel" id="biz-ip" onchange="calcBiz()"><option value="0">0%</option><option value="0.2">20%</option><option value="0.4" selected>40%</option><option value="0.6">60%</option><option value="0.8">80%</option></select></div>
+      <div class="field" style="margin:0"><label class="flabel">研发投入</label><input class="inp mono" type="number" id="biz-rd" value="400000" oninput="calcBiz()"></div>
+    </div>
+    <div id="bizResult" style="margin-top:8px"></div>
+  </div></div>
+</div>
+</div>
+
+<!-- ── 档案设置 ── -->
+<div class="pg" id="pg-profile">
+<div class="wrap">
+  <div class="eyebrow">👤 档案设置</div>
+  <h1 class="h1">管理你的<em>身份与功能</em></h1>
+  <p class="sub">勾选身份会实时改变导航栏显示的功能（对应链路图逻辑）。这就是"用户类型驱动个性化"的核心。</p>
+  <div class="card" style="margin-bottom:16px"><div class="ch"><div class="ct">我的身份（多选，实时生效）</div></div>
+    <div class="cb"><div class="ob-types" id="profileTypes" style="margin:0"></div></div></div>
+  <div class="card" style="margin-bottom:16px"><div class="ch"><div class="ct">身份明细（按你勾选的身份动态展开）</div><span class="badge by">用于个性化方案</span></div>
+    <div class="cb">
+      <div class="field"><label class="flabel">你目前人在哪里（影响居住地税务）</label>
+        <select class="sel" id="pf-location" onchange="applyProfile()">
+          <option value="us">🇺🇸 美国境内</option><option value="pt">🇵🇹 葡萄牙</option><option value="sg">🇸🇬 新加坡</option>
+          <option value="ae">🇦🇪 迪拜</option><option value="uk">🇬🇧 英国</option><option value="de">🇩🇪 德国</option><option value="other">🌍 其他/全球移动</option>
+        </select></div>
+      <div id="idDetails"></div>
+    </div></div>
+  <div class="g2">
+    <div class="card"><div class="ch"><div class="ct">基本信息</div></div><div class="cb">
+      <div class="field"><label class="flabel">报税国</label>
+        <select class="sel" id="pf-country"><option value="us">🇺🇸 美国</option><option value="pt">🇵🇹 葡萄牙</option><option value="sg">🇸🇬 新加坡</option><option value="ae">🇦🇪 迪拜</option><option value="uk">🇬🇧 英国</option><option value="de">🇩🇪 德国</option></select></div>
+      <div class="field"><label class="flabel">年收入</label><input class="inp mono" type="number" id="pf-income" value="120000"></div>
+      <div class="field"><label class="flabel">申报状态</label><select class="sel" id="pf-filing"><option value="single">单身</option><option value="mfj">已婚联合</option><option value="hoh">户主</option></select></div>
+      <button class="btn pri" style="width:100%" onclick="saveProfile()">保存并同步到所有功能</button>
+    </div></div>
+    <div class="card"><div class="ch"><div class="ct">当前开启的功能</div><span class="badge bg" id="enabledCount"></span></div>
+      <div class="cb" id="enabledList"></div></div>
+  </div>
+</div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ════════════ FLOATING AI ════════════ -->
+<div class="float-ring" id="floatRing" style="display:none"></div>
+<button class="float-btn" id="floatBtn" style="display:none" onclick="toggleChat()">
+  <svg id="chatIco" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.04 2 11c0 2.5 1.14 4.74 2.96 6.36L4 22l5.04-1.74C10 20.74 11 21 12 21c5.52 0 10-4.04 10-9s-4.48-10-10-10z"/></svg>
+  <svg id="closeIco" viewBox="0 0 24 24" style="display:none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="cp-head">
+    <div class="cp-av">✦</div>
+    <div><div class="cp-name">Tax Copilot</div><div class="cp-status"><div class="pulse"></div><span id="cpStatus">在线 · 每条回答附法条</span></div></div>
+    <button class="cp-close" onclick="toggleChat()">×</button>
+  </div>
+  <div class="cp-msgs" id="cpMsgs"></div>
+  <div class="cp-qp" id="cpQp"></div>
+  <div class="cp-inp"><input id="cpInp" placeholder="问任何税务问题…" onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="cp-send" onclick="sendMsg()"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg></button></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════ 类型配置（对应链路图逻辑）════════ */
+const TYPES = {
+  tech:{emoji:'🏢',name:'科技员工',desc:'Google/Meta 等，有 RSU、期权、401k',
+    tabs:['dash','tax','nomad','w2','treaty'], own:['w2'],
+    taxSub:['normal','rsu'],
+    todos:[['📤','上传 W-2，生成 Form 1040','点击进入 W-2 报税','w2'],['📊','RSU 行权时机分析','本年 $80K 归属','tax'],['💰','最大化 401(k) 至 $23,500','还差 $8,500',''],['🔄','检查 Backdoor Roth 是否适用','建议咨询','',true]],
+    widgets:[['📋','W-2 上传快捷入口','一键解析'],['📈','RSU 归属日历','下次 3/15'],['💵','401k 供款进度','$15K / $23.5K',64]],
+    ai:['RSU 今年行权合算吗？','如何调整 W-4？','401k 最多存多少？','Backdoor Roth 是什么？']},
+  self:{emoji:'💼',name:'自雇 / 自由职业',desc:'1099 收入、季度预缴、Schedule C',
+    tabs:['dash','tax','nomad','treaty'], own:[],
+    taxSub:['normal','self'],
+    todos:[['📋','计算 Q2 季度预缴税款','6/15 截止','tax'],['💼','整理可抵扣业务支出','已记 $30K',''],['📈','优化 SEP-IRA 供款额度','上限 $69K','tax'],['🏠','申请居家办公扣除额','待确认','',true]],
+    widgets:[['🗓','季度预缴倒计时','还有 14 天'],['📊','Schedule C 收支','净 $120K'],['💰','SEP-IRA 剩余额度','$49K 可供',29]],
+    ai:['如何计算季度预缴税？','SEP-IRA 和 Solo 401k 哪个好？','什么费用可以抵扣？','居家办公怎么申请扣除？']},
+  nomad:{emoji:'🌍',name:'数字游民',desc:'全球移动办公，关心住哪最省税',
+    tabs:['dash','tax','nomad','treaty','w2'], own:['nomad','treaty'],
+    taxSub:['normal','feie'],
+    todos:[['🌍','查看 Remote 智选城市排名','40+ 城市','nomad'],['📋','计算 FEIE 海外豁免额度','上限 $130K','tax'],['📑','检查美葡 / 美新税收协定','点击查询','treaty'],['🗒','确认 FBAR 海外账户申报','>$10K 需报','',true]],
+    widgets:[['🏆','居住地税负排名','迪拜 #1'],['⚖','FEIE 已使用额度','$126.5K'],['🌐','当前国法规变动','NHR 已更新']],
+    ai:['葡萄牙 NHR 怎么申请？','FEIE 和 FTC 如何选？','搬去新加坡省多少税？','哪个城市性价比最高？']},
+  ecom:{emoji:'🛍',name:'电商卖家',desc:'Amazon/Shopify 多平台，Nexus 合规',
+    tabs:['dash','tax','ecom','nomad','treaty'], own:['ecom'],
+    taxSub:['normal','self'],
+    todos:[['⚠','处理加州 Nexus 97% 预警','紧急','ecom'],['📦','同步 Amazon Q4 销售数据','4 平台',''],['🧾','生成 Q4 销售税申报表','5 州待报','ecom'],['🤖','确认 4 笔待分类交易','低置信度','ecom',true]],
+    widgets:[['🚨','Nexus 预警（5 州）','CA 97%'],['📊','各平台销售汇总','$1.34M'],['🔄','AI 分类准确率','94.2%',94]],
+    ai:['加州 Nexus 怎么处理？','Amazon 代收销售税了吗？','1099-K 怎么申报？','欧盟 VAT 怎么注册？']},
+  crypto:{emoji:'₿',name:'加密货币',desc:'交易所持仓、资本利得、Form 8949',
+    tabs:['dash','tax','crypto','nomad','treaty','w2'], own:['crypto'],
+    taxSub:['normal','crypto-inline'],
+    todos:[['📊','查看持仓盈亏分析','+$42K','crypto'],['⚖','对比 HIFO vs FIFO 省税额','省 $8K','crypto'],['📋','生成 Form 8949（47 笔）','点击生成','crypto'],['🔍','检查税收损失收割机会','3 个机会','',true]],
+    widgets:[['📈','持仓总市值','$340K'],['💰','已实现盈利','$42K'],['⚡','Form 8949 进度','47 笔',80]],
+    ai:['HIFO 怎么省税？','NFT 交易怎么报税？','质押奖励算什么收入？','Tax Loss Harvesting 怎么操作？']},
+  biz:{emoji:'🏛',name:'企业主',desc:'公司注册地、研发抵免、跨国架构',
+    tabs:['dash','tax','biz','treaty','nomad'], own:['biz','treaty'],
+    taxSub:['normal','self'],
+    todos:[['🗺','对比爱尔兰 vs 新加坡注册地','省 $320K','biz'],['🔬','申请 R&D Credit $48K','可申请','biz'],['⚖','检查关联方转让定价合规','待审',''],['🌍','评估 Pillar 2 全球最低税影响','>€7.5亿','',true]],
+    widgets:[['🏛','各注册地税率对比','IE 12.5%'],['📊','架构税负模拟','已算'],['💡','已识别 R&D Credit','$48K',100]],
+    ai:['爱尔兰 12.5% 如何申请？','IP Box 适用哪些收入？','Pillar 2 影响我吗？','如何申请 R&D Credit？']},
+};
+const TAB_META = {
+  dash:{name:'🏠 仪表盘'}, tax:{name:'💵 税务计算'}, nomad:{name:'🌍 Remote智选'},
+  w2:{name:'📄 W-2 报税'}, treaty:{name:'⚖ 税收协定'}, ecom:{name:'🛍 电商'},
+  crypto:{name:'₿ 加密'}, biz:{name:'🏛 企业税务'}, profile:{name:'👤 设置'}
+};
+
+let selectedTypes = [];   // onboarding multi-select
+let profile = {country:'us', income:120000, filing:'single', location:'us', name:'', email:'',
+  wages:120000, seInc:80000, cryptoGain:42000, bizProfit:2000000};
+const f = n => Math.round(n).toLocaleString('en-US');
+// 跨身份汇总应税收入（个人侧）
+function aggregateIncome(){
+  let inc=0;
+  if(selectedTypes.includes('tech')) inc+=profile.wages;
+  if(selectedTypes.includes('self')||selectedTypes.includes('ecom')) inc+=profile.seInc;
+  if(selectedTypes.includes('crypto')) inc+=profile.cryptoGain;
+  // 若只勾选企业主，个人侧用 wages 作占位
+  if(inc===0) inc=profile.wages||profile.income||120000;
+  return inc;
+}
+function toast(msg){const t=document.getElementById('toast');t.innerHTML='✓ '+msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);}
+
+/* ════════ ONBOARDING ════════ */
+let obStep = 0;
+function renderObTypes(container, selectable){
+  const el = document.getElementById(container);
+  el.innerHTML = Object.entries(TYPES).map(([k,t])=>
+    `<div class="ob-type ${selectedTypes.includes(k)?'sel':''}" onclick="toggleType('${k}','${container}')">
+      <div class="ob-type-emoji">${t.emoji}</div>
+      <div class="ob-type-name">${t.name}</div>
+      <div class="ob-type-desc">${t.desc}</div>
+    </div>`).join('');
+}
+function toggleType(k, container){
+  const i = selectedTypes.indexOf(k);
+  if(i>=0) selectedTypes.splice(i,1); else selectedTypes.push(k);
+  renderObTypes(container, true);
+  if(container==='obTypes') document.getElementById('ob0next').disabled = selectedTypes.length===0;
+  if(container==='profileTypes'){ if(selectedTypes.length===0) selectedTypes.push(k); buildNav(); renderEnabled(); renderIdDetails(); renderDash(); setCopilotContext('profile'); toast('功能与方案已实时更新'); }
+}
+function obNext(){ if(obStep===0 && selectedTypes.length===0) return; obStep++; showObStep(); }
+function obBack(){ obStep--; showObStep(); }
+function showObStep(){
+  for(let i=0;i<3;i++){ document.getElementById('obStep'+i).style.display = i===obStep?'block':'none'; document.getElementById('dot'+i).classList.toggle('on', i<=obStep); }
+  if(obStep===2) renderPreview();
+}
+function renderPreview(){
+  profile.country=document.getElementById('obCountry').value;
+  profile.income=+document.getElementById('obIncome').value;
+  profile.filing=document.getElementById('obFiling').value;
+  const tabs = computeTabs();
+  const own = computeOwn();
+  document.getElementById('obPreview').innerHTML = tabs.filter(t=>t!=='dash').map(t=>
+    `<div class="ob-pv-row"><div class="ob-pv-check">✓</div><span style="flex:1">${TAB_META[t].name.replace(/^[^\s]+\s/,'')}</span>${own.includes(t)?'<span class="badge bg">专属开启</span>':'<span class="badge bgr">基础功能</span>'}</div>`).join('');
+}
+function skipOnboard(){ selectedTypes=['tech']; enterApp(); }
+
+/* ════════ 第三方登录（演示）════════ */
+const AUTH_PROVIDERS={
+  google:{logo:'<b style="color:#4285F4">G</b><b style="color:#EA4335">o</b><b style="color:#FBBC05">o</b><b style="color:#4285F4">g</b><b style="color:#34A853">l</b><b style="color:#EA4335">e</b>',h:'选择账号',
+    foot:'本地演示。生产由 Google Identity Services 弹出，需在 Google Cloud 注册 OAuth Client ID 并配置已授权来源。',
+    accts:[{name:'Shaw Chen',email:'shaw.chen@gmail.com',color:'#1A6B4A',init:'S'},{name:'Wei Liang',email:'wei.liang@walmart.com',color:'#1A4B8C',init:'W'}]},
+  apple:{logo:'<span style="font-size:22px"></span> <span style="font-weight:600">Apple</span>',h:'使用 Apple 登录',
+    foot:'本地演示。生产接入 Sign in with Apple（需 Apple Developer 配置 Service ID、私钥与回调域名，支持隐藏邮箱）。',
+    accts:[{name:'Shaw',email:'shaw@icloud.com',color:'#0C0F1A',init:'S'},{name:'隐藏邮箱',email:'转发至 shaw@icloud.com',color:'#6B7280',init:'A'}]},
+  wechat:{logo:'<span style="color:#07C160;font-weight:700;font-size:20px">微信登录</span>',h:'扫码或选择账号',
+    foot:'本地演示。生产接入微信开放平台「网站应用」扫码登录（需 AppID/AppSecret，后端用 code 换 access_token + openid）。',
+    accts:[{name:'Shaw',email:'微信号 shaw_wx · 已实名',color:'#07C160',init:'微'},{name:'切换账号',email:'扫描二维码登录',color:'#9CA3AF',init:'扫'}]},
+};
+let curProvider='google';
+function openAuth(p){
+  curProvider=p; const cfg=AUTH_PROVIDERS[p];
+  document.getElementById('authLogo').innerHTML=cfg.logo;
+  document.getElementById('authH').textContent=cfg.h;
+  document.getElementById('authFoot').textContent=cfg.foot;
+  document.getElementById('gAcctList').innerHTML=cfg.accts.map((a,i)=>
+    `<div class="gacct" onclick="pickAcct(${i})">
+      <div class="gacct-av" style="background:${a.color}">${a.init}</div>
+      <div><div class="gacct-name">${a.name}</div><div class="gacct-email">${a.email}</div></div>
+    </div>`).join('')+
+    `<div class="gacct" onclick="closeGAuth()"><div class="gacct-av" style="background:var(--ink4)">+</div><div><div class="gacct-name">使用其他账号</div></div></div>`;
+  document.getElementById('gAuth').classList.add('on');
+}
+function closeGAuth(){ document.getElementById('gAuth').classList.remove('on'); }
+function pickAcct(i){
+  const a=AUTH_PROVIDERS[curProvider].accts[i]; profile.name=a.name; profile.email=a.email;
+  document.getElementById('gSignedOut').style.display='none';
+  const si=document.getElementById('gSignedIn'); si.style.display='flex';
+  document.getElementById('gChipAv').textContent=a.init;
+  document.getElementById('gChipAv').style.background=a.color;
+  document.getElementById('gChipName').textContent=a.name;
+  const pname={google:'Google',apple:'Apple',wechat:'微信'}[curProvider];
+  document.getElementById('gChipEmail').textContent=`${pname} · ${a.email}`;
+  closeGAuth();
+}
+
+/* ════════ 身份明细（档案页动态展开）════════ */
+function renderIdDetails(){
+  const box=document.getElementById('idDetails'); if(!box) return;
+  const blocks=[];
+  if(selectedTypes.includes('tech')) blocks.push(['🏢 科技员工',`<div class="field" style="margin-bottom:0"><label class="flabel">W-2 年薪（含 RSU 归属）</label><input class="inp mono" type="number" id="d-wages" value="${profile.wages}" oninput="applyProfile()"></div>`]);
+  if(selectedTypes.includes('self')||selectedTypes.includes('ecom')) blocks.push(['💼 自雇 / 电商经营收入',`<div class="field" style="margin-bottom:0"><label class="flabel">年度净经营收入（1099 / Schedule C）</label><input class="inp mono" type="number" id="d-se" value="${profile.seInc}" oninput="applyProfile()"></div>`]);
+  if(selectedTypes.includes('crypto')) blocks.push(['₿ 加密货币',`<div class="field" style="margin-bottom:0"><label class="flabel">本年已实现资本利得</label><input class="inp mono" type="number" id="d-crypto" value="${profile.cryptoGain}" oninput="applyProfile()"></div>`]);
+  if(selectedTypes.includes('biz')) blocks.push(['🏛 企业主',`<div class="field" style="margin-bottom:0"><label class="flabel">公司年度营业利润</label><input class="inp mono" type="number" id="d-biz" value="${profile.bizProfit}" oninput="applyProfile()"></div>`]);
+  if(selectedTypes.includes('nomad')) blocks.push(['🌍 数字游民',`<div style="font-size:12px;color:var(--ink3);line-height:1.55">居住地由上方"你目前人在哪里"决定，系统据此评估 FEIE / 居住地税务优化（IRC §911）。</div>`]);
+  box.innerHTML = blocks.length? blocks.map(b=>`<div class="idcard"><div class="idcard-h">${b[0]}</div>${b[1]}</div>`).join('')
+    : `<div style="font-size:12px;color:var(--ink3)">在上方勾选身份后，这里会展开对应的收入明细输入。</div>`;
+}
+function computeTabs(){
+  const s = new Set(['dash','tax']);
+  selectedTypes.forEach(k=>TYPES[k].tabs.forEach(t=>s.add(t)));
+  const order=['dash','tax','nomad','w2','ecom','crypto','biz','treaty','profile'];
+  s.add('profile');
+  return order.filter(t=>s.has(t));
+}
+function computeOwn(){ const s=new Set(); selectedTypes.forEach(k=>TYPES[k].own.forEach(t=>s.add(t))); return [...s]; }
+
+/* ════════ NAV ════════ */
+function buildNav(){
+  const tabs = computeTabs();
+  document.getElementById('ntabs').innerHTML = tabs.map((t,i)=>
+    `<button class="ntab ${t==='dash'?'on':''}" onclick="go('${t}',this)">${TAB_META[t].name}</button>`).join('');
+}
+function go(tab, el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+tab).classList.add('on');
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));
+  if(el) el.classList.add('on');
+  else { document.querySelectorAll('.ntab').forEach(b=>{ if(b.textContent.includes(TAB_META[tab].name.replace(/^[^\s]+\s/,''))) b.classList.add('on'); }); }
+  window.scrollTo({top:0,behavior:'smooth'});
+  // lazy-init pages
+  if(tab==='nomad') rankCities();
+  if(tab==='ecom'){ renderStores(); renderNexus(); }
+  if(tab==='crypto') calcCrypto();
+  if(tab==='biz'){ renderJur(); calcBiz(); }
+  if(tab==='treaty') calcTreaty();
+  if(tab==='dash') renderDash();
+  if(tab==='profile'){ renderObTypes('profileTypes',true); renderEnabled(); renderIdDetails(); }
+  setCopilotContext(tab);
+}
+
+function enterApp(){
+  if(selectedTypes.length===0) selectedTypes=['tech'];
+  profile.country=document.getElementById('obCountry').value||'us';
+  const inc=+document.getElementById('obIncome').value||120000;
+  profile.income=inc;
+  profile.location=profile.country; // 初始假设居住地=报税国，可在档案修改
+  // 把入职填写的收入落到主身份对应的收入桶
+  if(selectedTypes.includes('tech')) profile.wages=inc;
+  else if(selectedTypes.includes('self')||selectedTypes.includes('ecom')) profile.seInc=inc;
+  else if(selectedTypes.includes('crypto')) profile.cryptoGain=inc;
+  else if(selectedTypes.includes('biz')){ profile.bizProfit=inc; profile.wages=inc; }
+  else profile.wages=inc;
+  profile.filing=document.getElementById('obFiling').value||'single';
+  document.getElementById('ob').classList.add('hide');
+  document.getElementById('app').classList.add('on');
+  document.getElementById('floatBtn').style.display='flex';
+  document.getElementById('floatRing').style.display='block';
+  buildNav();
+  buildTaxSubtabs();
+  syncProfileInputs();
+  renderDash();
+  calcTax();
+  initCopilot();
+}
+function syncProfileInputs(){
+  ['tx-country','pf-country'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.country;});
+  ['tx-income','pf-income'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.income;});
+  ['tx-filing','pf-filing'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.filing;});
+  const loc=document.getElementById('pf-location'); if(loc)loc.value=profile.location;
+  if(typeof onTaxCountry==='function') onTaxCountry();
+}
+</script>
+
+<script>
+/* ════════ 税率引擎（2025 真实税率表）════════ */
+const FED = {
+  single:[[11925,.10],[48475,.12],[103350,.22],[197300,.24],[250525,.32],[626350,.35],[Infinity,.37]],
+  mfj:[[23850,.10],[96950,.12],[206700,.22],[394600,.24],[501050,.32],[751600,.35],[Infinity,.37]],
+  hoh:[[17000,.10],[64850,.12],[103350,.22],[197300,.24],[250500,.32],[626350,.35],[Infinity,.37]],
+};
+const STD = {single:15000, mfj:30000, hoh:22500};
+function bracketTax(taxable, br){
+  let tax=0, prev=0;
+  for(const [cap,rate] of br){ if(taxable>cap){ tax+=(cap-prev)*rate; prev=cap; } else { tax+=(taxable-prev)*rate; break; } }
+  return Math.max(0,tax);
+}
+function caStateTax(t){ // 简化加州累进
+  const br=[[10412,.01],[24684,.02],[38959,.04],[54081,.06],[68350,.08],[349137,.093],[418961,.103],[698271,.113],[Infinity,.123]];
+  return bracketTax(t,br);
+}
+// 各州简化所得税模型：返回 {tax, label, cite, rate}
+const STATES={
+  CA:{name:'加州 CA',cite:'CA R&TC §17041'},
+  NY:{name:'纽约 NY',cite:'NY Tax Law §601'},
+  TX:{name:'德州 TX',flat:0,cite:'TX 无个人所得税'},
+  FL:{name:'佛州 FL',flat:0,cite:'FL 无个人所得税'},
+  WA:{name:'华盛顿 WA',flat:0,cite:'WA 无个人所得税'},
+  NV:{name:'内华达 NV',flat:0,cite:'NV 无个人所得税'},
+  IL:{name:'伊利诺伊 IL',flat:.0495,cite:'35 ILCS 5/201'},
+  MA:{name:'麻省 MA',flat:.05,cite:'MA G.L. c.62 §4'},
+  CO:{name:'科罗拉多 CO',flat:.044,cite:'C.R.S. §39-22-104'},
+  GA:{name:'乔治亚 GA',flat:.0539,cite:'O.C.G.A. §48-7-20'},
+};
+function nyStateTax(t){ const br=[[8500,.04],[11700,.045],[13900,.0525],[80650,.0585],[215400,.0625],[1077550,.0685],[5000000,.0965],[25000000,.103],[Infinity,.109]]; return bracketTax(t,br); }
+function stateTaxOf(code, taxable){
+  const s=STATES[code]||STATES.CA;
+  if(code==='CA') return {tax:caStateTax(taxable), name:s.name, cite:s.cite};
+  if(code==='NY') return {tax:nyStateTax(taxable), name:s.name, cite:s.cite};
+  return {tax:Math.round(taxable*(s.flat||0)), name:s.name, cite:s.cite};
+}
+function onTaxCountry(){ const us=document.getElementById('tx-country').value==='us'; document.getElementById('tx-state-wrap').style.display=us?'block':'none'; }
+function fica(wages){
+  const ss=Math.min(wages,176100)*.062;
+  const med=wages*.0145 + Math.max(0,wages-200000)*.009;
+  return {ss,med,total:ss+med};
+}
+// 各国简化有效税率模型，返回 {tax, label, cites}
+function foreignTax(country, income, k401){
+  const taxable=income;
+  switch(country){
+    case 'ae': return {tax:0, eff:0, rows:[['应税收入',income],['迪拜个人所得税 (0%)',0]], note:'阿联酋无个人所得税', cite:'UAE Federal Decree-Law'};
+    case 'pt': { const t=income*0.20; return {tax:t, eff:0.20, rows:[['应税收入',income],['NHR 固定税率 20%',t]], note:'葡萄牙 NHR 制度对合资格职业收入适用 20% 固定税率', cite:'Portugal NHR Regime'};}
+    case 'sg': { const t=sgTax(income); return {tax:t, eff:t/income, rows:[['应税收入',income],['新加坡累进所得税',t]], note:'新加坡累进税率，最高 24%，无社保税（仅 CPF）', cite:'Singapore Income Tax Act'};}
+    case 'uk': { const t=ukTax(income); return {tax:t, eff:t/income, rows:[['应税收入',income],['英国所得税 + NI',t]], note:'含个人免税额 £12,570，最高 45%', cite:'UK Income Tax Act 2007'};}
+    case 'de': { const t=income*0.42; return {tax:t, eff:0.42, rows:[['应税收入',income],['德国所得税（含团结税）',t]], note:'德国累进税率，约 42%（含团结税与社保）', cite:'German EStG §32a'};}
+  }
+}
+function sgTax(i){ const br=[[20000,0],[30000,.02],[40000,.035],[80000,.07],[120000,.115],[160000,.15],[200000,.18],[240000,.19],[280000,.195],[320000,.20],[500000,.22],[1000000,.23],[Infinity,.24]]; return bracketTax(i,br); }
+function ukTax(i){ const pa=12570; const t=Math.max(0,i-pa); let tax=bracketTax(t,[[37700,.20],[112570-pa,.40],[Infinity,.45]]); return tax + Math.min(i,50270)*0.08; }
+
+function calcTax(){
+  const country=document.getElementById('tx-country').value;
+  const income=+document.getElementById('tx-income').value||0;
+  const filing=document.getElementById('tx-filing').value;
+  const k401=Math.min(+document.getElementById('tx-401k').value||0, 23500);
+  const dedMode=document.getElementById('tx-ded').value;
+  document.getElementById('tx-income-lbl').textContent='$'+f(income);
+  document.getElementById('tx-item-wrap').style.display = dedMode==='item'?'block':'none';
+  const res=document.getElementById('taxResult');
+  const adv=document.getElementById('taxAdvice');
+
+  if(country!=='us'){
+    const ft=foreignTax(country, income-k401, k401);
+    res.innerHTML = ft.rows.map(r=>`<div class="rrow"><span class="rl">${r[0]}</span><span class="rv">$${f(r[1])}</span></div>`).join('')
+      + `<div class="rrow tot"><span class="rl">合计税额 <span class="cite" title="${ft.cite}">${ft.cite.split(' ')[0]}</span></span><span class="rv">$${f(ft.tax)}</span></div>`
+      + `<div class="rrow"><span class="rl">税后收入</span><span class="rv" style="color:var(--g)">$${f(income-ft.tax)}</span></div>`
+      + `<div class="rrow"><span class="rl">有效税率</span><span class="rv">${(ft.eff*100).toFixed(1)}%</span></div>`;
+    adv.innerHTML = `${ft.note}。<br>相比美国同等收入（约有效税率 ${usEff(income,filing,k401)}%），在此地${ft.tax < usTaxTotal(income,filing,k401)?`<strong style="color:var(--g)">每年可省约 $${f(usTaxTotal(income,filing,k401)-ft.tax)}</strong>`:'税负更高'}。`;
+    return;
+  }
+  // 美国
+  const ded = dedMode==='item' ? (+document.getElementById('tx-itemamt').value||0) : STD[filing];
+  const taxable=Math.max(0, income - k401 - ded);
+  const fedTax=bracketTax(taxable, FED[filing]);
+  const stCode=document.getElementById('tx-state').value;
+  const st=stateTaxOf(stCode, Math.max(0,income-k401-ded));
+  const stateTax=st.tax;
+  const fc=fica(income);
+  const total=fedTax+stateTax+fc.total;
+  res.innerHTML = `
+    <div class="rrow"><span class="rl">总收入</span><span class="rv">$${f(income)}</span></div>
+    <div class="rrow"><span class="rl">− 401(k) 税前供款 <span class="cite" title="IRC §402(g)">§402(g)</span></span><span class="rv">−$${f(k401)}</span></div>
+    <div class="rrow"><span class="rl">− ${dedMode==='item'?'分项':'标准'}扣除 <span class="cite" title="IRC §63">§63</span></span><span class="rv">−$${f(ded)}</span></div>
+    <div class="rrow"><span class="rl">应税收入</span><span class="rv">$${f(taxable)}</span></div>
+    <div class="rrow"><span class="rl">联邦所得税 <span class="cite" title="IRC §1">§1</span></span><span class="rv">$${f(fedTax)}</span></div>
+    <div class="rrow"><span class="rl">${st.name} 州税 <span class="cite" title="${st.cite}">${stateTax>0?st.cite.split(' ')[0]:'0%'}</span></span><span class="rv">$${f(stateTax)}</span></div>
+    <div class="rrow"><span class="rl">社保税 6.2% <span class="cite" title="IRC §3101">§3101</span></span><span class="rv">$${f(fc.ss)}</span></div>
+    <div class="rrow"><span class="rl">医保税 1.45%+ <span class="cite" title="IRC §3101(b)">§3101(b)</span></span><span class="rv">$${f(fc.med)}</span></div>
+    <div class="rrow tot"><span class="rl">总税额</span><span class="rv">$${f(total)}</span></div>
+    <div class="rrow"><span class="rl">税后收入</span><span class="rv" style="color:var(--g)">$${f(income-total-k401)}</span></div>
+    <div class="rrow"><span class="rl">有效税率</span><span class="rv">${(total/income*100).toFixed(1)}%</span></div>`;
+
+  // 节税建议
+  const room=23500-k401;
+  let tips=[];
+  if(room>0){ const marg=marginalRate(taxable,filing); tips.push(`401(k) 还有 <strong>$${f(room)}</strong> 额度未用满，按当前 ${(marg*100).toFixed(0)}% 边际税率，存满可再省约 <strong style="color:var(--g)">$${f(room*marg)}</strong> <span class="cite">§402(g)</span>`); }
+  tips.push(`可考虑 HSA（个人上限 $4,300）税前供款，进一步降低应税收入 <span class="cite">§223</span>`);
+  if(income>200000) tips.push(`你已触发 0.9% 附加医保税（>$200K 部分），如有 RSU 归属需预留预缴 <span class="cite">§3101(b)(2)</span>`);
+  if(income>income-room && marginalRate(taxable,filing)>=.24) tips.push(`边际税率较高，可评估 Backdoor Roth IRA 与递延薪酬计划`);
+  adv.innerHTML = tips.map(t=>'· '+t).join('<br>');
+}
+function marginalRate(taxable,filing){ for(const [cap,rate] of FED[filing]){ if(taxable<=cap) return rate; } return .37; }
+function usTaxTotal(income,filing,k401){ const ded=STD[filing]; const taxable=Math.max(0,income-k401-ded); return bracketTax(taxable,FED[filing])+caStateTax(taxable)+fica(income).total; }
+function usEff(income,filing,k401){ return (usTaxTotal(income,filing,k401)/income*100).toFixed(1); }
+
+/* ════════ 子 Tab ════════ */
+function buildTaxSubtabs(){
+  const subSet=new Set(['normal']);
+  selectedTypes.forEach(k=>TYPES[k].taxSub.forEach(s=>subSet.add(s)));
+  const labels={normal:'普通收入','rsu':'RSU / 期权','self':'自雇收入','feie':'海外 FEIE','crypto-inline':'加密收益'};
+  const order=['normal','rsu','self','feie','crypto-inline'];
+  const subs=order.filter(s=>subSet.has(s));
+  document.getElementById('taxSubtabs').innerHTML=subs.map((s,i)=>
+    `<button class="subtab ${i===0?'on':''}" onclick="goSub('${s}',this)">${labels[s]}</button>`).join('');
+  document.querySelectorAll('.subpg').forEach(p=>p.classList.remove('on'));
+  document.getElementById('sub-'+subs[0]).classList.add('on');
+}
+function goSub(s, el){
+  document.querySelectorAll('.subpg').forEach(p=>p.classList.remove('on'));
+  document.getElementById('sub-'+s).classList.add('on');
+  document.querySelectorAll('.subtab').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  if(s==='rsu') calcRSU(); if(s==='self') calcSE(); if(s==='feie') calcFEIE();
+}
+
+/* ════════ 仪表盘 ════════ */
+function renderDash(){
+  const primary=TYPES[selectedTypes[0]];
+  const firstName = profile.name ? profile.name.split(' ')[0] : '';
+  let greet;
+  if(firstName) greet=`你好，<em>${firstName}</em>`;
+  else if(selectedTypes.length===1) greet=`你好，<em>${primary.name}</em>`;
+  else greet=`你好 👋 你的<em>多重身份</em>组合`;
+  document.getElementById('dashTitle').innerHTML=greet;
+  document.getElementById('dashEyebrow').textContent=selectedTypes.map(k=>TYPES[k].name).join(' · ');
+  document.getElementById('dashSub').textContent='以下内容根据你勾选的全部身份与收入明细综合生成——身份、金额、所在地一变，方案与税额实时重算。';
+  const agg=aggregateIncome();
+  profile.income=agg;
+  const tot=usTaxTotal(agg,profile.filing,15000);
+  const k401=Math.min(23500, selectedTypes.includes('tech')?23500:0);
+  const save401=Math.round(k401*marginalRate(agg,profile.filing));
+  document.getElementById('dashMetrics').innerHTML=`
+    <div class="mcard"><div class="mac" style="background:var(--g)"></div><div class="mlabel">综合应税收入</div><div class="mval">$${f(agg)}</div><div class="msub">${selectedTypes.length} 个身份合并</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--blue)"></div><div class="mlabel">预估年税额</div><div class="mval">$${f(tot)}</div><div class="msub">有效税率 ${(tot/agg*100).toFixed(1)}%</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--gold)"></div><div class="mlabel">可优化节税</div><div class="mval">$${f(save401||8500)}</div><div class="msub">${k401?'填满 401(k)':'见定制方案'}</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--purple)"></div><div class="mlabel">开启功能</div><div class="mval">${computeTabs().length-1}</div><div class="msub">含 ${computeOwn().length} 个专属</div></div>`;
+  renderPlan();
+  renderAlerts();
+  // 合并多身份待办
+  let todos=[], widgets=[];
+  selectedTypes.forEach(k=>{ todos=todos.concat(TYPES[k].todos); widgets=widgets.concat(TYPES[k].widgets); });
+  todos=todos.slice(0,6); widgets=widgets.slice(0,5);
+  document.getElementById('todoCount').textContent=todos.filter(t=>!t[4]).length+' 项待处理';
+  document.getElementById('dashTodos').innerHTML=todos.map(t=>
+    `<div class="todo ${t[4]?'off':''}" onclick="${t[3]?`go('${t[3]}')`:`toast('已标记')`}">
+      <div class="todo-ico">${t[0]}</div>
+      <div class="todo-body"><div class="todo-text">${t[1]}</div><div class="todo-meta">${t[2]}</div></div>
+      <div class="todo-arr">${t[3]?'→':'○'}</div></div>`).join('');
+  document.getElementById('dashWidgets').innerHTML=widgets.map(w=>
+    `<div class="wdg"><div class="wdg-ico">${w[0]}</div><div class="wdg-body"><div class="wdg-text">${w[1]}</div><div class="wdg-sub">${w[2]}</div>${w[3]?`<div class="prog-mini"><div class="prog-mini-fill" style="width:${w[3]}%;background:var(--g)"></div></div>`:''}</div></div>`).join('');
+}
+
+/* ════════ 跨身份个性化方案 ════════ */
+const LOC_NAME={us:'美国境内',pt:'葡萄牙',sg:'新加坡',ae:'迪拜',uk:'英国',de:'德国',other:'全球移动'};
+function buildPlan(){
+  const items=[]; const mr=marginalRate(aggregateIncome(),profile.filing); const abroad=profile.location&&profile.location!=='us';
+  if(selectedTypes.includes('tech')){
+    const s=Math.round(23500*mr);
+    items.push({t:'填满 401(k) 并规划 RSU 行权时机',d:`税前供款上限 $23,500，按 ${(mr*100).toFixed(0)}% 边际税率直接抵税；RSU 归属当日按公允价值计入普通收入，行权后持满 1 年转长期资本利得（20%）。`,cite:'IRC §83 / §402(g)',save:s});
+  }
+  if(selectedTypes.includes('self')||selectedTypes.includes('ecom')){
+    const qbi=Math.round(profile.seInc*0.20*mr);
+    items.push({t:'用足 QBI 20% 扣除 + SEP-IRA',d:`合资格经营收入可享 20% 合格业务收入扣除；SEP-IRA 供款上限约净收入 20%（封顶 $69K），进一步压低应税额。记得按季预缴避免罚息。`,cite:'IRC §199A / §408(k)',save:qbi});
+  }
+  if(selectedTypes.includes('crypto')){
+    const s=Math.round(profile.cryptoGain*0.12);
+    items.push({t:'加密资产改用 HIFO 成本法 + 损失收割',d:`卖出时优先匹配最高成本批次，最小化当期资本利得；年底前对浮亏头寸做 tax-loss harvesting 抵减已实现盈利。需保留逐笔成本记录并生成 Form 8949。`,cite:'Rev. Rul. 2019-24',save:s});
+  }
+  if(selectedTypes.includes('nomad')||abroad){
+    const s=abroad?Math.round(Math.min(aggregateIncome(),130000)*mr*0.6):42000;
+    items.push({t:abroad?`在${LOC_NAME[profile.location]}用足 FEIE 海外收入豁免`:'规划居住地以触发 FEIE / 居住地优化',d:`满足实际居住测试（330 天）或真实居所测试后，约 $130,000 海外赚取收入可豁免美国税；高税国则改用 FTC 抵免。注意美国公民全球征税，仍需申报 FBAR（账户 >$10K）。`,cite:'IRC §911 / §901',save:s});
+  }
+  if(selectedTypes.includes('biz')){
+    const s=Math.round(profile.bizProfit*(0.21-0.125));
+    items.push({t:'企业利润转爱尔兰 12.5% 架构 + R&D 抵免',d:`将合资格贸易/IP 利润落在爱尔兰（12.5%，IP Box 6.25%），较美国 21% 显著降负；同时申请研发抵免。需有实质运营满足 OECD 经济实质测试，并评估 Pillar 2 全球最低税。`,cite:'TCA 1997 §769I / OECD Pillar Two',save:s});
+  }
+  const countries=new Set([profile.country, profile.location].filter(x=>x&&x!=='us'&&x!=='other'));
+  if(countries.size>0){
+    items.push({t:'用税收协定消除双重征税',d:`你的收入横跨 美国与 ${[...countries].map(c=>LOC_NAME[c]||c).join('、')}，可援引相应税收协定的抵免/豁免条款与加比规则（tie-breaker）避免被两国重复征税。`,cite:'US Model Treaty Art.23',save:0});
+  }
+  return items;
+}
+function renderPlan(){
+  const items=buildPlan();
+  const total=items.reduce((a,b)=>a+(b.save||0),0);
+  document.getElementById('planSave').textContent='预计可省 $'+f(total)+'/年';
+  document.getElementById('dashPlan').innerHTML=items.map((it,i)=>
+    `<div class="plan-item">
+      <div class="plan-num">${i+1}</div>
+      <div class="plan-body"><div class="plan-t">${it.t}</div><div class="plan-d">${it.d} <span class="cp-cite">${it.cite}</span></div></div>
+      ${it.save?`<div class="plan-save">省 $${f(it.save)}</div>`:''}
+    </div>`).join('');
+}
+/* ════════ 你最需要知道的事（优先级提醒）════════ */
+function buildAlerts(){
+  const a=[]; const P={hi:['var(--red)','紧急','br2'],mid:['var(--gold)','留意','by'],lo:['var(--g)','提示','bg']};
+  const abroad=profile.location&&profile.location!=='us'&&profile.location!=='other';
+  const isEcom=selectedTypes.includes('ecom');
+  // 电商 + 境外：最关键的认知纠偏
+  if(isEcom && (abroad||profile.location==='other')){
+    a.push({p:'hi',t:'你人在境外，但美国州 Nexus 依然适用',d:'经济联结看客户所在州、不看卖家位置；独立站（如 Shopify）销售需自行注册申报，平台订单多由 Amazon/Etsy 代缴。',go:'ecom',cite:'Wayfair v. South Dakota'});
+  }
+  // 电商：已触发的州
+  if(isEcom){
+    const triggered=Object.entries(aggState()).filter(([st,v])=>v>= (STATE_THR[st]||500)).map(([st])=>st);
+    if(triggered.length) a.push({p:'hi',t:`${triggered.length} 个州已触发销售税申报义务`,d:`${triggered.join('、')} 已超阈值，需注册账户并申报，逾期有罚息。`,go:'ecom',cite:'State Sales Tax Nexus'});
+  }
+  // 自雇/电商：季度预缴
+  if(selectedTypes.includes('self')||isEcom) a.push({p:'mid',t:'季度预估税 6/15 截止',d:'自雇/经营收入需按季预缴联邦与州税，欠缴会产生 §6654 罚息。',go:'tax',cite:'IRC §6654'});
+  // 境外：FBAR
+  if(abroad) a.push({p:'mid',t:'海外金融账户 FBAR 申报',d:'任一时点海外账户合计 >$10,000 须报 FinCEN 114，与所得税分开。',go:null,cite:'31 USC §5314'});
+  // 科技：高收入附加医保税
+  if(selectedTypes.includes('tech') && aggregateIncome()>200000) a.push({p:'lo',t:'已触发 0.9% 附加医保税',d:'收入超 $200K 部分适用，RSU 大额归属年份注意预留预缴。',go:'tax',cite:'IRC §3101(b)(2)'});
+  // 加密：8949
+  if(selectedTypes.includes('crypto')) a.push({p:'lo',t:'加密交易需生成 Form 8949',d:'每笔处置都要报告；改用 HIFO 可降低当期资本利得。',go:'crypto',cite:'Rev. Rul. 2019-24'});
+  if(!a.length) a.push({p:'lo',t:'目前没有紧急事项',d:'继续保持记录完整，方案见下方。',go:null,cite:'—'});
+  const order={hi:0,mid:1,lo:2};
+  return a.sort((x,y)=>order[x.p]-order[y.p]).map(it=>({...it,_:P[it.p]}));
+}
+function renderAlerts(){
+  const items=buildAlerts();
+  const urgent=items.filter(i=>i.p==='hi').length;
+  document.getElementById('alertCount').textContent = urgent? `${urgent} 项紧急`:`${items.length} 项`;
+  document.getElementById('dashAlerts').innerHTML=items.map(it=>
+    `<div class="al-row" onclick="${it.go?`go('${it.go}')`:`askCopilot('${it.t} 我该怎么处理？')`}">
+      <div class="al-dot" style="background:${it._[0]}"></div>
+      <div class="al-body"><div class="al-t">${it.t}</div><div class="al-d">${it.d} <span class="cp-cite">${it.cite}</span></div></div>
+      <span class="al-tag ${it._[2]}">${it._[1]}</span>
+    </div>`).join('');
+}
+
+/* ════════ RSU ════════ */
+function calcRSU(){
+  const base=+document.getElementById('rsu-base').value||0;
+  const vest=+document.getElementById('rsu-vest').value||0;
+  const opt=+document.getElementById('rsu-opt').value||0;
+  const growth=+document.getElementById('rsu-growth').value/100;
+  document.getElementById('rsu-growth-lbl').textContent=(growth*100).toFixed(0)+'%';
+  const thisYear=usTaxTotal(base+vest+opt, 'single', 23500);
+  const baseOnly=usTaxTotal(base+vest, 'single', 23500);
+  const exerciseCost=thisYear-baseOnly;
+  const futureValue=opt*(1+growth);
+  const ltcg=(futureValue-opt)*0.20;
+  const nextYearOrdinary=futureValue*marginalRate(base+vest+futureValue,'single');
+  const ltcgSaving=nextYearOrdinary-ltcg;
+  const better = ltcgSaving>exerciseCost;
+  document.getElementById('rsuResult').innerHTML=`
+    <div class="rrow"><span class="rl">RSU 归属当日普通收入税 <span class="cite" title="IRC §83">§83</span></span><span class="rv">$${f(vest*marginalRate(base+vest,'single'))}</span></div>
+    <div class="rrow"><span class="rl">今年立即行权额外税负</span><span class="rv">$${f(exerciseCost)}</span></div>
+    <div class="rrow"><span class="rl">明年股价 ${(growth*100).toFixed(0)}% → 持有>1年 LTCG 20% <span class="cite" title="IRC §1(h)">§1(h)</span></span><span class="rv">$${f(ltcg)}</span></div>
+    <div class="rrow tot"><span class="rl">${better?'建议持有满 1 年':'建议今年行权'}</span><span class="rv" style="color:${better?'var(--g)':'var(--gold)'}">${better?'省 $'+f(ltcgSaving-exerciseCost):'锁定收益'}</span></div>
+    <div style="margin-top:12px;padding:11px;background:var(--gbg);border-radius:9px;font-size:12px;color:var(--ink2);line-height:1.6">
+      💡 ${better?`预期涨幅 ${(growth*100).toFixed(0)}%，行权后持有满 1 年转为长期资本利得（20%），相比明年按普通收入税，<strong style="color:var(--g)">净省约 $${f(ltcgSaving-exerciseCost)}</strong>。建议今年行权 + 加大 401(k) 至上限对冲。`:`若预期涨幅有限，今年行权多缴 $${f(exerciseCost)}，但可锁定当前收益避免股价回落风险。`}
+    </div>`;
+}
+
+/* ════════ 自雇税 ════════ */
+function calcSE(){
+  const net=+document.getElementById('se-net').value||0;
+  const exp=+document.getElementById('se-exp').value||0;
+  const sep=+document.getElementById('se-sep').value||0;
+  const netProfit=net-exp;
+  const seBase=netProfit*0.9235;
+  const seTax=Math.min(seBase,176100)*0.124 + seBase*0.029;
+  const halfSE=seTax/2;
+  const taxable=Math.max(0,netProfit-halfSE-sep-15000);
+  const incomeTax=bracketTax(taxable,FED.single)+caStateTax(taxable);
+  const total=seTax+incomeTax;
+  document.getElementById('seResult').innerHTML=`
+    <div class="rrow"><span class="rl">净营业利润</span><span class="rv">$${f(netProfit)}</span></div>
+    <div class="rrow"><span class="rl">SE 税基 (92.35%)</span><span class="rv">$${f(seBase)}</span></div>
+    <div class="rrow"><span class="rl">自雇税 15.3% <span class="cite" title="IRC §1401">§1401</span></span><span class="rv">$${f(seTax)}</span></div>
+    <div class="rrow"><span class="rl">− SE 税一半可抵扣 <span class="cite" title="IRC §164(f)">§164(f)</span></span><span class="rv">−$${f(halfSE)}</span></div>
+    <div class="rrow"><span class="rl">− SEP-IRA 供款 <span class="cite" title="IRC §408(k)">§408(k)</span></span><span class="rv">−$${f(sep)}</span></div>
+    <div class="rrow"><span class="rl">所得税（联邦+州）</span><span class="rv">$${f(incomeTax)}</span></div>
+    <div class="rrow tot"><span class="rl">总税额</span><span class="rv">$${f(total)}</span></div>
+    <div class="rrow"><span class="rl">每季度预缴 <span class="cite" title="IRC §6654">§6654</span></span><span class="rv">$${f(total/4)}</span></div>`;
+}
+
+/* ════════ FEIE ════════ */
+function calcFEIE(){
+  const income=+document.getElementById('feie-income').value||0;
+  const days=+document.getElementById('feie-days').value||0;
+  const country=document.getElementById('feie-country').value;
+  const limit=130000; // 2025 FEIE 上限近似
+  const qualifies=days>=330;
+  const excluded=qualifies?Math.min(income,limit):0;
+  const remaining=income-excluded;
+  const usTaxOnRemaining=bracketTax(Math.max(0,remaining-15000),FED.single);
+  const localNote={pt:'葡萄牙 NHR 20%',sg:'新加坡累进',ae:'迪拜 0%',es:'西班牙 Beckham 24% 封顶'}[country];
+  document.getElementById('feieResult').innerHTML=`
+    <div class="rrow"><span class="rl">330 天境外测试 <span class="cite" title="IRC §911(d)(1)">§911(d)</span></span><span class="rv" style="color:${qualifies?'var(--g)':'var(--red)'}">${qualifies?'✓ 通过':'✗ 未满足'}</span></div>
+    <div class="rrow"><span class="rl">海外赚取收入</span><span class="rv">$${f(income)}</span></div>
+    <div class="rrow"><span class="rl">FEIE 豁免额 <span class="cite" title="IRC §911(b)(2)">§911(b)</span></span><span class="rv" style="color:var(--g)">−$${f(excluded)}</span></div>
+    <div class="rrow"><span class="rl">超出部分应税</span><span class="rv">$${f(remaining)}</span></div>
+    <div class="rrow"><span class="rl">美国剩余税额</span><span class="rv">$${f(usTaxOnRemaining)}</span></div>
+    <div class="rrow tot"><span class="rl">当地税（${localNote}）</span><span class="rv">见协定查询</span></div>
+    <div style="margin-top:12px;padding:11px;background:var(--gbg);border-radius:9px;font-size:12px;color:var(--ink2);line-height:1.6">
+      💡 ${qualifies?`你满足实际居住测试，可豁免 $${f(excluded)} 美国税。结合${localNote}，整体有效税负可显著降低。注意：美国公民全球征税，FEIE 之外仍需申报。`:`未满 330 天，暂不符合 FEIE。可考虑外国税收抵免（FTC, §901）作为替代。`}
+    </div>`;
+}
+</script>
+
+<script>
+/* ════════ Remote 智选 ════════ */
+const CITIES=[
+  {city:'迪拜',flag:'🇦🇪',regime:'0% 个人所得税',tax:0,cost:62,qol:78,visa:90},
+  {city:'里斯本',flag:'🇵🇹',regime:'NHR 20% 固定',tax:20,cost:48,qol:88,visa:82},
+  {city:'新加坡',flag:'🇸🇬',regime:'累进 最高24%',tax:12,cost:75,qol:90,visa:70},
+  {city:'第比利斯',flag:'🇬🇪',regime:'1% 小企业税',tax:1,cost:30,qol:68,visa:95},
+  {city:'巴拿马城',flag:'🇵🇦',regime:'领土税制',tax:0,cost:42,qol:70,visa:80},
+  {city:'马德里',flag:'🇪🇸',regime:'Beckham 24%封顶',tax:24,cost:52,qol:85,visa:78},
+  {city:'雅典',flag:'🇬🇷',regime:'远程工作50%免税',tax:22,cost:45,qol:80,visa:75},
+  {city:'吉隆坡',flag:'🇲🇾',regime:'MM2H 领土税',tax:3,cost:35,qol:72,visa:72},
+  {city:'塔林',flag:'🇪🇪',regime:'e-Residency',tax:20,cost:46,qol:76,visa:88},
+  {city:'索菲亚',flag:'🇧🇬',regime:'10% 平税',tax:10,cost:33,qol:65,visa:80},
+  {city:'阿布扎比',flag:'🇦🇪',regime:'0% 个人所得税',tax:0,cost:58,qol:80,visa:88},
+  {city:'曼谷',flag:'🇹🇭',regime:'汇入制 / LTR 签证',tax:5,cost:38,qol:74,visa:84},
+  {city:'墨西哥城',flag:'🇲🇽',regime:'临时居民签证',tax:15,cost:40,qol:73,visa:82},
+  {city:'布宜诺斯艾利斯',flag:'🇦🇷',regime:'数字游民签证',tax:9,cost:34,qol:71,visa:80},
+  {city:'利马索尔',flag:'🇨🇾',regime:'Non-Dom 17年免税',tax:0,cost:50,qol:78,visa:84},
+  {city:'圣胡安',flag:'🇵🇷',regime:'Act 60（美属，0%资本利得）',tax:4,cost:55,qol:74,visa:99},
+  {city:'香港',flag:'🇭🇰',regime:'领土税 最高17%',tax:15,cost:78,qol:82,visa:76},
+  {city:'蒙得维的亚',flag:'🇺🇾',regime:'新移民11年免税',tax:0,cost:47,qol:76,visa:78},
+  {city:'伊斯坦布尔',flag:'🇹🇷',regime:'数字游民签证',tax:18,cost:36,qol:72,visa:80},
+  {city:'麦纳麦',flag:'🇧🇭',regime:'0% 个人所得税',tax:0,cost:52,qol:75,visa:82},
+];
+function rankCities(){
+  const sal=+document.getElementById('nm-salary').value||0;
+  const wTax=+document.getElementById('nm-tax').value/100;
+  const wQol=+document.getElementById('nm-qol').value/100;
+  document.getElementById('nm-sal-lbl').textContent='$'+f(sal);
+  document.getElementById('nm-tax-lbl').textContent=(wTax*100).toFixed(0)+'%';
+  document.getElementById('nm-qol-lbl').textContent=(wQol*100).toFixed(0)+'%';
+  const wCost=1; // 成本恒定参考
+  const scored=CITIES.map(c=>{
+    const net=sal*(1-c.tax/100);
+    const taxScore=(100-c.tax)/100;       // 越低税越高分
+    const costScore=(100-c.cost)/100;     // 成本越低越高分
+    const qolScore=c.qol/100;
+    const visaScore=c.visa/100;
+    const score=(taxScore*wTax*40 + qolScore*wQol*30 + costScore*15 + visaScore*15)/(wTax+wQol+0.75)*1.0;
+    return {...c, net, score:score};
+  }).sort((a,b)=>b.score-a.score);
+  const max=scored[0].score;
+  const nc=document.getElementById('nomadCount'); if(nc) nc.textContent=`实时排序 · ${CITIES.length} 城市`;
+  document.getElementById('nomadList').innerHTML=scored.map((c,i)=>
+    `<div class="nomad-card ${i===0?'top':''}" onclick="askCopilot('${c.city}（${c.regime}）适合我吗？年薪 $${f(sal)}，详细分析税务和宜居度')">
+      <div class="nomad-rank">${i+1}</div>
+      <div class="nomad-flag">${c.flag}</div>
+      <div class="nomad-info"><div class="nomad-city">${c.city}${i===0?' <span class="badge bg">最优</span>':''}</div><div class="nomad-regime">${c.regime} · 税后约 $${f(c.net)}</div></div>
+      <div class="nomad-metrics">
+        <div class="nomad-metric"><div class="nomad-mval">${c.tax}%</div><div class="nomad-mlabel">税率</div></div>
+        <div class="nomad-metric"><div class="nomad-mval">${c.cost}</div><div class="nomad-mlabel">成本指数</div></div>
+        <div class="nomad-metric"><div class="nomad-mval">${c.qol}</div><div class="nomad-mlabel">宜居度</div></div>
+      </div>
+      <div class="nomad-score">${(c.score/max*100).toFixed(0)}</div></div>`).join('');
+}
+
+/* ════════ W-2 → Form 1040 ════════ */
+let uploaded=false;
+function startUpload(){
+  if(uploaded){ go('w2'); return; }
+  const dz=document.getElementById('dropZone');
+  document.getElementById('progWrap').classList.add('show');
+  dz.innerHTML='<div class="drop-icon">⏳</div><div class="drop-title">正在解析…</div><div class="drop-sub">Qwen-VL 本地处理，数据不出境</div>';
+  const steps=[[20,'图像预处理中…','20%'],[45,'VLM 识别表单字段…','45%'],[70,'提取 Box 1-17 数值…','70%'],[90,'交叉校验数据一致性…','90%'],[100,'解析完成 ✓','100%']];
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i>=steps.length){ clearInterval(iv); uploaded=true;
+      dz.innerHTML='<div class="drop-icon">✅</div><div class="drop-title">W-2 解析完成</div><div class="drop-sub">Google LLC · EIN 77-0493581 · 2025</div>';
+      document.getElementById('w2Preview').classList.add('show');
+      toast('W-2 解析完成，可生成 1040'); return; }
+    document.getElementById('progFill').style.width=steps[i][0]+'%';
+    document.getElementById('progLabel').textContent=steps[i][1];
+    document.getElementById('progPct').textContent=steps[i][2];
+    i++;
+  },600);
+}
+function generateReport(){
+  // 用真实税率从 W-2 数据算 1040
+  const box1=120000, box2=18400, box16=7800, k401=15000;
+  const ded=STD.single;
+  const taxable=Math.max(0,box1-ded);
+  const fedTax=bracketTax(taxable,FED.single);
+  const stateTax=caStateTax(taxable);
+  const fedRefund=box2-fedTax;
+  const stateRefund=box16-stateTax;
+  document.getElementById('rph').style.display='none';
+  document.getElementById('w2Skill').style.display='inline-block';
+  const rc=document.getElementById('rcContent');
+  rc.classList.add('show');
+  rc.innerHTML=`
+    <div class="refund-banner">
+      <div><div class="rb-label">预计联邦退税</div><div class="rb-amount">$${f(Math.abs(fedRefund))}</div><div class="rb-sub">${fedRefund>=0?'多代扣，将退还':'需补缴'}</div></div>
+      <div style="text-align:right"><button class="btn pri" onclick="toast('E-File 需 IRS 授权（第二阶段）')" style="margin-bottom:5px">一键 E-File</button><div class="rb-note" style="font-size:10px;color:var(--ink3)">提交前请人工复核</div></div>
+    </div>
+    <div class="form1040">
+      <div class="f-head"><div><div class="f-head-title">Form 1040</div><div class="f-head-sub">U.S. Individual Income Tax Return</div></div><div class="f-year">2025</div></div>
+      <div class="f-sec">
+        <div class="f-row"><span class="f-label"><span class="f-linenum">1a</span>工资（W-2 Box 1）</span><span class="f-val">$${f(box1)}</span></div>
+        <div class="f-row"><span class="f-label"><span class="f-linenum">12</span>标准扣除</span><span class="f-val">−$${f(ded)}</span></div>
+        <div class="f-row"><span class="f-label"><span class="f-linenum">15</span>应税收入</span><span class="f-val">$${f(taxable)}</span></div>
+      </div>
+      <div class="f-sec">
+        <div class="f-row"><span class="f-label"><span class="f-linenum">16</span>联邦所得税</span><span class="f-val">$${f(fedTax)}</span></div>
+        <div class="f-row"><span class="f-label"><span class="f-linenum">25a</span>已代扣（Box 2）</span><span class="f-val">$${f(box2)}</span></div>
+      </div>
+      <div class="f-total"><span class="f-total-label">${fedRefund>=0?'34 退税额':'37 应补缴'}</span><span class="f-total-val">$${f(Math.abs(fedRefund))}</span></div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--ink3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">附加表单（已生成草稿）</div>
+    <div class="doc-grid">
+      <div class="doc-card" onclick="toast('已生成 Schedule 1 草稿')"><div class="doc-icon" style="background:var(--gbg)">📄</div><div><div class="doc-name">Schedule 1</div><div class="doc-desc">附加收入与调整</div></div></div>
+      <div class="doc-card" onclick="toast('已生成 CA 540 草稿')"><div class="doc-icon" style="background:var(--bluebg)">📋</div><div><div class="doc-name">CA Form 540</div><div class="doc-desc">加州州税 · ${stateRefund>=0?'退$'+f(stateRefund):'补$'+f(-stateRefund)}</div></div></div>
+    </div>`;
+  toast('Form 1040 已生成');
+}
+
+/* ════════ 税收协定 ════════ */
+const treaties={
+  'us-pt':{name:'美国 — 葡萄牙',year:'1996',dividend:'5%/15%',interest:'10%',tip:'结合 NHR，有效税率可低至 7–12%'},
+  'us-sg':{name:'美国 — 新加坡',year:'(无全面协定)',dividend:'依国内法',interest:'依国内法',tip:'两国无全面所得税协定，依赖 FTC 抵免，需特别注意',warn:true},
+  'us-uk':{name:'美国 — 英国',year:'2001',dividend:'0%/15%',interest:'0%',tip:'最全面的协定之一，覆盖几乎所有税种'},
+  'us-de':{name:'美国 — 德国',year:'1989',dividend:'5%/15%',interest:'0%',tip:'在德工作建议确认是否适用替代税基'},
+  'us-jp':{name:'美国 — 日本',year:'2003',dividend:'10%',interest:'10%',tip:'日本还有地方税，总税负约 20%'},
+  'us-cn':{name:'美国 — 中国',year:'1984',dividend:'10%',interest:'10%',tip:'协定较老，部分条款已不适用于数字经济'},
+  'cn-sg':{name:'中国 — 新加坡',year:'2007',dividend:'5%/10%',interest:'10%',tip:'适合通过新加坡架构管理亚洲投资'},
+  'cn-uk':{name:'中国 — 英国',year:'2011',dividend:'5%/15%',interest:'10%',tip:'较新版本，覆盖现代条款'},
+  'pt-uk':{name:'葡萄牙 — 英国',year:'1968',dividend:'10%/15%',interest:'10%',tip:'历史悠久，建议确认最新议定书'},
+};
+function calcTreaty(){
+  const from=document.getElementById('tr-from').value, to=document.getElementById('tr-to').value;
+  const t=treaties[`${from}-${to}`]||treaties[`${to}-${from}`];
+  const res=document.getElementById('treatyResult');
+  if(from===to){ res.innerHTML='<div style="color:var(--ink3);font-size:13px">请选择两个不同的国家。</div>'; res.style.background='var(--surf)'; return; }
+  if(t && !t.warn){
+    res.innerHTML=`<div style="font-weight:600;color:var(--g);margin-bottom:10px;font-size:14px">✓ ${t.name}税收协定（生效 ${t.year} 年）</div>
+      <div style="font-size:12.5px;color:var(--ink2);line-height:1.9">
+        · <strong>股息预提税</strong>：上限 ${t.dividend}<br>
+        · <strong>利息预提税</strong>：上限 ${t.interest}<br>
+        · <strong>双重征税消除</strong>：抵免法（Credit Method）<span class="cite">FTC §901</span><br>
+        · <strong>独立个人服务</strong>：通常在居住国征税</div>
+      <div style="margin-top:12px;padding:10px 13px;background:var(--white);border-radius:9px;font-size:12.5px;color:var(--ink2)"><span style="color:var(--gold);font-weight:600">💡 策略建议：</span> ${t.tip}</div>`;
+    res.style.background='var(--gbg)';
+  } else if(t && t.warn){
+    res.innerHTML=`<div style="font-weight:600;color:var(--gold);margin-bottom:8px">⚠ ${t.name}：无全面所得税协定</div><div style="font-size:12.5px;color:var(--ink2);line-height:1.6">${t.tip}。需依靠各国国内税法和外国税收抵免（FTC, §901）避免双重征税。</div>`;
+    res.style.background='var(--goldbg)';
+  } else {
+    res.innerHTML=`<div style="font-weight:600;color:var(--gold);margin-bottom:8px">⚠ 未查到该国家组合的税收协定</div><div style="font-size:12.5px;color:var(--ink2);line-height:1.6">两国之间可能不存在双边协定，需依靠各国国内税法和 FTC 抵免。建议咨询专业税务律师。</div>`;
+    res.style.background='var(--goldbg)';
+  }
+}
+
+/* ════════ 店铺连接 + Nexus 实时风险引擎 ════════ */
+// 每个平台带来一份分州周销售贡献（$K / 已累计）；连接后并入各州 YTD
+const STORES={
+  shopify:{emoji:'🛍',name:'Shopify',connected:false,facilitator:false,data:{'加州 CA':310,'德州 TX':180,'纽约 NY':260,'华盛顿 WA':150,'佛州 FL':90},txns:[['Shopify 订阅费','软件','bg',99],['退款手续费','费用','by',90]]},
+  amazon:{emoji:'📦',name:'Amazon',connected:false,facilitator:true,data:{'加州 CA':190,'德州 TX':260,'纽约 NY':210,'华盛顿 WA':140,'佛州 FL':70},txns:[['FBA 仓储费','仓储','bp',96],['批量进货付款','库存','by',88]]},
+  ebay:{emoji:'🏷',name:'eBay',connected:false,facilitator:true,data:{'加州 CA':80,'德州 TX':70,'纽约 NY':110,'华盛顿 WA':130,'佛州 FL':40},txns:[['eBay 刊登费','费用','bb',97]]},
+  etsy:{emoji:'🧵',name:'Etsy',connected:false,facilitator:true,data:{'加州 CA':50,'德州 TX':30,'纽约 NY':70,'华盛顿 WA':40,'佛州 FL':60},txns:[['Etsy 交易费','费用','bb',95],['手工材料采购','库存','by',86]]},
+};
+const STATE_THR={'加州 CA':500,'德州 TX':500,'纽约 NY':500,'华盛顿 WA':100,'佛州 FL':100};
+function renderStores(){
+  const grid=document.getElementById('storeGrid'); if(!grid) return;
+  const n=Object.values(STORES).filter(s=>s.connected).length;
+  document.getElementById('storeCount').textContent = n? `已连接 ${n} 个平台`:'未连接';
+  grid.innerHTML=Object.entries(STORES).map(([k,s])=>
+    `<div class="store-btn ${s.connected?'connected':''}" onclick="connectStore('${k}')">
+      <div class="store-emoji">${s.emoji}</div><div class="store-name">${s.name}</div>
+      <div class="store-stat">${s.connected?(s.facilitator?'平台代缴':'需自行申报'):'点击连接'}</div></div>`).join('');
+}
+function connectStore(k){
+  const s=STORES[k];
+  if(s.connected){ s.connected=false; toast(s.name+' 已断开'); renderStores(); renderNexus(); return; }
+  // 模拟 OAuth：跳转到平台登录授权页 → 跳回
+  const ov=document.getElementById('oauthRedirect');
+  document.getElementById('oauthIcon').textContent=s.emoji;
+  document.getElementById('oauthTitle').textContent=`正在前往 ${s.name} 授权…`;
+  document.getElementById('oauthDesc').innerHTML=`即将跳转到 ${s.name} 登录页完成授权，<br>授权后自动跳回 TaxGlobal AI`;
+  ov.classList.add('on');
+  setTimeout(()=>{
+    document.getElementById('oauthTitle').textContent=`${s.name} 授权成功`;
+    document.getElementById('oauthDesc').innerHTML='已获得只读权限，正在跳回并拉取分州销售数据…';
+    document.getElementById('oauthSpin').style.borderTopColor='var(--g)';
+  },1100);
+  setTimeout(()=>{
+    ov.classList.remove('on');
+    s.connected=true; toast(s.name+' 已连接，分州销售数据已同步');
+    renderStores(); renderNexus();
+  },2000);
+}
+// sellerOnly=true 仅统计需卖家自行申报的平台（非 marketplace facilitator，如独立站 Shopify）
+function aggState(sellerOnly){
+  const agg={}; Object.values(STORES).filter(s=>s.connected && (!sellerOnly||!s.facilitator)).forEach(s=>{
+    for(const [st,v] of Object.entries(s.data)) agg[st]=(agg[st]||0)+v;
+  });
+  return agg;
+}
+function renderNexus(){
+  const connected=Object.values(STORES).filter(s=>s.connected);
+  const hasAny=connected.length>0;
+  document.getElementById('ecomEmpty').style.display=hasAny?'none':'block';
+  document.getElementById('ecomConnected').style.display=hasAny?'block':'none';
+  if(!hasAny) return;
+  // 注册义务只看"需自行申报"的销售（独立站）；平台订单由 marketplace facilitator 代缴
+  const sellerAgg=aggState(true);
+  const totalAgg=aggState(false);
+  const rows=Object.entries(sellerAgg).map(([st,sales])=>({st,sales,thr:STATE_THR[st]||500})).sort((a,b)=>b.sales/b.thr-a.sales/a.thr);
+  const sellerLiable=Object.values(sellerAgg).reduce((a,b)=>a+b,0);
+
+  // 境外卖家洞察
+  const abroad=profile.location&&profile.location!=='us'&&profile.location!=='other'||profile.location==='other';
+  const ab=document.getElementById('ecomAbroad');
+  if(abroad){ ab.style.display='flex';
+    document.getElementById('ecomAbroadBody').innerHTML=`<div class="alert-title">你人在境外，美国州 Nexus 仍然适用</div><div class="alert-text">经济联结看<strong>客户所在州</strong>、与卖家位置无关。下方监控仅统计需你<strong>自行申报</strong>的独立站销售；平台订单（Amazon/eBay/Etsy）一般由平台代收代缴 <span class="cite">Marketplace Facilitator Laws</span>。</div>`;
+  } else ab.style.display='none';
+
+  // Nexus 列表
+  if(rows.length===0||sellerLiable===0){
+    document.getElementById('nexusList').innerHTML=`<div class="empty-state" style="padding:20px"><div class="es-t">当前连接的平台均为 marketplace facilitator（如 Amazon/eBay/Etsy），订单销售税由平台代缴，你<strong>暂无自行注册义务</strong>。连接 Shopify 等独立站后这里会显示你的 Nexus 风险。</div></div>`;
+  } else {
+    document.getElementById('nexusList').innerHTML=rows.map(n=>{
+      const pct=n.sales/n.thr*100;
+      const col=pct>=100?'var(--red)':pct>=80?'var(--gold)':'var(--g)';
+      const weekly=n.sales/26;
+      const weeksLeft=pct>=100?0:Math.max(1,Math.round((n.thr-n.sales)/weekly));
+      const note=pct>=100?'已触发，需申报':pct>=80?`约 ${weeksLeft} 周后触发`:`安全（约 ${weeksLeft} 周缓冲）`;
+      return `<div class="nexus-row">
+        <div class="nexus-state">${n.st}</div>
+        <div class="nexus-bar-wrap"><div class="nexus-bar"><div class="nexus-bar-fill" style="width:${Math.min(100,pct)}%;background:${col}"></div></div>
+        <div class="nexus-nums"><span>$${f(n.sales)}K / 阈值 $${n.thr}K</span><span style="color:${col}">${note}</span></div></div>
+        <div class="nexus-pct" style="color:${col}">${pct.toFixed(0)}%</div></div>`;
+    }).join('');
+  }
+  // 预警框
+  const top=rows.find(n=>n.sales/n.thr*100>=80);
+  const alert=document.getElementById('nexusAlert');
+  if(top){
+    const pct=(top.sales/top.thr*100); const owed=Math.round(top.sales*1000*0.0725); const triggered=pct>=100;
+    alert.style.display='flex';
+    document.getElementById('nexusAlertBody').innerHTML=
+      `<div class="alert-title">${top.st} Nexus ${triggered?'已触发':'即将触发'}（独立站销售）</div>
+       <div class="alert-text">${top.st}需自行申报的销售额已达 <strong>$${f(top.sales)}K / $${top.thr}K（${pct.toFixed(0)}%）</strong>，${triggered?'已超过经济 Nexus 阈值':'预计很快触发'} <span class="cite">${top.st.includes('加州')?'CA Rev & Tax §6203':'Wayfair v. South Dakota'}</span>。建议尽快注册该州销售税账户，预估年度应缴约 $${f(owed)}。</div>`;
+  } else alert.style.display='none';
+  // 指标
+  const totSales=Object.values(totalAgg).reduce((a,b)=>a+b,0);
+  const facShare=totSales-sellerLiable;
+  const triggeredN=rows.filter(n=>n.sales/n.thr>=1).length;
+  const nearN=rows.filter(n=>{const p=n.sales/n.thr;return p>=0.8&&p<1;}).length;
+  document.getElementById('ecomMetrics').innerHTML=`
+    <div class="mcard"><div class="mac" style="background:var(--g)"></div><div class="mlabel">总销售额（YTD）</div><div class="mval">$${(totSales/1000).toFixed(2)}M</div><div class="msub">${connected.length} 个平台合并</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--blue)"></div><div class="mlabel">平台代缴部分</div><div class="mval">$${(facShare/1000).toFixed(2)}M</div><div class="msub">无需自行注册</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--red)"></div><div class="mlabel">已触发 Nexus</div><div class="mval">${triggeredN} 州</div><div class="msub">需立即申报</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--gold)"></div><div class="mlabel">接近阈值</div><div class="mval">${nearN} 州</div><div class="msub">≥80% 主动预警</div></div>`;
+  // 各平台拆分（≥2 平台时显示）
+  const bdCard=document.getElementById('storeBreakdownCard');
+  if(connected.length>=2){
+    bdCard.style.display='block';
+    document.getElementById('storeBreakdown').innerHTML=Object.entries(STORES).filter(([k,s])=>s.connected).map(([k,s])=>{
+      const sum=Object.values(s.data).reduce((a,b)=>a+b,0);
+      return `<div class="rrow"><span class="rl">${s.emoji} ${s.name} <span class="badge ${s.facilitator?'bb':'br2'}">${s.facilitator?'平台代缴':'需自行申报'}</span></span><span class="rv mono">$${f(sum)}K</span></div>`;
+    }).join('')+`<div class="rrow tot"><span class="rl">其中需你自行申报（Nexus 计入）</span><span class="rv mono" style="color:var(--red)">$${f(sellerLiable)}K</span></div>`;
+  } else bdCard.style.display='none';
+  // 交易分类
+  let TXN=[]; connected.forEach(s=>TXN=TXN.concat(s.txns)); TXN=TXN.slice(0,6);
+  document.getElementById('txnList').innerHTML=TXN.map(t=>
+    `<div class="txn-row"><span style="flex:1">${t[0]}</span><span class="txn-cat badge ${t[2]}">${t[1]}</span><span class="txn-conf">${t[3]}%</span>${t[3]<92?`<span class="txn-act" onclick="confirmTxn(this)">确认</span>`:'<span style="color:var(--g);font-size:11px">✓ 自动</span>'}</div>`).join('');
+}
+function confirmTxn(el){ el.outerHTML='<span style="color:var(--g);font-size:11px">✓ 已确认</span>'; toast('分类已确认，将作为训练信号'); }
+
+/* ════════ 加密 ════════ */
+let cryptoMethod='hifo';
+const CM={hifo:{name:'HIFO',desc:'最高成本先出',mult:0.55},fifo:{name:'FIFO',desc:'先进先出',mult:0.78},lifo:{name:'LIFO',desc:'后进先出',mult:0.68}};
+function calcCrypto(){
+  const proceeds=+document.getElementById('cr-proceeds').value||0;
+  document.getElementById('cr-proceeds-lbl').textContent='$'+f(proceeds);
+  document.getElementById('cryptoMethods').innerHTML=Object.entries(CM).map(([k,m])=>{
+    const gain=proceeds*m.mult*0.4; const tax=gain*0.20;
+    return `<div class="cm-btn ${cryptoMethod===k?'sel':''}" onclick="cryptoMethod='${k}';calcCrypto()">
+      <div class="cm-name">${m.name}</div><div class="cm-desc">${m.desc}</div>
+      <div class="cm-gain" style="color:${k===cryptoMethod?'var(--g)':'var(--ink3)'}">税 $${f(tax)}</div></div>`;
+  }).join('');
+  const m=CM[cryptoMethod]; const gain=proceeds*m.mult*0.4; const tax=gain*0.20;
+  const hifoTax=proceeds*CM.hifo.mult*0.4*0.20; const fifoTax=proceeds*CM.fifo.mult*0.4*0.20;
+  document.getElementById('cryptoResult').innerHTML=`
+    <div class="rrow"><span class="rl">卖出总额</span><span class="rv">$${f(proceeds)}</span></div>
+    <div class="rrow"><span class="rl">成本基础（${m.name}）<span class="cite" title="IRS Rev. Rul. 2019-24">2019-24</span></span><span class="rv">$${f(proceeds-gain)}</span></div>
+    <div class="rrow"><span class="rl">资本利得</span><span class="rv">$${f(gain)}</span></div>
+    <div class="rrow tot"><span class="rl">资本利得税 20% <span class="cite" title="IRC §1(h)">§1(h)</span></span><span class="rv">$${f(tax)}</span></div>
+    <div style="margin-top:12px;padding:11px;background:var(--gbg);border-radius:9px;font-size:12px;color:var(--ink2);line-height:1.6">
+      💡 相比 FIFO（税 $${f(fifoTax)}），采用 HIFO 可省约 <strong style="color:var(--g)">$${f(fifoTax-hifoTax)}</strong>。系统将自动生成 <strong>Form 8949</strong> 与 Schedule D。质押奖励按收到时公允价值计普通收入 <span class="cite">Notice 2014-21</span>。</div>
+    <button class="btn pri" style="width:100%;margin-top:12px" onclick="toast('Form 8949 已生成（47 笔交易）')">生成 Form 8949 →</button>`;
+}
+
+/* ════════ 企业注册地 ════════ */
+const JUR=[
+  {code:'ie',flag:'🇮🇪',name:'爱尔兰',sub:'欧盟总部首选',rate:12.5,cls:'low',note:'企业税 12.5%；IP Box 6.25%',tags:[['EU 通行','bg'],['IP Box','bb'],['R&D','bp']],best:true,info:'企业所得税 12.5%（贸易利润），IP Box 税率 6.25%。苹果、谷歌等欧洲总部所在地。',cite:'TCA 1997 §769I'},
+  {code:'sg',flag:'🇸🇬',name:'新加坡',sub:'亚太区总部',rate:17,cls:'low',note:'初创前 3 年 $100K 免税；研发 250% 加计',tags:[['初创优惠','bg'],['250%研发','bb']],info:'企业税 17%，初创企业前 3 年前 $100K 利润免税，研发支出 250% 加计扣除。',cite:'Singapore ITA §14C'},
+  {code:'us',flag:'🇺🇸',name:'美国 DE',sub:'VC 融资首选',rate:21,cls:'mid',note:'联邦 21%；QSBS 豁免最高 $10M',tags:[['QSBS','by'],['R&D Credit','bb']],info:'联邦企业税 21%，Delaware 法律体系完善，QSBS 豁免最高 $10M 资本利得。',cite:'IRC §1202'},
+  {code:'de',flag:'🇩🇪',name:'德国',sub:'欧洲最大市场',rate:30,cls:'high',note:'企业税 15% + 团结税 + 营业税',tags:[['EU 通行','bg'],['研发有限','bgr']],info:'企业税约 30%（含营业税），欧洲最大单一市场准入，但税负较高。',cite:'German KStG §23'},
+];
+function renderJur(){
+  document.getElementById('jurGrid').innerHTML=JUR.map(j=>
+    `<div class="jur-card ${j.best?'best':''}" onclick="showJur('${j.code}')">
+      <div class="jur-flag">${j.flag}</div><div class="jur-name">${j.name}</div><div class="jur-sub">${j.sub}</div>
+      <div class="jur-rate ${j.cls}">${j.rate}%</div><div class="jur-note">${j.note}</div>
+      <div class="jur-bar"><div class="jur-fill" style="width:${j.rate/45*100}%;background:${j.cls==='low'?'var(--g)':j.cls==='mid'?'var(--gold)':'var(--red)'}"></div></div>
+      <div class="jur-tags">${j.tags.map(t=>`<span class="jur-tag badge ${t[1]}">${t[0]}</span>`).join('')}</div></div>`).join('');
+}
+function showJur(code){
+  const j=JUR.find(x=>x.code===code);
+  const d=document.getElementById('jurDetail');
+  d.style.display='block';
+  d.innerHTML=`<div class="card"><div class="ch"><div class="ct">${j.flag} ${j.name} 详情</div><span class="badge bg" title="${j.cite}">${j.cite}</span></div>
+    <div class="cb" style="font-size:13px;color:var(--ink2);line-height:1.7">${j.info}<br><br>
+    <span style="color:var(--g);font-weight:600">💡 适用建议：</span> ${j.best?'对以欧洲市场为主、有大量 IP 收入的科技企业最优，建议设立实质运营（员工、办公室）以满足 OECD NEXUS 测试。':'根据你的业务分布和 IP 占比综合评估，详见下方架构模拟。'}</div></div>`;
+  d.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function calcBiz(){
+  const profit=+document.getElementById('biz-profit').value||0;
+  const ipRatio=+document.getElementById('biz-ip').value;
+  const rd=+document.getElementById('biz-rd').value||0;
+  const ipProfit=profit*ipRatio, normalProfit=profit-ipProfit;
+  const scenarios=[
+    {name:'爱尔兰控股 (IP Box)',rate:0.125,ipRate:0.0625,reason:'IP Box 6.25% + R&D 抵免'},
+    {name:'新加坡控股',rate:0.17,ipRate:0.17,reason:'研发 250% 加计扣除',rdMult:2.5},
+    {name:'美国 Delaware',rate:0.21,ipRate:0.21,reason:'QSBS + R&D Credit'},
+    {name:'荷兰创新盒',rate:0.258,ipRate:0.09,reason:'创新盒 9% + 参与豁免'},
+  ];
+  const current=profit*0.21; // 现状美国
+  const calc=scenarios.map(s=>{
+    let tax=normalProfit*s.rate+ipProfit*s.ipRate;
+    if(s.rdMult) tax-=rd*(s.rdMult-1)*s.rate; else tax-=rd*0.20;
+    tax=Math.max(0,tax);
+    return {...s,tax,eff:tax/profit};
+  }).sort((a,b)=>a.tax-b.tax);
+  const best=calc[0];
+  document.getElementById('bizSaveTop').textContent='$'+f((current-best.tax)/1000)+'K';
+  document.getElementById('bizResult').innerHTML=`
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="text-align:left;color:var(--ink3);font-size:10px;text-transform:uppercase;letter-spacing:.06em">
+        <th style="padding:8px 10px;background:var(--surf)">注册地架构</th><th style="padding:8px 10px;background:var(--surf)">有效税率</th><th style="padding:8px 10px;background:var(--surf)">年税额</th><th style="padding:8px 10px;background:var(--surf)">vs 现状</th><th style="padding:8px 10px;background:var(--surf)">推荐理由</th></tr></thead>
+      <tbody>${calc.map((s,i)=>{const sv=current-s.tax;return `<tr style="${i===0?'background:var(--gbg)':''}">
+        <td style="padding:10px;font-weight:${i===0?'600':'400'}">${s.name}${i===0?' ⭐':''}</td>
+        <td class="mono" style="padding:10px;color:${s.eff<.15?'var(--g)':s.eff<.20?'var(--gold)':'var(--red)'}">${(s.eff*100).toFixed(1)}%</td>
+        <td style="padding:10px" class="mono">$${f(s.tax)}</td>
+        <td style="padding:10px;font-family:DM Mono;font-weight:600;color:${sv>0?'var(--g)':'var(--red)'}">$${f(Math.abs(sv))} ${sv>0?'省':'增'}</td>
+        <td style="padding:10px;font-size:11px;color:var(--ink3)">${s.reason}</td></tr>`;}).join('')}</tbody>
+    </table>`;
+}
+
+/* ════════ 档案 ════════ */
+function applyProfile(){
+  const g=id=>document.getElementById(id);
+  if(g('pf-country')) profile.country=g('pf-country').value;
+  if(g('pf-filing')) profile.filing=g('pf-filing').value;
+  if(g('pf-location')) profile.location=g('pf-location').value;
+  if(g('d-wages')) profile.wages=+g('d-wages').value||0;
+  if(g('d-se')) profile.seInc=+g('d-se').value||0;
+  if(g('d-crypto')) profile.cryptoGain=+g('d-crypto').value||0;
+  if(g('d-biz')) profile.bizProfit=+g('d-biz').value||0;
+  profile.income=aggregateIncome();
+  if(g('pf-income')) g('pf-income').value=profile.income;
+  syncProfileInputs(); calcTax(); renderDash();
+}
+function saveProfile(){ applyProfile(); toast('已保存并同步到所有功能与方案'); }
+function renderEnabled(){
+  const tabs=computeTabs().filter(t=>t!=='dash'&&t!=='profile');
+  const own=computeOwn();
+  document.getElementById('enabledCount').textContent=tabs.length+' 个功能';
+  document.getElementById('enabledList').innerHTML=tabs.map(t=>
+    `<div class="rrow"><span class="rl">${TAB_META[t].name}</span><span>${own.includes(t)?'<span class="badge bg">专属开启</span>':'<span class="badge bgr">基础</span>'}</span></div>`).join('');
+}
+</script>
+
+<script>
+/* ════════ 悬浮 AI 助手（自有模型 + 自有知识库，不接第三方）════════ */
+let chatOpen=false, currentTab='dash', chatHistory=[];
+function toggleChat(){
+  chatOpen=!chatOpen;
+  document.getElementById('chatPanel').classList.toggle('open',chatOpen);
+  document.getElementById('floatBtn').classList.toggle('open',chatOpen);
+  document.getElementById('chatIco').style.display=chatOpen?'none':'block';
+  document.getElementById('closeIco').style.display=chatOpen?'block':'none';
+}
+function initCopilot(){
+  document.getElementById('cpMsgs').innerHTML='';
+  addMsg('你好 👋 我是 TaxGlobal Copilot，由<b>我们自有的税务模型</b>驱动，答案全部检索自<b>自有税务知识库</b>——速度快、附法条、可审计。问我任何税务问题吧。','ai');
+  setCopilotContext('dash');
+}
+function setCopilotContext(tab){
+  currentTab=tab;
+  const primary=selectedTypes[0]||'tech';
+  let qs=(TYPES[primary].ai||[]).slice();
+  const ctxMap={nomad:'哪个城市性价比最高？',w2:'我的退税有多少？',treaty:'我会被双重征税吗？',ecom:'加州 Nexus 怎么处理？',crypto:'HIFO 怎么省税？',biz:'爱尔兰 12.5% 如何申请？'};
+  if(ctxMap[tab]) qs=[ctxMap[tab],...qs.filter(q=>q!==ctxMap[tab])];
+  qs=['根据我的档案给一份整体方案',...qs.filter(q=>!q.includes('整体方案'))];
+  document.getElementById('cpQp').innerHTML=qs.slice(0,5).map(q=>`<span class="qp" onclick="askCopilot(this.textContent)">${q}</span>`).join('');
+}
+function addMsg(txt,role,src){
+  const m=document.getElementById('cpMsgs');const d=document.createElement('div');
+  d.className='cp-msg'+(role==='u'?' u':'');
+  const srcHtml = src? `<div class="cp-src">⚡ 来源 · <b>${src}</b> · 自有知识库（毫秒级检索）</div>`:'';
+  d.innerHTML=`<div class="cpav cpav-${role==='u'?'u':'ai'}">${role==='u'?'你':'✦'}</div><div class="cp-bub ${role==='u'?'bu':'bai'}">${txt}${srcHtml}</div>`;
+  m.appendChild(d);m.scrollTop=m.scrollHeight;
+}
+let tel=null;
+function addTyping(){const m=document.getElementById('cpMsgs');tel=document.createElement('div');tel.className='cp-msg';tel.innerHTML='<div class="cpav cpav-ai">✦</div><div class="cp-bub bai" style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--ink3)">检索自有知识库</span><div class="td-wrap" style="margin:0"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>';m.appendChild(tel);m.scrollTop=m.scrollHeight;}
+function removeTyping(){if(tel){tel.remove();tel=null;}}
+
+/* ════════ 自有税务知识库（KB）：[关键词, 来源标签, 答案] ════════ */
+const KB=[
+  [['nhr','葡萄牙'],'居住地制度库 · 葡萄牙 NHR','葡萄牙 NHR（非常规居民）制度对合资格的高附加值职业收入适用 20% 固定税率，境外多数收入可在前 10 年享受优惠。需先取得葡萄牙税务居民身份并在 3 月底前申请 <span class="cp-cite">Portugal NHR</span>。注意美国公民全球征税，仍需向 IRS 申报。'],
+  [['feie','海外','豁免','911'],'海外收入豁免 · IRC §911','FEIE（海外赚取收入豁免，IRC §911）2025 年上限约 $130,000，需满足实际居住测试（330 天）或真实居所测试。FTC（外国税收抵免，§901）则按已缴外国税抵减美国税。<span class="cp-cite">IRC §911</span> 适合低税国，FTC 适合高税国，可组合但同一笔收入不能重复用。'],
+  [['rsu','行权','期权'],'股权激励 · IRC §83','RSU 在归属当日按公允价值计入普通收入纳税 <span class="cp-cite">IRC §83</span>。若预期股价上涨，行权后持有满 1 年可转为长期资本利得（20%），相比按普通收入（最高 37%）更省税。建议结合加大 401(k) 供款对冲归属当年税负。'],
+  [['401','retire'],'退休账户 · IRC §402(g)','2025 年 401(k) 员工税前供款上限为 $23,500（50 岁以上可追加 $7,500）<span class="cp-cite">IRC §402(g)</span>。税前供款直接降低应税收入，按你的边际税率节税。若已存满，可考虑 Backdoor Roth IRA 或 Mega Backdoor Roth。'],
+  [['nexus','加州','销售税'],'销售税合规 · Wayfair','经济 Nexus 指在某州销售额或交易笔数超过阈值（多数州 $100K 销售或 200 笔）后产生销售税申报义务，依据 <span class="cp-cite">Wayfair v. South Dakota</span>。加州阈值 $500K <span class="cp-cite">CA R&TC §6203</span>。判定看客户所在州、与卖家位置无关；接近阈值应主动注册。'],
+  [['facilitator','代缴','平台'],'电商代缴 · Marketplace Facilitator','在多数州，Amazon/eBay/Etsy 等 marketplace facilitator 已被法律强制对平台订单代收代缴销售税，这部分通常不计入你自己的注册义务 <span class="cp-cite">Marketplace Facilitator Laws</span>。但独立站（如 Shopify）销售一般需你自行注册申报。'],
+  [['hifo','加密','fifo','lifo'],'加密成本法 · Rev. Rul. 2019-24','HIFO（最高成本先出）在卖出时优先匹配成本最高的批次，最小化当期资本利得，是加密资产合法节税常用法 <span class="cp-cite">Rev. Rul. 2019-24</span>。需保留逐笔成本记录（specific identification）。系统可自动生成 Form 8949。'],
+  [['质押','staking','nft','defi'],'加密收入分类','质押（staking）奖励在取得控制权时按公允价值计入普通收入；NFT 出售按资本利得，部分收藏品类可能适用 28% 上限税率；DeFi 收益按性质分别归为利息或资本利得 <span class="cp-cite">Rev. Rul. 2023-14</span>。均需逐笔记录成本基。'],
+  [['qbi','199a','自雇扣除'],'自雇扣除 · IRC §199A','合资格经营收入可享 20% QBI 扣除 <span class="cp-cite">IRC §199A</span>，受应税收入门槛与行业（SSTB）限制。结合 SEP-IRA 供款可进一步压低应税额。'],
+  [['sep','solo','自雇退休'],'自雇退休 · IRC §408(k)','SEP-IRA 供款上限约净自雇收入的 20%（封顶 $69K）<span class="cp-cite">IRC §408(k)</span>；Solo 401(k) 可叠加员工 + 雇主两部分，灵活度更高。两者都能显著降低自雇当年的应税收入。'],
+  [['预缴','季度','estimated','6654'],'预缴税 · IRC §6654','自雇/经营/RSU 等无预扣的收入需按季预缴联邦与州税（4/15、6/15、9/15、次年 1/15），欠缴会触发 <span class="cp-cite">IRC §6654</span> 罚息。建议按安全港规则（上年税额 100%/110%）预缴。'],
+  [['fbar','海外账户','5314'],'海外申报 · FinCEN 114','任一时点海外金融账户合计 >$10,000，须申报 FinCEN 114（FBAR）<span class="cp-cite">31 USC §5314</span>，与所得税申报分开；另可能触发 FATCA Form 8938。漏报罚则较重。'],
+  [['backdoor','roth'],'退休账户 · Roth 转换','收入超过 Roth IRA 直接供款上限时，可用 Backdoor Roth（先供非抵扣传统 IRA 再转 Roth）；若雇主计划支持税后供款，还可做 Mega Backdoor Roth，注意 pro-rata 规则 <span class="cp-cite">IRC §408A</span>。'],
+  [['hsa','健康储蓄'],'健康储蓄 · IRC §223','HSA 三重免税（供款抵税、增值免税、合规支出取用免税），2025 个人上限 $4,300 <span class="cp-cite">IRC §223</span>，需搭配高免赔健康计划（HDHP）。'],
+  [['83b'],'股权激励 · 83(b)','早期限制性股权可在授予时做 83(b) 选择，按当时（通常很低的）公允价值计税，将后续增值转为资本利得；须在授予后 30 天内提交，逾期不可补 <span class="cp-cite">IRC §83(b)</span>。'],
+  [['协定','双重','treaty'],'税收协定','双边税收协定通过抵免/豁免条款与居民身份加比规则（tie-breaker）消除双重征税；适用前需确认协定存在、受益所有人与反滥用条款 <span class="cp-cite">US Model Treaty Art.23</span>。'],
+  [['爱尔兰','ip box','12.5'],'企业架构 · 爱尔兰','爱尔兰企业所得税 12.5%（贸易利润），IP Box 对合资格知识产权收入适用 6.25% <span class="cp-cite">TCA 1997 §769I</span>。需实质运营满足 OECD 经济实质测试。（企业模块为后续阶段）'],
+  [['pillar','最低税'],'全球最低税 · OECD','OECD Pillar 2 要求跨国集团（全球年收入 > €7.5 亿）各辖区有效税率不低于 15%，不足部分补缴 Top-up Tax <span class="cp-cite">OECD BEPS Pillar Two</span>。未达门槛暂不受约束。'],
+];
+function profileBrief(){
+  const parts=[];
+  if(selectedTypes.includes('tech')) parts.push(`科技员工 W-2 $${f(profile.wages)}`);
+  if(selectedTypes.includes('self')||selectedTypes.includes('ecom')) parts.push(`经营收入 $${f(profile.seInc)}`);
+  if(selectedTypes.includes('crypto')) parts.push(`加密已实现利得 $${f(profile.cryptoGain)}`);
+  if(selectedTypes.includes('biz')) parts.push(`公司利润 $${f(profile.bizProfit)}`);
+  return `身份：${selectedTypes.map(k=>TYPES[k].name).join('、')}；${parts.join('、')}；综合应税收入约 $${f(aggregateIncome())}；申报状态 ${profile.filing}；目前人在 ${LOC_NAME[profile.location]||profile.location}；报税国 ${profile.country}`;
+}
+function planReply(){
+  const items=buildPlan();
+  const total=items.reduce((a,b)=>a+(b.save||0),0);
+  const lines=items.map((it,i)=>`${i+1}. <strong>${it.t}</strong>：${it.d} <span class="cp-cite">${it.cite}</span>`).join('<br><br>');
+  return `根据你的档案（${profileBrief()}），跨身份规划引擎为你生成了 ${items.length} 步方案，预计每年可省约 <strong>$${f(total)}</strong>：<br><br>${lines}<br><br>想深入哪一步，告诉我即可。`;
+}
+// 检索自有知识库，返回 {a, src}
+function kbAnswer(q){
+  const lower=q.toLowerCase();
+  if(/方案|规划|计划|整体|安排|怎么省|节税|plan|strategy|optimi/i.test(q)) return {a:planReply(), src:'跨身份规划引擎'};
+  for(const [kws,src,a] of KB){ if(kws.some(k=>lower.includes(k.toLowerCase())||q.includes(k))) return {a,src}; }
+  return {a:`关于"${q}"——结合你的档案（${profileBrief()}）来看，税务结论因管辖区而异。建议在对应功能页输入参数获取精确数字，每项结论都可追溯到法条 <span class="cp-cite">可审计</span>。想要我给一份覆盖你全部身份的整体方案吗？`, src:'通用税务条目'};
+}
+function handleQ(q){
+  addMsg(q,'u'); chatHistory.push({role:'user',content:q});
+  addTyping();
+  // 模拟自有知识库的毫秒级检索
+  setTimeout(()=>{
+    const {a,src}=kbAnswer(q);
+    removeTyping(); addMsg(a,'ai',src);
+    chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,'')});
+  }, 420);
+}
+function sendMsg(){const v=document.getElementById('cpInp').value.trim();if(!v)return;document.getElementById('cpInp').value='';handleQ(v);}
+function askCopilot(q){ if(!chatOpen) toggleChat(); setTimeout(()=>handleQ(q),chatOpen?0:350); }
+
+/* ════════ INIT ════════ */
+renderObTypes('obTypes', true);
+showObStep();
+</script>

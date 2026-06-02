@@ -32,7 +32,8 @@ $ruleFiles = @(
   "data/tax_years/2025/us_fica.json",
   "data/tax_years/2025/us_feie.json",
   "data/tax_years/2025/us_states.json",
-  "data/tax_years/2025/us_nexus.json"
+  "data/tax_years/2025/us_nexus.json",
+  "data/tax_years/2025/us_capital_gains.json"
 )
 
 foreach ($file in $ruleFiles) {
@@ -143,5 +144,77 @@ foreach ($thresholdProp in $nexus.thresholds.PSObject.Properties) {
     }
   }
 }
+
+$capitalGains = Read-Json "data/tax_years/2025/us_capital_gains.json"
+$requiredFilingStatuses = @(
+  "single",
+  "married_filing_jointly",
+  "qualifying_surviving_spouse",
+  "head_of_household",
+  "married_filing_separately"
+)
+
+if ($capitalGains.status -eq "effective" -and !$capitalGains.effective_date) {
+  throw "Capital gains effective rule file missing effective_date"
+}
+
+$ltcg = $capitalGains.long_term_capital_gains
+if (!$ltcg) { throw "Capital gains file missing long_term_capital_gains" }
+if (!$ltcg.effective_date) { throw "long_term_capital_gains missing effective_date" }
+if (!$ltcg.citation) { throw "long_term_capital_gains missing citation" }
+if (!$ltcg.brackets) { throw "long_term_capital_gains missing brackets" }
+
+foreach ($filingStatus in $requiredFilingStatuses) {
+  if (!($ltcg.brackets.PSObject.Properties.Name -contains $filingStatus)) {
+    throw "LTCG brackets missing filing status $filingStatus"
+  }
+  $brackets = $ltcg.brackets.$filingStatus
+  if ($brackets.Count -ne 3) {
+    throw "LTCG brackets for $filingStatus must contain exactly three brackets"
+  }
+  if ($null -ne $brackets[$brackets.Count - 1].up_to) {
+    throw "LTCG final bracket for $filingStatus must have up_to null"
+  }
+}
+
+if ($ltcg.brackets.married_filing_separately[0].up_to -ne 48350) {
+  throw "Unexpected 2025 MFS LTCG zero-rate threshold"
+}
+if ($ltcg.brackets.married_filing_separately[1].up_to -ne 300000) {
+  throw "Unexpected 2025 MFS LTCG 15-percent threshold"
+}
+if ($ltcg.brackets.qualifying_surviving_spouse[0].up_to -ne 96700) {
+  throw "Unexpected 2025 QSS LTCG zero-rate threshold"
+}
+if ($ltcg.brackets.qualifying_surviving_spouse[1].up_to -ne 600050) {
+  throw "Unexpected 2025 QSS LTCG 15-percent threshold"
+}
+
+$stcg = $capitalGains.short_term_capital_gains
+if (!$stcg) { throw "Capital gains file missing short_term_capital_gains" }
+if ($stcg.treatment -ne "ordinary_income") {
+  throw "Short-term capital gains must be ordinary_income treatment"
+}
+if (!$stcg.effective_date) { throw "short_term_capital_gains missing effective_date" }
+if (!$stcg.citation) { throw "short_term_capital_gains missing citation" }
+
+$niit = $capitalGains.net_investment_income_tax
+if (!$niit) { throw "Capital gains file missing net_investment_income_tax" }
+if ($niit.rate -ne 0.038) { throw "Unexpected NIIT rate" }
+if (!$niit.effective_date) { throw "net_investment_income_tax missing effective_date" }
+if (!$niit.citation) { throw "net_investment_income_tax missing citation" }
+if ($niit.applies_to -ne "lesser_of_net_investment_income_or_magi_over_threshold") {
+  throw "Unexpected NIIT applies_to formula"
+}
+foreach ($filingStatus in $requiredFilingStatuses) {
+  if (!($niit.magi_thresholds.PSObject.Properties.Name -contains $filingStatus)) {
+    throw "NIIT MAGI thresholds missing filing status $filingStatus"
+  }
+}
+if ($niit.magi_thresholds.single -ne 200000) { throw "Unexpected NIIT single threshold" }
+if ($niit.magi_thresholds.head_of_household -ne 200000) { throw "Unexpected NIIT HOH threshold" }
+if ($niit.magi_thresholds.married_filing_jointly -ne 250000) { throw "Unexpected NIIT MFJ threshold" }
+if ($niit.magi_thresholds.qualifying_surviving_spouse -ne 250000) { throw "Unexpected NIIT QSS threshold" }
+if ($niit.magi_thresholds.married_filing_separately -ne 125000) { throw "Unexpected NIIT MFS threshold" }
 
 Write-Output "Step 1 data validation passed."

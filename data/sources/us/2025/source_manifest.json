@@ -10,9 +10,35 @@
       "publisher": "Internal Revenue Service",
       "tax_year": 2025,
       "jurisdiction": "US",
-      "topics": ["federal_income_tax", "standard_deduction"],
+      "topics": ["federal_income_tax", "standard_deduction", "capital_gains"],
       "local_path": "data/sources/us/2025/raw/irs_rp_2024_40_2025_inflation_adjustments.pdf",
       "content_hash": "4DE9DB6B6662B5C305A59100A027051628823B42FD5817EA4E383AD4C302AF1F",
+      "status": "archived"
+    },
+    {
+      "source_id": "irs_topic_409",
+      "title": "Topic No. 409, Capital Gains and Losses",
+      "source_url": "https://www.irs.gov/taxtopics/tc409",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2025,
+      "jurisdiction": "US",
+      "topics": ["capital_gains", "holding_period", "short_term_capital_gains"],
+      "local_path": "data/sources/us/2025/raw/irs_topic_409_capital_gains_and_losses.html",
+      "content_hash": "C7609B34DD92F96AE79D13982A76AA35BF6D028A9372D4C7F6796F7AA6293D58",
+      "status": "archived"
+    },
+    {
+      "source_id": "irs_topic_559",
+      "title": "Topic No. 559, Net Investment Income Tax",
+      "source_url": "https://www.irs.gov/taxtopics/tc559",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2025,
+      "jurisdiction": "US",
+      "topics": ["capital_gains", "net_investment_income_tax", "niit"],
+      "local_path": "data/sources/us/2025/raw/irs_topic_559_net_investment_income_tax.html",
+      "content_hash": "AA1C2BD9304EF52173C123610CC38A9DBD90DD297031D3B8A2D81CE6FF63EFC1",
       "status": "archived"
     },
     {

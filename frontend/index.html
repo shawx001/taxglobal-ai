@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <!-- TaxGlobal AI — 完整交互式原型 -->
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
@@ -883,6 +884,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
 
 <div class="toast" id="toast"></div>
 
+<script src="api.js"></script>
 <script>
 /* ════════ 类型配置（对应链路图逻辑）════════ */
 const TYPES = {
@@ -1154,7 +1156,51 @@ function foreignTax(country, income, k401){
 function sgTax(i){ const br=[[20000,0],[30000,.02],[40000,.035],[80000,.07],[120000,.115],[160000,.15],[200000,.18],[240000,.19],[280000,.195],[320000,.20],[500000,.22],[1000000,.23],[Infinity,.24]]; return bracketTax(i,br); }
 function ukTax(i){ const pa=12570; const t=Math.max(0,i-pa); let tax=bracketTax(t,[[37700,.20],[112570-pa,.40],[Infinity,.45]]); return tax + Math.min(i,50270)*0.08; }
 
-function calcTax(){
+function taxText(key){
+  const copy={
+    usOnly:"\u672c\u6b65\u5148\u63a5\u5165\u7f8e\u56fd\u4e2a\u4eba\u6240\u5f97\u7a0e API\u3002\u5176\u4ed6\u56fd\u5bb6\u7a0e\u52a1\u5bf9\u6bd4\u5c06\u5728\u77e5\u8bc6\u5e93\u4e0e\u66f4\u591a\u5b98\u65b9\u6570\u636e\u5165\u5e93\u540e\u63a5\u5165\u3002",
+    backendDown:"\u540e\u7aef\u670d\u52a1\u4e0d\u53ef\u7528\uff0c\u65e0\u6cd5\u8ba1\u7b97\u3002\u8bf7\u786e\u8ba4 FastAPI \u670d\u52a1\u6b63\u5728 http://127.0.0.1:8000 \u8fd0\u884c\u3002",
+    calculating:"\u6b63\u5728\u8c03\u7528\u540e\u7aef\u89c4\u5219\u5f15\u64ce...",
+    notCovered:"\u8be5\u5dde\u6682\u65e0\u5b98\u65b9\u6cd5\u89c4\u6570\u636e\uff0c\u65e0\u6cd5\u8ba1\u7b97\u3002",
+    apiDriven:"\u672c\u6b21\u8ba1\u7b97\u7531 FastAPI \u540e\u7aef\u89c4\u5219\u5f15\u64ce\u8fd4\u56de\uff0c\u524d\u7aef\u53ea\u505a\u5c55\u793a\u548c\u6c47\u603b\u3002",
+    stateAssumption:"\u5dde\u7a0e\u6682\u7528\u8054\u90a6\u8fd4\u56de\u7684 taxable_income \u4f5c\u4e3a MVP \u4f30\u7b97\u8f93\u5165\uff1b\u5404\u5dde\u81ea\u6709\u5e94\u7a0e\u53e3\u5f84\u540e\u7eed\u63a5\u5165\u3002",
+    federal:"\u8054\u90a6\u6240\u5f97\u7a0e",
+    fica:"FICA \u793e\u4fdd/\u533b\u4fdd\u7a0e",
+    state:"\u5dde\u6240\u5f97\u7a0e",
+    total:"\u603b\u7a0e\u989d",
+    afterTax:"\u7a0e\u540e\u6536\u5165",
+    effectiveRate:"\u6709\u6548\u7a0e\u7387",
+    taxableIncome:"\u5e94\u7a0e\u6536\u5165",
+    grossIncome:"\u603b\u6536\u5165",
+    pretax401k:"401(k) \u7a0e\u524d\u4f9b\u6b3e",
+    assumptions:"\u5047\u8bbe"
+  };
+  return copy[key]||key;
+}
+function taxMoney(value){ return '$'+f(Number(value)||0); }
+function taxCitations(citations){
+  if(!citations||!citations.length) return '';
+  return citations.map(c=>'<span class="cite" title="'+(c.citation||c.source_id||'')+'">'+(c.source_id||'source')+'</span>').join(' ');
+}
+function taxAssumptions(items){
+  if(!items||!items.length) return '';
+  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+taxText('assumptions')+': '+items.join(' · ')+'</div>';
+}
+function taxBreakdown(items){
+  if(!items||!items.length) return '';
+  return '<div style="margin-top:8px;font-size:12px;color:var(--ink3);line-height:1.5">'+items.map(i=>i.label+': '+taxMoney(i.amount)).join('<br>')+'</div>';
+}
+function taxBlock(title, amount, payload, options){
+  options=options||{};
+  const amountHtml=options.notCovered?'<span style="color:var(--gold)">'+taxText('notCovered')+'</span>':taxMoney(amount);
+  const reason=options.reason?'<div style="margin-top:8px;font-size:12px;color:var(--ink3)">'+options.reason+'</div>':'';
+  return '<div style="padding:12px 0;border-bottom:1px solid var(--bd2)">'+
+    '<div class="rrow"><span class="rl">'+title+' '+taxCitations(payload&&payload.citations)+'</span><span class="rv">'+amountHtml+'</span></div>'+
+    reason+taxBreakdown(payload&&payload.breakdown)+taxAssumptions(payload&&payload.assumptions)+
+  '</div>';
+}
+let taxRequestSeq=0;
+async function calcTax(){
   const country=document.getElementById('tx-country').value;
   const income=+document.getElementById('tx-income').value||0;
   const filing=document.getElementById('tx-filing').value;
@@ -1166,44 +1212,56 @@ function calcTax(){
   const adv=document.getElementById('taxAdvice');
 
   if(country!=='us'){
-    const ft=foreignTax(country, income-k401, k401);
-    res.innerHTML = ft.rows.map(r=>`<div class="rrow"><span class="rl">${r[0]}</span><span class="rv">$${f(r[1])}</span></div>`).join('')
-      + `<div class="rrow tot"><span class="rl">合计税额 <span class="cite" title="${ft.cite}">${ft.cite.split(' ')[0]}</span></span><span class="rv">$${f(ft.tax)}</span></div>`
-      + `<div class="rrow"><span class="rl">税后收入</span><span class="rv" style="color:var(--g)">$${f(income-ft.tax)}</span></div>`
-      + `<div class="rrow"><span class="rl">有效税率</span><span class="rv">${(ft.eff*100).toFixed(1)}%</span></div>`;
-    adv.innerHTML = `${ft.note}。<br>相比美国同等收入（约有效税率 ${usEff(income,filing,k401)}%），在此地${ft.tax < usTaxTotal(income,filing,k401)?`<strong style="color:var(--g)">每年可省约 $${f(usTaxTotal(income,filing,k401)-ft.tax)}</strong>`:'税负更高'}。`;
+    res.innerHTML = '<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+taxText('usOnly')+'</div></div>';
+    adv.innerHTML = taxText('apiDriven');
     return;
   }
-  // 美国
-  const ded = dedMode==='item' ? (+document.getElementById('tx-itemamt').value||0) : STD[filing];
-  const taxable=Math.max(0, income - k401 - ded);
-  const fedTax=bracketTax(taxable, FED[filing]);
-  const stCode=document.getElementById('tx-state').value;
-  const st=stateTaxOf(stCode, Math.max(0,income-k401-ded));
-  const stateTax=st.tax;
-  const fc=fica(income);
-  const total=fedTax+stateTax+fc.total;
-  res.innerHTML = `
-    <div class="rrow"><span class="rl">总收入</span><span class="rv">$${f(income)}</span></div>
-    <div class="rrow"><span class="rl">− 401(k) 税前供款 <span class="cite" title="IRC §402(g)">§402(g)</span></span><span class="rv">−$${f(k401)}</span></div>
-    <div class="rrow"><span class="rl">− ${dedMode==='item'?'分项':'标准'}扣除 <span class="cite" title="IRC §63">§63</span></span><span class="rv">−$${f(ded)}</span></div>
-    <div class="rrow"><span class="rl">应税收入</span><span class="rv">$${f(taxable)}</span></div>
-    <div class="rrow"><span class="rl">联邦所得税 <span class="cite" title="IRC §1">§1</span></span><span class="rv">$${f(fedTax)}</span></div>
-    <div class="rrow"><span class="rl">${st.name} 州税 <span class="cite" title="${st.cite}">${stateTax>0?st.cite.split(' ')[0]:'0%'}</span></span><span class="rv">$${f(stateTax)}</span></div>
-    <div class="rrow"><span class="rl">社保税 6.2% <span class="cite" title="IRC §3101">§3101</span></span><span class="rv">$${f(fc.ss)}</span></div>
-    <div class="rrow"><span class="rl">医保税 1.45%+ <span class="cite" title="IRC §3101(b)">§3101(b)</span></span><span class="rv">$${f(fc.med)}</span></div>
-    <div class="rrow tot"><span class="rl">总税额</span><span class="rv">$${f(total)}</span></div>
-    <div class="rrow"><span class="rl">税后收入</span><span class="rv" style="color:var(--g)">$${f(income-total-k401)}</span></div>
-    <div class="rrow"><span class="rl">有效税率</span><span class="rv">${(total/income*100).toFixed(1)}%</span></div>`;
 
-  // 节税建议
-  const room=23500-k401;
-  let tips=[];
-  if(room>0){ const marg=marginalRate(taxable,filing); tips.push(`401(k) 还有 <strong>$${f(room)}</strong> 额度未用满，按当前 ${(marg*100).toFixed(0)}% 边际税率，存满可再省约 <strong style="color:var(--g)">$${f(room*marg)}</strong> <span class="cite">§402(g)</span>`); }
-  tips.push(`可考虑 HSA（个人上限 $4,300）税前供款，进一步降低应税收入 <span class="cite">§223</span>`);
-  if(income>200000) tips.push(`你已触发 0.9% 附加医保税（>$200K 部分），如有 RSU 归属需预留预缴 <span class="cite">§3101(b)(2)</span>`);
-  if(income>income-room && marginalRate(taxable,filing)>=.24) tips.push(`边际税率较高，可评估 Backdoor Roth IRA 与递延薪酬计划`);
-  adv.innerHTML = tips.map(t=>'· '+t).join('<br>');
+  const requestId=++taxRequestSeq;
+  res.innerHTML = '<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
+  adv.innerHTML = taxText('apiDriven');
+  try{
+    const deduction = dedMode==='item' ? (+document.getElementById('tx-itemamt').value||0) : undefined;
+    const federalPayload={gross_income:Math.max(0,income-k401), filing_status:filing};
+    if(deduction!==undefined) federalPayload.deduction=deduction;
+    const federal=await TaxGlobalApi.federalIncome(federalPayload);
+    if(requestId!==taxRequestSeq) return;
+    const ficaResult=await TaxGlobalApi.fica({wages:income, filing_status:filing});
+    if(requestId!==taxRequestSeq) return;
+    const state=await TaxGlobalApi.stateIncome({
+      state_code:document.getElementById('tx-state').value,
+      taxable_income:federal.result.taxable_income,
+    });
+    if(requestId!==taxRequestSeq) return;
+
+    const federalTax=Number(federal.result.tax)||0;
+    const ficaTax=Number(ficaResult.result.total)||0;
+    const stateCovered=state.status!=='not_covered';
+    const stateTax=stateCovered ? Number(state.result.tax)||0 : 0;
+    const total=federalTax+ficaTax+stateTax;
+    const taxable=Number(federal.result.taxable_income)||0;
+    const effectiveRate=income>0 ? (total/income*100).toFixed(1) : '0.0';
+    const stateHtml=stateCovered
+      ? taxBlock(taxText('state'), stateTax, state)
+      : taxBlock(taxText('state'), 0, state, {notCovered:true, reason:state.reason});
+
+    res.innerHTML =
+      '<div class="rrow"><span class="rl">'+taxText('grossIncome')+'</span><span class="rv">'+taxMoney(income)+'</span></div>'+
+      '<div class="rrow"><span class="rl">'+taxText('pretax401k')+'</span><span class="rv">-'+taxMoney(k401)+'</span></div>'+
+      '<div class="rrow"><span class="rl">'+taxText('taxableIncome')+'</span><span class="rv">'+taxMoney(taxable)+'</span></div>'+
+      taxBlock(taxText('federal'), federalTax, federal)+
+      taxBlock(taxText('fica'), ficaTax, ficaResult)+
+      stateHtml+
+      '<div class="rrow tot"><span class="rl">'+taxText('total')+'</span><span class="rv">'+taxMoney(total)+'</span></div>'+
+      '<div class="rrow"><span class="rl">'+taxText('afterTax')+'</span><span class="rv" style="color:var(--g)">'+taxMoney(income-total-k401)+'</span></div>'+
+      '<div class="rrow"><span class="rl">'+taxText('effectiveRate')+'</span><span class="rv">'+effectiveRate+'%</span></div>';
+    adv.innerHTML = taxText('apiDriven')+'<br>'+taxText('stateAssumption');
+  }catch(error){
+    if(requestId!==taxRequestSeq) return;
+    const message=error&&error.code==='service_unavailable'?taxText('backendDown'):(error&&error.message?error.message:taxText('backendDown'));
+    res.innerHTML = '<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+message+'</div></div>';
+    adv.innerHTML = taxText('apiDriven');
+  }
 }
 function marginalRate(taxable,filing){ for(const [cap,rate] of FED[filing]){ if(taxable<=cap) return rate; } return .37; }
 function usTaxTotal(income,filing,k401){ const ded=STD[filing]; const taxable=Math.max(0,income-k401-ded); return bracketTax(taxable,FED[filing])+caStateTax(taxable)+fica(income).total; }

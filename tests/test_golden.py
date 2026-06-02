@@ -23,7 +23,7 @@ META_EXPECTED_KEYS = {"status", "reason_contains", "citation_source_ids"}
 
 def load_golden_files():
     for path in sorted(GOLDEN_DIR.glob("*.json")):
-        with path.open("r", encoding="utf-8") as handle:
+        with path.open("r", encoding="utf-8-sig") as handle:
             yield path.name, json.load(handle)
 
 

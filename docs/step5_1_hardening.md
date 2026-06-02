@@ -20,6 +20,9 @@ Address Step 5 review findings without expanding product scope or changing tax c
   - `TAXGLOBAL_CORS_ORIGINS` can override allowed origins
 - Added a negative CORS test for an untrusted origin.
 - Recorded REQ-003 in `docs/product_backlog.md` for deleting legacy frontend `caStateTax` / `nyStateTax` when remaining modules migrate to backend state tax.
+- Kept the foreign-income / FEIE tax tab visible for all profiles instead of only digital nomad profiles.
+- Rebuilt tax subtabs when profile identity selections change so the tax module stays synchronized with profile changes.
+- Recorded REQ-004 in `docs/product_backlog.md` for separating foreign earned income / FEIE from foreign passive income / FTC.
 
 ## Acceptance Criteria
 
@@ -43,6 +46,9 @@ Address Step 5 review findings without expanding product scope or changing tax c
   - CA personal-income result still renders backend state tax and `ca_2025_540_tax_rate_schedules`.
   - Malicious citation/reason/breakdown/assumption strings render as text and create no `img`, `svg`, `script`, or `b` nodes.
   - A 2xx response with null body is mapped to `invalid_response`.
+  - Default tech profile shows `海外收入 / FEIE`.
+  - Switching the profile to digital nomad rebuilds the tax subtabs and keeps `海外收入 / FEIE` visible.
+  - The FEIE panel states that passive foreign income is not FEIE and belongs to future FTC / passive-income handling.
 
 ## Files Changed
 

@@ -77,11 +77,22 @@ class CalcApiTests(unittest.TestCase):
                 self.assertIn(body["status"], {"ok", "not_covered"})
 
     def test_not_covered_state_income_is_http_200(self):
-        response = self.client.post("/calc/state-income", json={"state_code": "CA", "taxable_income": 100000})
+        response = self.client.post("/calc/state-income", json={"state_code": "MA", "taxable_income": 100000})
 
         body = self.assert_engine_payload(response)
         self.assertEqual(body["status"], "not_covered")
-        self.assertIn("pending_extraction", body["reason"])
+        self.assertIn("source_pending", body["reason"])
+
+    def test_state_income_accepts_filing_status_for_progressive_states(self):
+        response = self.client.post(
+            "/calc/state-income",
+            json={"state_code": "CA", "taxable_income": 125000, "filing_status": "mfj"},
+        )
+
+        body = self.assert_engine_payload(response)
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["result"]["income_tax_type"], "progressive")
+        self.assertEqual(body["result"]["tax"], 4768.10)
 
     def test_engine_invalid_input_maps_to_422(self):
         response = self.client.post(

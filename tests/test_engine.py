@@ -97,15 +97,30 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["tax"], 4_950.00)
         self.assertEqual(result["result"]["rate"], 0.0495)
 
-    def test_state_income_tax_blocks_pending_extraction_states(self):
-        result = state_income_tax("CA", 100_000)
+    def test_state_income_tax_effective_progressive_state(self):
+        result = state_income_tax("CA", 200_000, "single")
 
         self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
-        self.assertEqual(result["status"], "not_covered")
-        self.assertIn("pending_extraction", result["reason"])
-        self.assertIsNone(result["result"])
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["tax"], 15_038.64)
+        self.assertEqual(result["result"]["income_tax_type"], "progressive")
         self.assertEqual(result["rule_version"], "us-2025-states-v0.1")
         self.assertEqual(result["citations"][0]["source_id"], "ca_2025_540_tax_rate_schedules")
+        self.assertIn("Mental Health Services Tax", "\n".join(result["assumptions"]))
+
+    def test_state_income_tax_progressive_zero_income(self):
+        result = state_income_tax("CA", 0, "single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["tax"], 0.00)
+
+    def test_state_income_tax_progressive_defaults_to_single(self):
+        explicit = state_income_tax("CA", 200_000, "single")
+        default = state_income_tax("CA", 200_000)
+
+        self.assertEqual(default["status"], "ok")
+        self.assertEqual(default["result"]["tax"], explicit["result"]["tax"])
+        self.assertEqual(default["input"]["filing_status"], "single")
 
     def test_state_income_tax_blocks_source_pending_states(self):
         result = state_income_tax("TX", 100_000)

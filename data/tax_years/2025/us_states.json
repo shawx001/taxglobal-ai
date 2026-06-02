@@ -8,18 +8,134 @@
     "CA": {
       "name": "California",
       "income_tax_type": "progressive",
-      "status": "pending_extraction",
-      "effective_date": null,
+      "status": "effective",
+      "effective_date": "2025-01-01",
       "source_ids": ["ca_2025_540_tax_rate_schedules"],
-      "notes": "Official 2025 FTB tax rate schedules are archived. Bracket extraction is intentionally deferred until a reliable PDF/table extraction path is added."
+      "citation": "California FTB 2025 Form 540 tax rate schedules list California personal income tax brackets by filing status.",
+      "notes": "Base rate schedule only; 1% Mental Health Services Tax over $1,000,000 not modeled (MVP estimate).",
+      "brackets": {
+        "single": [
+          {"up_to": 11079, "rate": 0.01},
+          {"up_to": 26264, "rate": 0.02},
+          {"up_to": 41452, "rate": 0.04},
+          {"up_to": 57542, "rate": 0.06},
+          {"up_to": 72724, "rate": 0.08},
+          {"up_to": 371479, "rate": 0.093},
+          {"up_to": 445771, "rate": 0.103},
+          {"up_to": 742953, "rate": 0.113},
+          {"up_to": null, "rate": 0.123}
+        ],
+        "married_filing_separately": [
+          {"up_to": 11079, "rate": 0.01},
+          {"up_to": 26264, "rate": 0.02},
+          {"up_to": 41452, "rate": 0.04},
+          {"up_to": 57542, "rate": 0.06},
+          {"up_to": 72724, "rate": 0.08},
+          {"up_to": 371479, "rate": 0.093},
+          {"up_to": 445771, "rate": 0.103},
+          {"up_to": 742953, "rate": 0.113},
+          {"up_to": null, "rate": 0.123}
+        ],
+        "married_filing_jointly": [
+          {"up_to": 22158, "rate": 0.01},
+          {"up_to": 52528, "rate": 0.02},
+          {"up_to": 82904, "rate": 0.04},
+          {"up_to": 115084, "rate": 0.06},
+          {"up_to": 145448, "rate": 0.08},
+          {"up_to": 742958, "rate": 0.093},
+          {"up_to": 891542, "rate": 0.103},
+          {"up_to": 1485906, "rate": 0.113},
+          {"up_to": null, "rate": 0.123}
+        ],
+        "qualifying_surviving_spouse": [
+          {"up_to": 22158, "rate": 0.01},
+          {"up_to": 52528, "rate": 0.02},
+          {"up_to": 82904, "rate": 0.04},
+          {"up_to": 115084, "rate": 0.06},
+          {"up_to": 145448, "rate": 0.08},
+          {"up_to": 742958, "rate": 0.093},
+          {"up_to": 891542, "rate": 0.103},
+          {"up_to": 1485906, "rate": 0.113},
+          {"up_to": null, "rate": 0.123}
+        ],
+        "head_of_household": [
+          {"up_to": 22173, "rate": 0.01},
+          {"up_to": 52530, "rate": 0.02},
+          {"up_to": 67716, "rate": 0.04},
+          {"up_to": 83805, "rate": 0.06},
+          {"up_to": 98990, "rate": 0.08},
+          {"up_to": 505208, "rate": 0.093},
+          {"up_to": 606251, "rate": 0.103},
+          {"up_to": 1010417, "rate": 0.113},
+          {"up_to": null, "rate": 0.123}
+        ]
+      }
     },
     "NY": {
       "name": "New York",
       "income_tax_type": "progressive",
-      "status": "pending_extraction",
-      "effective_date": null,
+      "status": "effective",
+      "effective_date": "2025-01-01",
       "source_ids": ["ny_2025_it201_instructions", "ny_2025_tax_tables"],
-      "notes": "Official 2025 NY IT-201 instructions and tax tables are archived. Bracket extraction is deferred to avoid hand-copying complex table values."
+      "citation": "New York 2025 IT-201 instructions and tax tables list marginal tax brackets by filing status.",
+      "notes": "Marginal brackets only; tax benefit recapture above $107,650 NYAGI not modeled (estimate understates above that).",
+      "brackets": {
+        "single": [
+          {"up_to": 8500, "rate": 0.04},
+          {"up_to": 11700, "rate": 0.045},
+          {"up_to": 13900, "rate": 0.0525},
+          {"up_to": 80650, "rate": 0.055},
+          {"up_to": 215400, "rate": 0.06},
+          {"up_to": 1077550, "rate": 0.0685},
+          {"up_to": 5000000, "rate": 0.0965},
+          {"up_to": 25000000, "rate": 0.103},
+          {"up_to": null, "rate": 0.109}
+        ],
+        "married_filing_separately": [
+          {"up_to": 8500, "rate": 0.04},
+          {"up_to": 11700, "rate": 0.045},
+          {"up_to": 13900, "rate": 0.0525},
+          {"up_to": 80650, "rate": 0.055},
+          {"up_to": 215400, "rate": 0.06},
+          {"up_to": 1077550, "rate": 0.0685},
+          {"up_to": 5000000, "rate": 0.0965},
+          {"up_to": 25000000, "rate": 0.103},
+          {"up_to": null, "rate": 0.109}
+        ],
+        "married_filing_jointly": [
+          {"up_to": 17150, "rate": 0.04},
+          {"up_to": 23600, "rate": 0.045},
+          {"up_to": 27900, "rate": 0.0525},
+          {"up_to": 161550, "rate": 0.055},
+          {"up_to": 323200, "rate": 0.06},
+          {"up_to": 2155350, "rate": 0.0685},
+          {"up_to": 5000000, "rate": 0.0965},
+          {"up_to": 25000000, "rate": 0.103},
+          {"up_to": null, "rate": 0.109}
+        ],
+        "qualifying_surviving_spouse": [
+          {"up_to": 17150, "rate": 0.04},
+          {"up_to": 23600, "rate": 0.045},
+          {"up_to": 27900, "rate": 0.0525},
+          {"up_to": 161550, "rate": 0.055},
+          {"up_to": 323200, "rate": 0.06},
+          {"up_to": 2155350, "rate": 0.0685},
+          {"up_to": 5000000, "rate": 0.0965},
+          {"up_to": 25000000, "rate": 0.103},
+          {"up_to": null, "rate": 0.109}
+        ],
+        "head_of_household": [
+          {"up_to": 12800, "rate": 0.04},
+          {"up_to": 17650, "rate": 0.045},
+          {"up_to": 20900, "rate": 0.0525},
+          {"up_to": 107650, "rate": 0.055},
+          {"up_to": 269300, "rate": 0.06},
+          {"up_to": 1616450, "rate": 0.0685},
+          {"up_to": 5000000, "rate": 0.0965},
+          {"up_to": 25000000, "rate": 0.103},
+          {"up_to": null, "rate": 0.109}
+        ]
+      }
     },
     "IL": {
       "name": "Illinois",

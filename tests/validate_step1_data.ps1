@@ -111,6 +111,13 @@ foreach ($item in $knowledge.items) {
 }
 
 $states = Read-Json "data/tax_years/2025/us_states.json"
+$requiredStateFilingStatuses = @(
+  "single",
+  "married_filing_jointly",
+  "qualifying_surviving_spouse",
+  "head_of_household",
+  "married_filing_separately"
+)
 foreach ($stateProp in $states.states.PSObject.Properties) {
   $state = $stateProp.Value
   if ($state.status -in @("source_pending", "pending_extraction")) {
@@ -123,6 +130,23 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
   }
   if ($state.status -eq "effective" -and !$state.effective_date) {
     throw "State $($stateProp.Name) is effective but missing effective_date"
+  }
+  if ($state.status -eq "effective" -and $state.income_tax_type -eq "progressive") {
+    if (!($state.PSObject.Properties.Name -contains "brackets")) {
+      throw "State $($stateProp.Name) is progressive but missing brackets"
+    }
+    foreach ($filingStatus in $requiredStateFilingStatuses) {
+      if (!($state.brackets.PSObject.Properties.Name -contains $filingStatus)) {
+        throw "State $($stateProp.Name) progressive brackets missing filing status $filingStatus"
+      }
+      $brackets = $state.brackets.$filingStatus
+      if (!$brackets -or $brackets.Count -lt 1) {
+        throw "State $($stateProp.Name) progressive brackets for $filingStatus must not be empty"
+      }
+      if ($null -ne $brackets[$brackets.Count - 1].up_to) {
+        throw "State $($stateProp.Name) progressive final bracket for $filingStatus must have up_to null"
+      }
+    }
   }
 }
 

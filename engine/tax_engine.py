@@ -9,6 +9,7 @@ from .rules_loader import (
     load_federal_rules,
     load_feie_rules,
     load_fica_rules,
+    load_nexus_rules,
     load_state_rules,
 )
 
@@ -72,6 +73,14 @@ def _not_covered(
 
 def _money(value: float) -> float:
     return float(Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+
+def _money_decimal(value: Decimal) -> float:
+    return float(value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+
+def _decimal_rule(value: Any) -> Decimal:
+    return Decimal(str(value))
 
 
 def _normalize_filing_status(filing_status: str) -> str:
@@ -199,6 +208,69 @@ def fica_tax(wages: float, filing_status: str = "single", tax_year: int = 2025) 
     )
 
 
+def self_employment_tax(
+    net_self_employment_profit: float,
+    filing_status: str = "single",
+    tax_year: int = 2025,
+) -> dict[str, Any]:
+    """Calculate self-employment tax using stored FICA rules."""
+
+    filing = _normalize_filing_status(filing_status)
+    rules = load_fica_rules(tax_year)
+    ss = rules["social_security"]
+    med = rules["medicare"]
+    addl = rules["additional_medicare"]
+    se = rules["self_employment"]
+
+    net_profit = max(Decimal("0"), Decimal(str(net_self_employment_profit)))
+    multiplier = _decimal_rule(se["net_earnings_multiplier"])
+    base = net_profit * multiplier
+
+    ss_wage_base = _decimal_rule(ss["wage_base"])
+    social_security_tax = min(base, ss_wage_base) * _decimal_rule(ss["self_employment_combined_rate"])
+    medicare_tax = base * _decimal_rule(med["self_employment_combined_rate"])
+    se_tax = social_security_tax + medicare_tax
+
+    threshold = _decimal_rule(addl["taxpayer_thresholds"][filing])
+    additional_medicare_tax = max(Decimal("0"), base - threshold) * _decimal_rule(addl["employee_rate"])
+    deductible_half_se_tax = se_tax / Decimal("2")
+    total = se_tax + additional_medicare_tax
+
+    return _response(
+        status="ok",
+        input_data={
+            "net_self_employment_profit": net_self_employment_profit,
+            "filing_status": filing,
+            "tax_year": tax_year,
+        },
+        result={
+            "net_earnings_from_self_employment": _money_decimal(base),
+            "social_security_tax": _money_decimal(social_security_tax),
+            "medicare_tax": _money_decimal(medicare_tax),
+            "self_employment_tax": _money_decimal(se_tax),
+            "additional_medicare_tax": _money_decimal(additional_medicare_tax),
+            "deductible_half_se_tax": _money_decimal(deductible_half_se_tax),
+            "total_se_related_tax": _money_decimal(total),
+        },
+        breakdown=[
+            {"label": "net_self_employment_profit", "amount": _money_decimal(net_profit)},
+            {"label": "net_earnings_from_self_employment", "amount": _money_decimal(base)},
+            {"label": "social_security_tax", "amount": _money_decimal(social_security_tax)},
+            {"label": "medicare_tax", "amount": _money_decimal(medicare_tax)},
+            {"label": "additional_medicare_tax", "amount": _money_decimal(additional_medicare_tax)},
+            {"label": "deductible_half_se_tax", "amount": _money_decimal(deductible_half_se_tax)},
+            {"label": "total_se_related_tax", "amount": _money_decimal(total)},
+        ],
+        rule_version=rules["rule_version"],
+        citations=_citations(ss, med, addl, se),
+        assumptions=[
+            "Self-employment calculation uses stored 2025 FICA rules and Decimal arithmetic.",
+            "MVP assumes no other W-2 Medicare wages reduce the Additional Medicare threshold.",
+            "Deductible half of self-employment tax excludes Additional Medicare Tax.",
+        ],
+    )
+
+
 def feie_estimate(foreign_earned_income: float, days_abroad: int, tax_year: int = 2025) -> dict[str, Any]:
     """Estimate FEIE exclusion eligibility and excluded income."""
 
@@ -292,4 +364,106 @@ def state_income_tax(state_code: str, taxable_income: float, tax_year: int = 202
         rule_version=rules["rule_version"],
         citations=_citations(state),
         reason=f"State {code} income_tax_type {tax_type} is not implemented.",
+    )
+
+
+NEXUS_APPROACHING_RATIO = Decimal("0.80")
+
+
+def _compare_threshold(value: Decimal, threshold: Decimal, comparison: str) -> bool:
+    if comparison == "gt":
+        return value > threshold
+    if comparison == "gte":
+        return value >= threshold
+    raise ValueError(f"Unsupported nexus comparison: {comparison}")
+
+
+def nexus_estimate(
+    state_code: str,
+    sales_amount: float,
+    transaction_count: int | None = None,
+    tax_year: int = 2025,
+) -> dict[str, Any]:
+    """Estimate sales-tax economic nexus from stored state threshold rules."""
+
+    rules = load_nexus_rules(tax_year)
+    code = state_code.upper()
+    threshold = rules["thresholds"].get(code)
+    input_data = {
+        "state": code,
+        "sales_amount": sales_amount,
+        "transaction_count": transaction_count,
+        "tax_year": tax_year,
+    }
+
+    if not threshold:
+        return _not_covered(
+            input_data=input_data,
+            rule_version=rules["rule_version"],
+            reason=f"State {code} is not present in stored 2025 nexus rules.",
+        )
+    if threshold.get("status") == "source_pending":
+        return _not_covered(
+            input_data=input_data,
+            rule_version=rules["rule_version"],
+            citations=_citations(threshold),
+            reason=f"State {code} nexus rule status is source_pending; calculation is blocked until sourced.",
+        )
+
+    sales_threshold = _decimal_rule(threshold["sales_amount"])
+    sales = max(Decimal("0"), Decimal(str(sales_amount)))
+    comparison = threshold["comparison"]
+    sales_exceeded = _compare_threshold(sales, sales_threshold, comparison)
+    sales_approaching = sales >= (sales_threshold * NEXUS_APPROACHING_RATIO)
+
+    tx_threshold_raw = threshold.get("transaction_count")
+    tx_threshold = None if tx_threshold_raw is None else Decimal(str(tx_threshold_raw))
+    tx_count = None if transaction_count is None else max(0, int(transaction_count))
+    tx_exceeded = True
+    tx_approaching = False
+    assumptions = ["Uses stored state economic nexus thresholds only."]
+
+    if tx_threshold is not None:
+        if tx_count is None:
+            tx_exceeded = False
+            assumptions.append("Transaction count threshold exists but transaction_count input was not provided.")
+        else:
+            tx_value = Decimal(tx_count)
+            tx_exceeded = _compare_threshold(tx_value, tx_threshold, comparison)
+            tx_approaching = tx_value >= (tx_threshold * NEXUS_APPROACHING_RATIO)
+
+    if threshold.get("condition") == "amount_and_transactions":
+        exceeded = sales_exceeded and tx_exceeded
+    else:
+        exceeded = sales_exceeded
+
+    approaching = (not exceeded) and (sales_approaching or tx_approaching)
+    status_label = "triggered" if exceeded else "approaching" if approaching else "below"
+
+    return _response(
+        status="ok",
+        input_data=input_data,
+        result={
+            "state": code,
+            "threshold": {
+                "sales_amount": _money_decimal(sales_threshold),
+                "transaction_count": None if tx_threshold is None else int(tx_threshold),
+                "condition": threshold.get("condition", "amount_only"),
+                "comparison": comparison,
+            },
+            "inputs": {
+                "sales_amount": _money_decimal(sales),
+                "transaction_count": tx_count,
+            },
+            "exceeded": exceeded,
+            "approaching": approaching,
+            "status_label": status_label,
+        },
+        breakdown=[
+            {"label": "sales_amount", "amount": _money_decimal(sales)},
+            {"label": "sales_threshold", "amount": _money_decimal(sales_threshold)},
+        ],
+        rule_version=rules["rule_version"],
+        citations=_citations(threshold),
+        assumptions=assumptions,
     )

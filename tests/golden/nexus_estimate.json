@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1",
+  "function": "nexus_estimate",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "ca_triggered",
+      "input": {"state_code": "CA", "sales_amount": 600000},
+      "expected": {"status": "ok", "exceeded": true, "approaching": false, "status_label": "triggered"}
+    },
+    {
+      "name": "ca_approaching",
+      "input": {"state_code": "CA", "sales_amount": 450000},
+      "expected": {"status": "ok", "exceeded": false, "approaching": true, "status_label": "approaching"}
+    },
+    {
+      "name": "ca_below",
+      "input": {"state_code": "CA", "sales_amount": 300000},
+      "expected": {"status": "ok", "exceeded": false, "approaching": false, "status_label": "below"}
+    },
+    {
+      "name": "ny_triggered",
+      "input": {"state_code": "NY", "sales_amount": 600000, "transaction_count": 150},
+      "expected": {"status": "ok", "exceeded": true, "approaching": false, "status_label": "triggered"}
+    },
+    {
+      "name": "ny_amount_only_approaching",
+      "input": {"state_code": "NY", "sales_amount": 600000, "transaction_count": 50},
+      "expected": {"status": "ok", "exceeded": false, "approaching": true, "status_label": "approaching"}
+    },
+    {
+      "name": "tx_triggered",
+      "input": {"state_code": "TX", "sales_amount": 600000},
+      "expected": {"status": "ok", "exceeded": true, "approaching": false, "status_label": "triggered"}
+    },
+    {
+      "name": "fl_triggered",
+      "input": {"state_code": "FL", "sales_amount": 150000},
+      "expected": {"status": "ok", "exceeded": true, "approaching": false, "status_label": "triggered"}
+    },
+    {
+      "name": "fl_below",
+      "input": {"state_code": "FL", "sales_amount": 50000},
+      "expected": {"status": "ok", "exceeded": false, "approaching": false, "status_label": "below"}
+    },
+    {
+      "name": "wa_not_covered",
+      "input": {"state_code": "WA", "sales_amount": 600000},
+      "expected": {"status": "not_covered"}
+    },
+    {
+      "name": "unknown_not_covered",
+      "input": {"state_code": "ZZ", "sales_amount": 600000},
+      "expected": {"status": "not_covered"}
+    }
+  ]
+}

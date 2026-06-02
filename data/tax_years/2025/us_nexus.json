@@ -9,6 +9,7 @@
     "CA": {
       "name": "California",
       "sales_amount": 500000,
+      "comparison": "gt",
       "effective_date": "2025-01-01",
       "transaction_count": null,
       "measurement_period": "preceding_or_current_calendar_year",
@@ -19,6 +20,7 @@
     "NY": {
       "name": "New York",
       "sales_amount": 500000,
+      "comparison": "gt",
       "effective_date": "2025-01-01",
       "transaction_count": 100,
       "condition": "amount_and_transactions",
@@ -29,6 +31,7 @@
     "TX": {
       "name": "Texas",
       "sales_amount": 500000,
+      "comparison": "gte",
       "effective_date": "2025-01-01",
       "transaction_count": null,
       "measurement_period": "past_12_months",
@@ -38,6 +41,7 @@
     "FL": {
       "name": "Florida",
       "sales_amount": 100000,
+      "comparison": "gt",
       "effective_date": "2025-01-01",
       "transaction_count": null,
       "measurement_period": "previous_calendar_year",

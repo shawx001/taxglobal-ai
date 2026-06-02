@@ -1,0 +1,49 @@
+{
+  "schema_version": "0.1",
+  "function": "self_employment_tax",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "single_100000",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "net_earnings_from_self_employment": 92350.00,
+        "social_security_tax": 11451.40,
+        "medicare_tax": 2678.15,
+        "self_employment_tax": 14129.55,
+        "additional_medicare_tax": 0.00,
+        "deductible_half_se_tax": 7064.78,
+        "total_se_related_tax": 14129.55
+      }
+    },
+    {
+      "name": "single_250000",
+      "input": {"net_self_employment_profit": 250000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "net_earnings_from_self_employment": 230875.00,
+        "social_security_tax": 21836.40,
+        "medicare_tax": 6695.38,
+        "self_employment_tax": 28531.78,
+        "additional_medicare_tax": 277.88,
+        "deductible_half_se_tax": 14265.89,
+        "total_se_related_tax": 28809.65
+      }
+    },
+    {
+      "name": "single_zero",
+      "input": {"net_self_employment_profit": 0, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "net_earnings_from_self_employment": 0.00,
+        "social_security_tax": 0.00,
+        "medicare_tax": 0.00,
+        "self_employment_tax": 0.00,
+        "additional_medicare_tax": 0.00,
+        "deductible_half_se_tax": 0.00,
+        "total_se_related_tax": 0.00
+      }
+    }
+  ]
+}

@@ -134,6 +134,14 @@ foreach ($thresholdProp in $nexus.thresholds.PSObject.Properties) {
   if ($threshold.status -ne "source_pending" -and !$threshold.effective_date) {
     throw "Nexus threshold $($thresholdProp.Name) missing effective_date"
   }
+  if ($threshold.status -ne "source_pending") {
+    if (!($threshold.PSObject.Properties.Name -contains "comparison")) {
+      throw "Nexus threshold $($thresholdProp.Name) missing comparison"
+    }
+    if ($threshold.comparison -notin @("gt", "gte")) {
+      throw "Nexus threshold $($thresholdProp.Name) has unsupported comparison $($threshold.comparison)"
+    }
+  }
 }
 
 Write-Output "Step 1 data validation passed."

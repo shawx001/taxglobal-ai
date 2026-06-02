@@ -1,6 +1,16 @@
 import unittest
+import json
+from pathlib import Path
 
-from engine import bracket_tax, federal_income_tax, feie_estimate, fica_tax, state_income_tax
+from engine import (
+    bracket_tax,
+    federal_income_tax,
+    feie_estimate,
+    fica_tax,
+    nexus_estimate,
+    self_employment_tax,
+    state_income_tax,
+)
 from engine.rules_loader import load_state_rules
 
 
@@ -14,6 +24,13 @@ EXPECTED_RESPONSE_KEYS = {
     "assumptions",
     "reason",
 }
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_golden(name):
+    with (REPO_ROOT / "tests" / "golden" / name).open("r", encoding="utf-8") as handle:
+        return json.load(handle)
 
 
 class EngineTests(unittest.TestCase):
@@ -120,6 +137,46 @@ class EngineTests(unittest.TestCase):
 
         self.assertEqual(result["result"]["tax"], 0.00)
         self.assertEqual(result["result"]["rate"], 0.0)
+
+    def test_self_employment_tax_golden_cases(self):
+        golden = load_golden("self_employment_tax.json")
+
+        for case in golden["cases"]:
+            with self.subTest(case=case["name"]):
+                result = self_employment_tax(**case["input"])
+                expected = case["expected"]
+                self.assertEqual(result["status"], expected["status"])
+                self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
+                for key, value in expected.items():
+                    if key == "status":
+                        continue
+                    self.assertEqual(result["result"][key], value)
+                self.assertEqual(result["rule_version"], "us-2025-fica-v0.1")
+
+    def test_nexus_estimate_golden_cases(self):
+        golden = load_golden("nexus_estimate.json")
+
+        for case in golden["cases"]:
+            with self.subTest(case=case["name"]):
+                result = nexus_estimate(**case["input"])
+                expected = case["expected"]
+                self.assertEqual(result["status"], expected["status"])
+                self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
+                if expected["status"] == "ok":
+                    self.assertEqual(result["result"]["exceeded"], expected["exceeded"])
+                    self.assertEqual(result["result"]["approaching"], expected["approaching"])
+                    self.assertEqual(result["result"]["status_label"], expected["status_label"])
+                    self.assertEqual(result["rule_version"], "us-2025-sales-tax-nexus-v0.1")
+                else:
+                    self.assertIsNone(result["result"])
+
+    def test_nexus_ny_missing_transaction_count_does_not_trigger(self):
+        result = nexus_estimate("NY", 600_000)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertFalse(result["result"]["exceeded"])
+        self.assertTrue(result["result"]["approaching"])
+        self.assertIn("transaction_count input was not provided", result["assumptions"][1])
 
 
 if __name__ == "__main__":

@@ -60,3 +60,7 @@ def load_feie_rules(tax_year: int = 2025) -> dict[str, Any]:
 
 def load_state_rules(tax_year: int = 2025) -> dict[str, Any]:
     return load_rule_file(tax_year, "us_states.json")
+
+
+def load_nexus_rules(tax_year: int = 2025) -> dict[str, Any]:
+    return load_rule_file(tax_year, "us_nexus.json")

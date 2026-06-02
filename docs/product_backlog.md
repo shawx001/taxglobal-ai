@@ -1,0 +1,45 @@
+# 产品需求台账（Product Backlog）
+
+用途：记录开发过程中 Shaw 提出的增量产品/体验需求，映射到落地 step，避免在分步推进中遗漏。与 `feature_status.md`（工程进度）配套——本表记"要做什么需求"，那表记"做到哪了"。
+
+状态：🟢 已记录待设计 ｜ 🟡 已纳入某 step 设计 ｜ ✅ 已实现
+
+---
+
+| ID | 需求（用户原话/意图） | 落地 Step | 状态 | 设计要点 |
+|---|---|---|---|---|
+| REQ-001 | 建档案时收入分「美国境内」和「海外」两大类，便于计算 | 档案 schema：Step 4（计算输入）+ onboarding；持久化 Step 9 | 🟢 | 收入按来源分桶：US-domestic vs foreign-earned；桶内再分类型(W-2/自雇/加密/经营)。**直接对应引擎入参**：US 桶 → `federal_income_tax`/`state_income_tax`/`fica_tax`；foreign 桶 → `feie_estimate`(330天测试)，豁免后余额仍计美国税(公民全球征税)。后续 FTC/NIIT 也依赖此区分。 |
+| REQ-002 | 点开「税务计算」模块时，自动把档案数据同步过去（不用重填） | Step 5（前端接后端）+ 合并计税 `income_tax_summary` | 🟢 | 档案(收入桶/州/申报身份/海外天数)作为单一数据源，点开计算模块即自动带入并调用对应引擎；用户改档案 → 计算实时重算。这是"前端展示、后端计算、档案驱动"的核心体验。 |
+
+---
+
+## REQ-001 设计草案（收入分桶）
+
+建议档案里的收入结构（onboarding 收集、Step 9 持久化、Step 4 作为计算输入）：
+
+```
+income:
+  us_domestic:                      # 美国境内
+    w2_wages
+    self_employment_net_profit
+    crypto: { lots[], disposals[] }
+    business_profit
+    state                           # 所在/来源州
+  foreign:                          # 海外
+    foreign_earned_income
+    days_abroad                     # FEIE 330 天测试
+    foreign_tax_paid                # 预留给 FTC(二期)
+  filing_status
+```
+
+计算时的分流（引擎都已就绪）：
+- US 桶 → 联邦累进税 + 州税 + FICA
+- foreign 桶 → FEIE 估算；**豁免后的余额并回美国应税收入**（美国对公民/居民全球征税，FEIE 只豁免到上限）
+- 合并 → `income_tax_summary`（待建）把两边汇总成"总税负 + 总方案"
+
+> 注意（合规诚实）：海外那块目前只做 FEIE 基础估算；外国税收抵免(FTC)、税收协定、各国当地税都标为"二期/暂未覆盖"，不伪造确定结论。
+
+## REQ-002 设计草案（档案 → 计算同步）
+- 档案是唯一数据源；各税务模块"打开即带入"，不让用户重复输入。
+- 改档案(收入/州/身份/海外天数) → 相关计算与提醒实时重算。
+- 没数据的部分(如未覆盖的州)沿用引擎现有 `not_covered` 行为，界面诚实提示。

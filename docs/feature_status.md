@@ -1,6 +1,6 @@
 # TaxGlobal AI 功能状态总表（实时打勾 + 可溯源）
 
-最后更新：2026-06-02（main @ `1f98a60`）
+最后更新：2026-06-02（main @ `50c06af`）
 维护规则：每个 step 的 PR 经 Claude review 通过 / 合并后，更新本表"状态"列。每行可追溯到 **设计文档 + 实现 commit + 官方来源**。
 
 图例：✅ 已实现并测试 ｜ 🟡 已设计待实现 ｜ ⬜ 未开始
@@ -19,7 +19,7 @@
 | `self_employment_tax`（自雇税） | ✅ | 2.1 | `step2_1_design_se_nexus.md` | `e31deea` | IRS Pub 15-A, Topic 560 |
 | `nexus_estimate`（电商经济联结预警） | ✅ | 2.1 | `step2_1_design_se_nexus.md` | `e31deea` | CDTFA / NY / TX / FL DOR |
 | `crypto_gain_estimate`（加密成本基+资本利得税） | ✅ | 2.2 | `step2_2_design_crypto.md` | `1f98a60` | IRS Topic 409/559, Rev. Proc. 2024-40 |
-| `rsu_tax_estimate`（RSU 归属税务） | ✅ | 2.3 | `step2_3_design_rsu.md` | 待本 PR merge commit | IRS §83, Rev. Proc. 2024-40 |
+| `rsu_tax_estimate`（RSU 归属税务） | ✅ | 2.3 | `step2_3_design_rsu.md` | `2e43a8e` | IRS §83, Rev. Proc. 2024-40 |
 | `income_tax_summary`（多收入源合并计税） | ⬜ | 后续 | 待写 | — | — |
 
 ## B. 规则数据层（"大脑只信的真相源"）
@@ -67,7 +67,7 @@
 | 1 规则数据层 | — | `step1_tax_rule_data.md` |
 | 2 计算引擎 | — | `step2_tax_engine.md` |
 | 2.1 SE+Nexus | `step2_1_design_se_nexus.md` | `step2_1_se_nexus_engine.md` |
-| M3 黄金测试+CI | `step3_design_golden_tests.md` | `step3_golden_tests.md` |
+| 3 黄金测试+CI（曾称 M3） | `step3_design_golden_tests.md` | `step3_golden_tests.md` |
 | 1.1 资本利得数据 | `step1_1_design_capital_gains.md` | `step1_1_capital_gains_data.md` |
 | 2.2 加密计算 | `step2_2_design_crypto.md` | `step2_2_crypto_engine.md` |
 | 2.3 RSU | `step2_3_design_rsu.md` | `step2_3_rsu_engine.md` |

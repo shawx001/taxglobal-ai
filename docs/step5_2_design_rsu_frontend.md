@@ -12,7 +12,8 @@
 
 ## 1. 输入重塑(原型字段 → 后端契约)
 
-后端 `rsu_tax_estimate(shares_vested, fair_market_value_per_share, vest_date, filing_status, other_taxable_income, sale_scenario?)`。
+后端 `/calc/rsu` 请求(FastAPI schema): `shares_vested, fmv_per_share, vest_date, filing_status, other_taxable_income, sale_scenario?`。
+路由层会把 `fmv_per_share` 映射到引擎参数 `fair_market_value_per_share`。
 
 | 原型面板字段 | 处置 |
 |---|---|
@@ -27,10 +28,10 @@
 > 这些改动都是**为了不伪装确定性**:原型的"涨幅滑块×0.20"是假算,后端用显式卖出场景 + 数据驱动税率替代;期权属另一套规则,不混入。
 
 ## 2. api.js
-新增 helper:`rsu: function(payload){ return postCalc("/calc/rsu", payload); }`。复用现有 service_unavailable / request_failed / invalid_response 处理。
+新增 helper:`rsu: function(payload){ ... }`。它会把前端语义字段 `fair_market_value_per_share` 归一化为后端请求字段 `fmv_per_share`,再 `POST /calc/rsu`。复用现有 service_unavailable / request_failed / invalid_response 处理。
 
 ## 3. 计算流程与展示(前端只编排)
-1. 收集:shares_vested、fmv_per_share、vest_date、filing_status、other_taxable_income;若开了卖出场景则带 `sale_scenario:{sale_date, sale_price_per_share}`。
+1. 收集:shares_vested、fair_market_value_per_share(UI 语义字段,发送前归一化为 fmv_per_share)、vest_date、filing_status、other_taxable_income;若开了卖出场景则带 `sale_scenario:{sale_date, sale_price_per_share}`。
 2. 调 `/calc/rsu` → 后端返回 `result.vesting`(ordinary_income / vest_income_tax / cost_basis_per_share)+ `result.hold_vs_sell`(可空)。
 3. 展示(全部经 `escapeHtml`,复用 Step 5.1):
    - 归属普通收入、归属带来的所得税(+ citations + assumptions)

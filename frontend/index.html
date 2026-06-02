@@ -1440,7 +1440,7 @@ async function calcRSU(){
   const result=document.getElementById('rsuResult');
   const saleEnabled=document.getElementById('rsu-sale-enabled').checked;
   document.getElementById('rsu-sale-fields').style.display=saleEnabled?'block':'none';
-  result.innerHTML='<div style="color:var(--ink3);font-size:13px">正在调用后端规则引擎...</div>';
+  result.innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
   const payload={
     shares_vested:+document.getElementById('rsu-shares').value||0,
     fair_market_value_per_share:+document.getElementById('rsu-fmv').value||0,

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from .rules_loader import (
+    load_capital_gains_rules,
     load_federal_rules,
     load_feie_rules,
     load_fica_rules,
@@ -70,6 +72,26 @@ def _not_covered(
     )
 
 
+def _invalid_input(
+    *,
+    input_data: dict[str, Any],
+    rule_version: str,
+    reason: str,
+    citations: list[dict[str, Any]] | None = None,
+    assumptions: list[str] | None = None,
+) -> dict[str, Any]:
+    return _response(
+        status="invalid_input",
+        input_data=input_data,
+        result=None,
+        breakdown=[],
+        rule_version=rule_version,
+        citations=citations or [],
+        assumptions=assumptions,
+        reason=reason,
+    )
+
+
 def _money(value: float) -> float:
     return float(Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
@@ -100,6 +122,49 @@ def _citations(*items: dict[str, Any]) -> list[dict[str, Any]]:
                 citations.append({"source_id": source_id, "citation": citation})
                 seen.add(key)
     return citations
+
+
+def _bracket_tax_decimal(taxable_income: Decimal, brackets: list[dict[str, Any]]) -> Decimal:
+    taxable = max(Decimal("0"), taxable_income)
+    tax = Decimal("0")
+    previous_cap = Decimal("0")
+    for bracket in brackets:
+        cap = bracket.get("up_to")
+        rate = _decimal_rule(bracket["rate"])
+        if cap is None:
+            tax += max(Decimal("0"), taxable - previous_cap) * rate
+            break
+        cap_decimal = _decimal_rule(cap)
+        if taxable > cap_decimal:
+            tax += (cap_decimal - previous_cap) * rate
+            previous_cap = cap_decimal
+        else:
+            tax += max(Decimal("0"), taxable - previous_cap) * rate
+            break
+    return tax
+
+
+def _parse_iso_date(value: Any, field_name: str) -> date:
+    if not isinstance(value, str):
+        raise ValueError(f"{field_name} must be an ISO date string")
+    try:
+        return date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"{field_name} must be an ISO date string") from exc
+
+
+def _add_one_calendar_year(value: date) -> date:
+    try:
+        return value.replace(year=value.year + 1)
+    except ValueError:
+        return value.replace(year=value.year + 1, day=28)
+
+
+def _decimal_input(value: Any, field_name: str) -> Decimal:
+    try:
+        return Decimal(str(value))
+    except Exception as exc:
+        raise ValueError(f"{field_name} must be numeric") from exc
 
 
 def bracket_tax(taxable_income: float, brackets: list[dict[str, Any]]) -> float:
@@ -364,6 +429,354 @@ def state_income_tax(state_code: str, taxable_income: float, tax_year: int = 202
         rule_version=rules["rule_version"],
         citations=_citations(state),
         reason=f"State {code} income_tax_type {tax_type} is not implemented.",
+    )
+
+
+SUPPORTED_CRYPTO_METHODS = {"FIFO", "LIFO", "HIFO"}
+
+
+def _capital_gains_rule_version(capital_gains_rules: dict[str, Any], federal_rules: dict[str, Any]) -> str:
+    return f"{capital_gains_rules['rule_version']}+{federal_rules['rule_version']}"
+
+
+def _validate_crypto_item(item: dict[str, Any], *, item_type: str, index: int) -> dict[str, Any]:
+    asset = item.get("asset")
+    if not isinstance(asset, str) or not asset.strip():
+        raise ValueError(f"{item_type}[{index}] asset must be non-empty")
+
+    parsed_date = _parse_iso_date(item.get("date"), f"{item_type}[{index}].date")
+    quantity = _decimal_input(item.get("quantity"), f"{item_type}[{index}].quantity")
+    if quantity <= 0:
+        raise ValueError(f"{item_type}[{index}] quantity must be greater than zero")
+
+    amount_field = "cost_basis" if item_type == "lots" else "proceeds"
+    amount = _decimal_input(item.get(amount_field), f"{item_type}[{index}].{amount_field}")
+    if amount < 0:
+        raise ValueError(f"{item_type}[{index}] {amount_field} must be zero or greater")
+
+    return {
+        "asset": asset.strip(),
+        "date": parsed_date,
+        "quantity": quantity,
+        amount_field: amount,
+    }
+
+
+def _validate_crypto_inputs(
+    lots: list[dict[str, Any]],
+    disposals: list[dict[str, Any]],
+    method: str,
+) -> tuple[str, list[dict[str, Any]], list[dict[str, Any]]]:
+    normalized_method = method.upper()
+    if normalized_method not in SUPPORTED_CRYPTO_METHODS:
+        raise ValueError(f"method must be one of {sorted(SUPPORTED_CRYPTO_METHODS)}")
+
+    if not isinstance(lots, list):
+        raise ValueError("lots must be a list")
+    if not isinstance(disposals, list):
+        raise ValueError("disposals must be a list")
+
+    parsed_lots = [_validate_crypto_item(item, item_type="lots", index=index) for index, item in enumerate(lots)]
+    parsed_disposals = [
+        _validate_crypto_item(item, item_type="disposals", index=index) for index, item in enumerate(disposals)
+    ]
+
+    bought_by_asset: dict[str, Decimal] = {}
+    sold_by_asset: dict[str, Decimal] = {}
+    for lot in parsed_lots:
+        bought_by_asset[lot["asset"]] = bought_by_asset.get(lot["asset"], Decimal("0")) + lot["quantity"]
+    for disposal in parsed_disposals:
+        sold_by_asset[disposal["asset"]] = sold_by_asset.get(disposal["asset"], Decimal("0")) + disposal["quantity"]
+
+    for asset, sold_quantity in sold_by_asset.items():
+        bought_quantity = bought_by_asset.get(asset, Decimal("0"))
+        if sold_quantity > bought_quantity:
+            shortage = sold_quantity - bought_quantity
+            raise ValueError(f"Disposal quantity for {asset} exceeds available lots by {shortage}")
+
+    return normalized_method, parsed_lots, parsed_disposals
+
+
+def _sort_crypto_lots(lots: list[dict[str, Any]], method: str) -> list[dict[str, Any]]:
+    if method == "FIFO":
+        return sorted(lots, key=lambda item: item["date"])
+    if method == "LIFO":
+        return sorted(lots, key=lambda item: item["date"], reverse=True)
+    return sorted(lots, key=lambda item: item["unit_cost"], reverse=True)
+
+
+def _match_crypto_lots(
+    lots: list[dict[str, Any]],
+    disposals: list[dict[str, Any]],
+    method: str,
+) -> list[dict[str, Any]]:
+    lots_by_asset: dict[str, list[dict[str, Any]]] = {}
+    for lot in lots:
+        unit_cost = lot["cost_basis"] / lot["quantity"]
+        lots_by_asset.setdefault(lot["asset"], []).append(
+            {
+                "asset": lot["asset"],
+                "date": lot["date"],
+                "remaining_quantity": lot["quantity"],
+                "unit_cost": unit_cost,
+            }
+        )
+
+    for asset, asset_lots in lots_by_asset.items():
+        lots_by_asset[asset] = _sort_crypto_lots(asset_lots, method)
+
+    matches: list[dict[str, Any]] = []
+    for disposal in sorted(disposals, key=lambda item: item["date"]):
+        remaining = disposal["quantity"]
+        disposal_unit_price = disposal["proceeds"] / disposal["quantity"]
+        asset_lots = lots_by_asset.get(disposal["asset"], [])
+
+        for lot in asset_lots:
+            if remaining <= 0:
+                break
+            if lot["remaining_quantity"] <= 0:
+                continue
+
+            matched_quantity = min(remaining, lot["remaining_quantity"])
+            proceeds = disposal_unit_price * matched_quantity
+            cost_basis = lot["unit_cost"] * matched_quantity
+            gain = proceeds - cost_basis
+            term = "long" if disposal["date"] > _add_one_calendar_year(lot["date"]) else "short"
+            matches.append(
+                {
+                    "asset": disposal["asset"],
+                    "quantity": matched_quantity,
+                    "acquired": lot["date"].isoformat(),
+                    "sold": disposal["date"].isoformat(),
+                    "proceeds": proceeds,
+                    "cost_basis": cost_basis,
+                    "gain": gain,
+                    "term": term,
+                }
+            )
+
+            lot["remaining_quantity"] -= matched_quantity
+            remaining -= matched_quantity
+
+    return matches
+
+
+def _net_capital_gains(short_term_gain: Decimal, long_term_gain: Decimal) -> tuple[Decimal, Decimal]:
+    if short_term_gain >= 0 and long_term_gain >= 0:
+        return short_term_gain, long_term_gain
+    if short_term_gain <= 0 and long_term_gain <= 0:
+        return short_term_gain, long_term_gain
+
+    total = short_term_gain + long_term_gain
+    if total >= 0:
+        if short_term_gain > 0:
+            return total, Decimal("0")
+        return Decimal("0"), total
+
+    if short_term_gain < 0:
+        return total, Decimal("0")
+    return Decimal("0"), total
+
+
+def _long_term_capital_gains_tax(
+    *,
+    ordinary_stack: Decimal,
+    long_term_gain: Decimal,
+    brackets: list[dict[str, Any]],
+) -> Decimal:
+    if long_term_gain <= 0:
+        return Decimal("0")
+
+    tax = Decimal("0")
+    interval_start = ordinary_stack
+    interval_end = ordinary_stack + long_term_gain
+    previous_cap = Decimal("0")
+
+    for bracket in brackets:
+        cap_raw = bracket.get("up_to")
+        cap = None if cap_raw is None else _decimal_rule(cap_raw)
+        rate = _decimal_rule(bracket["rate"])
+        bracket_start = previous_cap
+        bracket_end = interval_end if cap is None else min(cap, interval_end)
+
+        taxable_start = max(interval_start, bracket_start)
+        taxable_end = min(interval_end, bracket_end)
+        if taxable_end > taxable_start:
+            tax += (taxable_end - taxable_start) * rate
+
+        if cap is None or interval_end <= cap:
+            break
+        previous_cap = cap
+
+    return tax
+
+
+def _crypto_tax_estimate(
+    *,
+    net_short_term_gain: Decimal,
+    net_long_term_gain: Decimal,
+    filing: str,
+    other_taxable_income: Decimal,
+    modified_agi: Decimal | None,
+    federal_rules: dict[str, Any],
+    capital_gains_rules: dict[str, Any],
+) -> tuple[dict[str, float], list[str]]:
+    assumptions: list[str] = [
+        "Crypto gain estimate uses lot matching, Schedule D netting, LTCG stacking, and NIIT rules from stored JSON.",
+        "Wash sale adjustments, specific-ID documentation, cross-year carryovers, Form 8949 PDF export, "
+        "and income events such as staking, airdrops, and forks are outside this function.",
+    ]
+
+    net_st, net_lt = _net_capital_gains(net_short_term_gain, net_long_term_gain)
+    if net_st + net_lt < 0:
+        assumptions.append(
+            "Net capital loss detected; up to $3,000 may offset ordinary income and the remainder may carry forward, "
+            "but this function does not calculate those items without full return context."
+        )
+        return (
+            {
+                "short_term_ordinary_tax": 0.00,
+                "long_term_capital_gains_tax": 0.00,
+                "net_investment_income_tax": 0.00,
+                "total": 0.00,
+            },
+            assumptions,
+        )
+
+    taxable_st = max(Decimal("0"), net_st)
+    taxable_lt = max(Decimal("0"), net_lt)
+    ordinary_brackets = federal_rules["ordinary_income_brackets"][filing]
+    short_term_tax = _bracket_tax_decimal(other_taxable_income + taxable_st, ordinary_brackets) - _bracket_tax_decimal(
+        other_taxable_income, ordinary_brackets
+    )
+
+    ordinary_stack = other_taxable_income + taxable_st
+    ltcg_tax = _long_term_capital_gains_tax(
+        ordinary_stack=ordinary_stack,
+        long_term_gain=taxable_lt,
+        brackets=capital_gains_rules["long_term_capital_gains"]["brackets"][filing],
+    )
+
+    net_investment_income = max(Decimal("0"), taxable_st + taxable_lt)
+    niit_rules = capital_gains_rules["net_investment_income_tax"]
+    threshold = _decimal_rule(niit_rules["magi_thresholds"][filing])
+    if modified_agi is None:
+        magi = other_taxable_income + net_investment_income
+        assumptions.append(
+            "modified_agi was not provided; NIIT estimate approximates MAGI as other taxable income "
+            "plus net investment income."
+        )
+    else:
+        magi = modified_agi
+    niit_base = min(net_investment_income, max(Decimal("0"), magi - threshold))
+    niit = niit_base * _decimal_rule(niit_rules["rate"])
+    total = short_term_tax + ltcg_tax + niit
+
+    return (
+        {
+            "short_term_ordinary_tax": _money_decimal(short_term_tax),
+            "long_term_capital_gains_tax": _money_decimal(ltcg_tax),
+            "net_investment_income_tax": _money_decimal(niit),
+            "total": _money_decimal(total),
+        },
+        assumptions,
+    )
+
+
+def crypto_gain_estimate(
+    lots: list[dict[str, Any]],
+    disposals: list[dict[str, Any]],
+    method: str = "FIFO",
+    filing_status: str = "single",
+    other_taxable_income: float = 0.0,
+    modified_agi: float | None = None,
+    tax_year: int = 2025,
+) -> dict[str, Any]:
+    """Estimate crypto capital gains from deterministic lot matching and stored tax rules."""
+
+    input_data = {
+        "lots": lots,
+        "disposals": disposals,
+        "method": method,
+        "filing_status": filing_status,
+        "other_taxable_income": other_taxable_income,
+        "modified_agi": modified_agi,
+        "tax_year": tax_year,
+    }
+    capital_gains_rules = load_capital_gains_rules(tax_year)
+    federal_rules = load_federal_rules(tax_year)
+    rule_version = _capital_gains_rule_version(capital_gains_rules, federal_rules)
+    citations = _citations(
+        capital_gains_rules["long_term_capital_gains"],
+        capital_gains_rules["short_term_capital_gains"],
+        capital_gains_rules["net_investment_income_tax"],
+        federal_rules["ordinary_income_brackets"],
+    )
+
+    try:
+        filing = _normalize_filing_status(filing_status)
+        normalized_method, parsed_lots, parsed_disposals = _validate_crypto_inputs(lots, disposals, method)
+        ordinary_income = max(Decimal("0"), _decimal_input(other_taxable_income, "other_taxable_income"))
+        magi = None if modified_agi is None else max(Decimal("0"), _decimal_input(modified_agi, "modified_agi"))
+    except ValueError as exc:
+        return _invalid_input(
+            input_data=input_data,
+            rule_version=rule_version,
+            citations=citations,
+            reason=str(exc),
+        )
+
+    matches = _match_crypto_lots(parsed_lots, parsed_disposals, normalized_method)
+    short_term_gain = sum((match["gain"] for match in matches if match["term"] == "short"), Decimal("0"))
+    long_term_gain = sum((match["gain"] for match in matches if match["term"] == "long"), Decimal("0"))
+    net_capital_gain = short_term_gain + long_term_gain
+
+    tax_estimate, assumptions = _crypto_tax_estimate(
+        net_short_term_gain=short_term_gain,
+        net_long_term_gain=long_term_gain,
+        filing=filing,
+        other_taxable_income=ordinary_income,
+        modified_agi=magi,
+        federal_rules=federal_rules,
+        capital_gains_rules=capital_gains_rules,
+    )
+
+    lots_matched = [
+        {
+            "asset": match["asset"],
+            "quantity": float(match["quantity"]),
+            "acquired": match["acquired"],
+            "sold": match["sold"],
+            "proceeds": _money_decimal(match["proceeds"]),
+            "cost_basis": _money_decimal(match["cost_basis"]),
+            "gain": _money_decimal(match["gain"]),
+            "term": match["term"],
+        }
+        for match in matches
+    ]
+
+    return _response(
+        status="ok",
+        input_data={**input_data, "method": normalized_method, "filing_status": filing},
+        result={
+            "method": normalized_method,
+            "realized": {
+                "short_term_gain": _money_decimal(short_term_gain),
+                "long_term_gain": _money_decimal(long_term_gain),
+                "net_capital_gain": _money_decimal(net_capital_gain),
+            },
+            "lots_matched": lots_matched,
+            "tax_estimate": tax_estimate,
+        },
+        breakdown=[
+            {"label": "short_term_gain", "amount": _money_decimal(short_term_gain)},
+            {"label": "long_term_gain", "amount": _money_decimal(long_term_gain)},
+            {"label": "net_capital_gain", "amount": _money_decimal(net_capital_gain)},
+            {"label": "crypto_tax_estimate_total", "amount": tax_estimate["total"]},
+        ],
+        rule_version=rule_version,
+        citations=citations,
+        assumptions=assumptions,
     )
 
 

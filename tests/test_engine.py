@@ -2,6 +2,7 @@ import unittest
 
 from engine import (
     bracket_tax,
+    crypto_gain_estimate,
     federal_income_tax,
     feie_estimate,
     fica_tax,
@@ -172,6 +173,41 @@ class EngineTests(unittest.TestCase):
         self.assertFalse(result["result"]["exceeded"])
         self.assertTrue(result["result"]["approaching"])
         self.assertIn("transaction_count input was not provided", result["assumptions"][1])
+
+    def test_crypto_partial_lot_is_consumed_across_multiple_disposals(self):
+        result = crypto_gain_estimate(
+            lots=[{"asset": "ETH", "date": "2023-01-01", "quantity": 2, "cost_basis": 2000}],
+            disposals=[
+                {"asset": "ETH", "date": "2025-01-02", "quantity": 0.5, "proceeds": 1000},
+                {"asset": "ETH", "date": "2025-01-03", "quantity": 0.75, "proceeds": 1500},
+            ],
+            method="FIFO",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(len(result["result"]["lots_matched"]), 2)
+        self.assertEqual(result["result"]["realized"]["long_term_gain"], 1250.00)
+        self.assertEqual(result["result"]["realized"]["short_term_gain"], 0.00)
+
+    def test_crypto_holding_period_one_year_plus_one_day_is_long_term(self):
+        result = crypto_gain_estimate(
+            lots=[{"asset": "BTC", "date": "2024-02-29", "quantity": 1, "cost_basis": 10000}],
+            disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 12000}],
+            method="FIFO",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["lots_matched"][0]["term"], "long")
+
+    def test_crypto_zero_quantity_is_invalid_input(self):
+        result = crypto_gain_estimate(
+            lots=[{"asset": "BTC", "date": "2024-01-01", "quantity": 0, "cost_basis": 10000}],
+            disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 12000}],
+            method="FIFO",
+        )
+
+        self.assertEqual(result["status"], "invalid_input")
+        self.assertIn("quantity", result["reason"])
 
 
 if __name__ == "__main__":

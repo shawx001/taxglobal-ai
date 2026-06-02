@@ -1,0 +1,183 @@
+{
+  "schema_version": "0.1",
+  "function": "crypto_gain_estimate",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "fifo_match",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO"
+      },
+      "expected": {
+        "status": "ok",
+        "realized": {
+          "short_term_gain": 5000.00,
+          "long_term_gain": 30000.00,
+          "net_capital_gain": 35000.00
+        }
+      }
+    },
+    {
+      "name": "hifo_match",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "HIFO"
+      },
+      "expected": {
+        "status": "ok",
+        "realized": {
+          "short_term_gain": 10000.00,
+          "long_term_gain": 15000.00,
+          "net_capital_gain": 25000.00
+        }
+      }
+    },
+    {
+      "name": "lifo_match",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "LIFO"
+      },
+      "expected": {
+        "status": "ok",
+        "realized": {
+          "short_term_gain": 10000.00,
+          "long_term_gain": 15000.00,
+          "net_capital_gain": 25000.00
+        }
+      }
+    },
+    {
+      "name": "fifo_tax_single_100k",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "realized": {
+          "short_term_gain": 5000.00,
+          "long_term_gain": 30000.00,
+          "net_capital_gain": 35000.00
+        },
+        "tax_estimate": {
+          "short_term_ordinary_tax": 1133.00,
+          "long_term_capital_gains_tax": 4500.00,
+          "net_investment_income_tax": 0.00,
+          "total": 5633.00
+        }
+      }
+    },
+    {
+      "name": "niit_triggered",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 250000
+      },
+      "expected": {
+        "status": "ok",
+        "tax_estimate": {
+          "short_term_ordinary_tax": 1734.25,
+          "long_term_capital_gains_tax": 4500.00,
+          "net_investment_income_tax": 1330.00,
+          "total": 7564.25
+        }
+      }
+    },
+    {
+      "name": "oversell_invalid",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.5, "cost_basis": 30000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 2.0, "proceeds": 100000}
+        ],
+        "method": "FIFO"
+      },
+      "expected": {
+        "status": "invalid_input",
+        "reason_contains": "exceeds"
+      }
+    },
+    {
+      "name": "bad_method",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.0, "proceeds": 50000}
+        ],
+        "method": "ABC"
+      },
+      "expected": {
+        "status": "invalid_input",
+        "reason_contains": "method"
+      }
+    },
+    {
+      "name": "net_loss",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 60000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.0, "proceeds": 50000}
+        ],
+        "method": "FIFO",
+        "other_taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "realized": {
+          "short_term_gain": 0.00,
+          "long_term_gain": -10000.00,
+          "net_capital_gain": -10000.00
+        },
+        "tax_estimate": {
+          "short_term_ordinary_tax": 0.00,
+          "long_term_capital_gains_tax": 0.00,
+          "net_investment_income_tax": 0.00,
+          "total": 0.00
+        },
+        "assumption_contains": "$3,000"
+      }
+    }
+  ]
+}

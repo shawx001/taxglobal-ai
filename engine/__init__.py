@@ -2,6 +2,7 @@
 
 from .tax_engine import (
     bracket_tax,
+    crypto_gain_estimate,
     federal_income_tax,
     feie_estimate,
     fica_tax,
@@ -12,6 +13,7 @@ from .tax_engine import (
 
 __all__ = [
     "bracket_tax",
+    "crypto_gain_estimate",
     "federal_income_tax",
     "feie_estimate",
     "fica_tax",

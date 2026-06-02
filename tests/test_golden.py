@@ -18,7 +18,7 @@ EXPECTED_RESPONSE_KEYS = {
     "reason",
 }
 
-META_EXPECTED_KEYS = {"status", "reason_contains", "citation_source_ids"}
+META_EXPECTED_KEYS = {"status", "reason_contains", "citation_source_ids", "assumption_contains"}
 
 
 def load_golden_files():
@@ -42,7 +42,7 @@ class GoldenFixtureTests(unittest.TestCase):
     def assert_golden_result(self, expected, result):
         self.assertEqual(result["status"], expected["status"])
 
-        if expected["status"] == "not_covered":
+        if expected["status"] in {"not_covered", "invalid_input"}:
             self.assertIsNone(result["result"])
         else:
             self.assertIsInstance(result["result"], dict)
@@ -54,6 +54,10 @@ class GoldenFixtureTests(unittest.TestCase):
         if "citation_source_ids" in expected:
             actual_source_ids = {citation["source_id"] for citation in result["citations"]}
             self.assertTrue(set(expected["citation_source_ids"]).issubset(actual_source_ids))
+
+        if "assumption_contains" in expected:
+            assumptions = "\n".join(result["assumptions"])
+            self.assertIn(expected["assumption_contains"], assumptions)
 
         if result["result"] is None:
             return

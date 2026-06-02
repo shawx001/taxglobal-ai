@@ -1,6 +1,19 @@
 import unittest
 
 from engine import bracket_tax, federal_income_tax, feie_estimate, fica_tax, state_income_tax
+from engine.rules_loader import load_state_rules
+
+
+EXPECTED_RESPONSE_KEYS = {
+    "status",
+    "input",
+    "result",
+    "breakdown",
+    "rule_version",
+    "citations",
+    "assumptions",
+    "reason",
+}
 
 
 class EngineTests(unittest.TestCase):
@@ -16,7 +29,9 @@ class EngineTests(unittest.TestCase):
     def test_federal_income_tax_single_uses_2025_rules(self):
         result = federal_income_tax(120_000, "single")
 
+        self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
         self.assertEqual(result["status"], "ok")
+        self.assertIsNone(result["reason"])
         self.assertEqual(result["result"]["taxable_income"], 105_000.00)
         self.assertEqual(result["result"]["tax"], 18_047.00)
         self.assertEqual(result["rule_version"], "us-2025-federal-v0.1")
@@ -34,6 +49,7 @@ class EngineTests(unittest.TestCase):
         result = fica_tax(250_000, "single")
 
         self.assertEqual(result["status"], "ok")
+        self.assertIn("annual taxpayer filing-status thresholds", result["assumptions"][1])
         self.assertEqual(result["result"]["social_security_tax"], 10_918.20)
         self.assertEqual(result["result"]["medicare_tax"], 3_625.00)
         self.assertEqual(result["result"]["additional_medicare_tax"], 450.00)
@@ -76,9 +92,12 @@ class EngineTests(unittest.TestCase):
     def test_state_income_tax_blocks_pending_extraction_states(self):
         result = state_income_tax("CA", 100_000)
 
+        self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
         self.assertEqual(result["status"], "not_covered")
         self.assertIn("pending_extraction", result["reason"])
         self.assertIsNone(result["result"])
+        self.assertEqual(result["rule_version"], "us-2025-states-v0.1")
+        self.assertEqual(result["citations"][0]["source_id"], "ca_2025_540_tax_rate_schedules")
 
     def test_state_income_tax_blocks_source_pending_states(self):
         result = state_income_tax("TX", 100_000)
@@ -92,6 +111,15 @@ class EngineTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "not_covered")
         self.assertIn("not present", result["reason"])
+
+    def test_rule_loader_returns_isolated_copies(self):
+        rules = load_state_rules()
+        rules["states"]["FL"]["flat_rate"] = 0.99
+
+        result = state_income_tax("FL", 100_000)
+
+        self.assertEqual(result["result"]["tax"], 0.00)
+        self.assertEqual(result["result"]["rate"], 0.0)
 
 
 if __name__ == "__main__":

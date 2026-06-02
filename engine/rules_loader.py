@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -17,8 +18,8 @@ class RuleLoadError(ValueError):
 
 
 @lru_cache(maxsize=32)
-def load_rule_file(tax_year: int, filename: str) -> dict[str, Any]:
-    """Load a JSON rule file for a tax year.
+def _load_rule_file_cached(tax_year: int, filename: str) -> dict[str, Any]:
+    """Load and cache a JSON rule file for a tax year.
 
     The engine deliberately reads only stored rule data. It does not fetch
     live web pages or fall back to prototype values.
@@ -32,6 +33,17 @@ def load_rule_file(tax_year: int, filename: str) -> dict[str, Any]:
     if data.get("tax_year") != tax_year:
         raise RuleLoadError(f"Rule file {path} has unexpected tax_year")
     return data
+
+
+def load_rule_file(tax_year: int, filename: str) -> dict[str, Any]:
+    """Load a JSON rule file and return an isolated copy.
+
+    The cached object must never be handed directly to callers. A route,
+    alert generator, or test mutating rule data should not poison the process
+    for later calculations.
+    """
+
+    return deepcopy(_load_rule_file_cached(tax_year, filename))
 
 
 def load_federal_rules(tax_year: int = 2025) -> dict[str, Any]:

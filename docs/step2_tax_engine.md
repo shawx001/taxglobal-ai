@@ -20,12 +20,18 @@ This step turns the Step 1 data layer into callable functions for future API rou
   - `state_income_tax`
 - Added standard-library unit tests in `tests/test_engine.py`.
 - Removed the placeholder `engine/.gitkeep`.
+- Hardened the rule loader and response shape after review:
+  - cached rule dictionaries are returned as isolated deep copies
+  - `ok` and `not_covered` responses now share the same top-level keys
+  - `reason` is present for every response and is `null` for successful calculations
+  - FICA assumptions now distinguish annual taxpayer liability thresholds from payroll withholding timing
 
 ## Guardrails
 
 - The engine does not fetch live web pages.
 - The engine does not read from `index.html`.
 - The engine does not fall back to prototype hardcoded values.
+- Callers cannot mutate cached rule dictionaries and poison later calculations.
 - `state_income_tax` returns `status: not_covered` for:
   - `pending_extraction`
   - `source_pending`
@@ -40,6 +46,8 @@ This step turns the Step 1 data layer into callable functions for future API rou
 - FEIE uses 2025 JSON maximum exclusion and 330-day physical presence threshold.
 - Effective flat/zero-tax states calculate from JSON.
 - Pending or source-pending state rules explicitly refuse calculation.
+- All engine responses include the same top-level keys.
+- Mutating a loaded rule copy does not affect later engine calculations.
 - Existing Step 1 data validation still passes.
 - Prototype files remain byte-identical.
 
@@ -54,7 +62,7 @@ Get-FileHash -Algorithm SHA256 -LiteralPath index.html, frontend\index.html
 
 ## Validation Results
 
-- `tests.test_engine`: 12 tests passed.
+- `tests.test_engine`: 13 tests passed.
 - `validate_step1_data.ps1`: passed.
 - `git diff --check`: passed.
 - Root `index.html` and `frontend/index.html` hashes still match.
@@ -74,5 +82,6 @@ Get-FileHash -Algorithm SHA256 -LiteralPath index.html, frontend\index.html
 - Whether the engine is pure and only reads stored JSON rules.
 - Whether `state_income_tax` correctly blocks pending/source-pending states.
 - Whether result shapes are consistent enough for the future FastAPI layer.
+- Whether cached rule data is protected from caller mutation.
 - Whether tests cover both successful calculations and guardrail failures.
 - Whether any prototype hardcoded values leaked into the engine.

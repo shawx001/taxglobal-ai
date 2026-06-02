@@ -1,0 +1,49 @@
+(function () {
+  var API_BASE_URL = "http://127.0.0.1:8000";
+
+  function makeApiError(message, options) {
+    var error = new Error(message);
+    options = options || {};
+    error.name = "ApiError";
+    error.code = options.code || "api_error";
+    error.status = options.status || null;
+    error.details = options.details || [];
+    return error;
+  }
+
+  function postCalc(path, payload) {
+    return window.fetch(API_BASE_URL + path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .catch(function (error) {
+        throw makeApiError("Backend service is unavailable.", {
+          code: "service_unavailable",
+          details: [String(error && error.message ? error.message : error)],
+        });
+      })
+      .then(function (response) {
+        return response.json().catch(function () {
+          return null;
+        }).then(function (body) {
+          if (!response.ok) {
+            var apiError = body && body.error ? body.error : {};
+            throw makeApiError(apiError.message || "Backend request failed.", {
+              code: apiError.code || "request_failed",
+              status: response.status,
+              details: apiError.details || [],
+            });
+          }
+          return body;
+        });
+      });
+  }
+
+  window.TaxGlobalApi = {
+    postCalc: postCalc,
+    federalIncome: function (payload) { return postCalc("/calc/federal-income", payload); },
+    fica: function (payload) { return postCalc("/calc/fica", payload); },
+    stateIncome: function (payload) { return postCalc("/calc/state-income", payload); },
+  };
+}());

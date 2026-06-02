@@ -29,6 +29,18 @@ class CalcApiTests(unittest.TestCase):
         self.assertEqual(response.json(), {"status": "ok"})
         self.assert_response_has_trace_id(response)
 
+    def test_local_frontend_origin_gets_cors_headers(self):
+        response = self.client.options(
+            "/calc/federal-income",
+            headers={
+                "Origin": "http://127.0.0.1:5173",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers["access-control-allow-origin"], "http://127.0.0.1:5173")
+
     def test_calc_routes_return_engine_payloads(self):
         cases = [
             ("/calc/federal-income", {"gross_income": 120000, "filing_status": "single"}),

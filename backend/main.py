@@ -8,6 +8,7 @@ from collections.abc import Callable
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
@@ -49,6 +50,23 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 
 def create_app() -> FastAPI:
     app = FastAPI(title="TaxGlobal AI API", version="0.1.0")
+    # Development-only CORS for local static frontend files and localhost servers.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "null",
+            "http://127.0.0.1",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:8000",
+            "http://localhost",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:8000",
+        ],
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
     app.add_middleware(RequestIdMiddleware)
     app.include_router(calc_router)
 

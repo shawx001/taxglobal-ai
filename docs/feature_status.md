@@ -1,6 +1,6 @@
 # TaxGlobal AI 功能状态总表（实时打勾 + 可溯源）
 
-最后更新：2026-06-02（main @ `50c06af`）
+最后更新：2026-06-02（main @ `a32454e`）
 维护规则：每个 step 的 PR 经 Claude review 通过 / 合并后，更新本表"状态"列。每行可追溯到 **设计文档 + 实现 commit + 官方来源**。
 
 图例：✅ 已实现并测试 ｜ 🟡 已设计待实现 ｜ ⬜ 未开始
@@ -40,8 +40,8 @@
 |---|---|---|---|
 | Git/目录/README/.gitattributes | ✅ | 0 | |
 | 官方来源归档 + manifest + hash 强校验 | ✅ | 1 | raw 字节保全（跨平台 hash 稳定） |
-| 黄金测试运行器（数据驱动） | ✅ | M3 | `tests/test_golden.py` |
-| ruff + GitHub Actions CI | ✅ | M3 | ruff / unittest / 数据校验 三卡点 |
+| 黄金测试运行器（数据驱动） | ✅ | 3 | `tests/test_golden.py` |
+| ruff + GitHub Actions CI | ✅ | 3 | ruff / unittest / 数据校验 三卡点 |
 | 写码规范 + 评审清单 | ✅ | — | `coding_standards.md` / `code_review_checklist.md` |
 
 ## D. 后续大模块（未开始）
@@ -49,7 +49,7 @@
 | 模块 | 状态 | Step |
 |---|---|---|
 | FastAPI 后端（`/calc/*`） | ✅ | 4 |
-| 前端改调后端 | ⬜ | 5 |
+| 前端改调后端 | ✅ | 5 |
 | 美国知识库 MVP | ⬜ | 6 |
 | 知识库驱动提醒系统 | ⬜ | 7 |
 | Copilot（检索+引擎+guardrail） | ⬜ | 8 |
@@ -71,6 +71,8 @@
 | 1.1 资本利得数据 | `step1_1_design_capital_gains.md` | `step1_1_capital_gains_data.md` |
 | 2.2 加密计算 | `step2_2_design_crypto.md` | `step2_2_crypto_engine.md` |
 | 2.3 RSU | `step2_3_design_rsu.md` | `step2_3_rsu_engine.md` |
+| 4 FastAPI 后端 | `step4_design_fastapi.md` | `step4_fastapi_backend.md` |
+| 5 Frontend income tax API | `step5_design_frontend.md` | `step5_frontend_api.md` |
 
 流程/标准类：`engineering_process.md`、`phase1_define_us_mvp.md`、`coding_standards.md`、`code_review_checklist.md`、`feature_status.md`（本文件）。
 

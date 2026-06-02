@@ -98,6 +98,31 @@ class CalcApiTests(unittest.TestCase):
         self.assertEqual(error["request_id"], response.headers["X-Request-ID"])
         self.assertTrue(error["details"])
 
+    def test_unsupported_tax_year_maps_to_422_without_500(self):
+        response = self.client.post(
+            "/calc/federal-income",
+            json={"gross_income": 120000, "filing_status": "single", "tax_year": 2026},
+        )
+
+        self.assertEqual(response.status_code, 422)
+        self.assert_response_has_trace_id(response)
+        error = response.json()["error"]
+        self.assertEqual(error["code"], "unsupported_tax_year")
+        self.assertIn("2026", error["message"])
+        self.assertEqual(error["request_id"], response.headers["X-Request-ID"])
+
+    def test_past_tax_year_still_uses_schema_validation_error(self):
+        response = self.client.post(
+            "/calc/federal-income",
+            json={"gross_income": 120000, "filing_status": "single", "tax_year": 2024},
+        )
+
+        self.assertEqual(response.status_code, 422)
+        self.assert_response_has_trace_id(response)
+        error = response.json()["error"]
+        self.assertEqual(error["code"], "validation_error")
+        self.assertEqual(error["request_id"], response.headers["X-Request-ID"])
+
     def test_unexpected_exception_maps_to_500_without_stack_details(self):
         test_app = create_app()
 

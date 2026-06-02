@@ -26,6 +26,7 @@ from engine import (
     self_employment_tax,
     state_income_tax,
 )
+from engine.rules_loader import RuleLoadError
 
 router = APIRouter()
 
@@ -49,7 +50,19 @@ def _engine_response(request: Request, result: dict[str, Any]) -> dict[str, Any]
 
 
 def _call_engine(request: Request, fn: Callable[..., dict[str, Any]], **kwargs: Any) -> dict[str, Any] | JSONResponse:
-    return _engine_response(request, fn(**kwargs))
+    try:
+        return _engine_response(request, fn(**kwargs))
+    except RuleLoadError:
+        tax_year = kwargs.get("tax_year", "requested")
+        return JSONResponse(
+            status_code=422,
+            headers={"X-Request-ID": _request_id(request)},
+            content=error_response(
+                code="unsupported_tax_year",
+                message=f"Tax year {tax_year} is not supported yet.",
+                request_id=_request_id(request),
+            ),
+        )
 
 
 @router.get("/health")

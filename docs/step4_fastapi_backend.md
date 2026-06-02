@@ -32,12 +32,18 @@ Expose the completed tax engine as a minimal HTTP API for Step 5 frontend integr
 - `backend/__init__.py`
 - `backend/errors.py`
 - `backend/main.py`
+- `backend/requirements-dev.txt`
 - `backend/requirements.txt`
 - `backend/routes/__init__.py`
 - `backend/routes/calc.py`
 - `backend/schemas.py`
 - `docs/step4_fastapi_backend.md`
 - `tests/test_api_calc.py`
+
+## Review Follow-up
+
+- Mapped missing rule data for unsupported future `tax_year` values to HTTP 422 `unsupported_tax_year` instead of HTTP 500.
+- Moved the test HTTP client dependency to `backend/requirements-dev.txt` and kept `pip-audit` focused on runtime dependencies.
 
 ## Known Limits
 

@@ -13,11 +13,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install ruff pip-audit
+      - run: pip install ruff pip-audit -r backend/requirements.txt -r backend/requirements-dev.txt
       - name: Lint
-        run: ruff check engine tests
-      - name: Dependency audit (non-blocking until requirements.txt exists)
-        run: pip-audit || true
+        run: ruff check engine backend tests
+      - name: Dependency audit
+        run: pip-audit -r backend/requirements.txt
       - name: Unit + golden tests
         run: python -m unittest discover -s tests -v
       - name: Data layer validation

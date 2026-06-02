@@ -1,0 +1,1 @@
+"""TaxGlobal FastAPI backend package."""

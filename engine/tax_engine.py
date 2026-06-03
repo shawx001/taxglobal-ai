@@ -1142,6 +1142,25 @@ def _crypto_tax_estimate(
     )
 
 
+def _crypto_state_not_covered(
+    code: str,
+    reason: str,
+    citations: list[dict[str, Any]] | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]], list[str]]:
+    return (
+        {
+            "state": code,
+            "status": "not_covered",
+            "not_covered": True,
+            "type": "not_covered",
+            "tax": 0.00,
+            "reason": reason,
+        },
+        citations or [],
+        ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
+    )
+
+
 def _crypto_state_tax(
     state_code: str,
     *,
@@ -1155,33 +1174,18 @@ def _crypto_state_tax(
     code = state_code.upper()
     state = state_rules["states"].get(code)
     if not state:
-        return (
-            {
-                "state": code,
-                "status": "not_covered",
-                "not_covered": True,
-                "type": "not_covered",
-                "tax": 0.00,
-                "reason": f"State {code} is not present in stored {tax_year} state rules.",
-            },
-            [],
-            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
+        return _crypto_state_not_covered(
+            code,
+            f"State {code} is not present in stored {tax_year} state rules.",
         )
 
     state_citations = _citations(state)
     status = state.get("status")
     if status != "effective":
-        return (
-            {
-                "state": code,
-                "status": "not_covered",
-                "not_covered": True,
-                "type": "not_covered",
-                "tax": 0.00,
-                "reason": f"State {code} rule status is {status}; crypto state tax calculation is blocked.",
-            },
+        return _crypto_state_not_covered(
+            code,
+            f"State {code} rule status is {status}; crypto state tax calculation is blocked.",
             state_citations,
-            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
         )
 
     capital_gains_excise = state.get("capital_gains_excise")
@@ -1203,7 +1207,7 @@ def _crypto_state_tax(
                 "type": "excise",
                 "tax": _money_decimal(tax),
                 "long_term_only": bool(capital_gains_excise.get("long_term_only")),
-                "taxable_long_term_gain": _money_decimal(long_term_gain),
+                "long_term_gain": _money_decimal(long_term_gain),
                 "standard_deduction": _money_decimal(standard_deduction),
                 "taxable_washington_capital_gain": _money_decimal(taxable_washington_gain),
                 "rate": float(base_rate),
@@ -1237,17 +1241,10 @@ def _crypto_state_tax(
     tax_base = state.get("tax_base", {})
     tax_base_citations = _citations(tax_base)
     if tax_type not in {"flat", "progressive"} or tax_base.get("capital_gains_treatment") != "ordinary_income":
-        return (
-            {
-                "state": code,
-                "status": "not_covered",
-                "not_covered": True,
-                "type": "not_covered",
-                "tax": 0.00,
-                "reason": f"State {code} does not have modeled ordinary-income capital gains treatment.",
-            },
+        return _crypto_state_not_covered(
+            code,
+            f"State {code} does not have modeled ordinary-income capital gains treatment.",
             _merge_citations(state_citations, tax_base_citations),
-            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
         )
 
     # Schedule D netting: states tax the NET capital gain that flows into federal AGI, so a
@@ -1270,17 +1267,10 @@ def _crypto_state_tax(
             filing=filing,
         )
     except ValueError as exc:
-        return (
-            {
-                "state": code,
-                "status": "not_covered",
-                "not_covered": True,
-                "type": "not_covered",
-                "tax": 0.00,
-                "reason": str(exc),
-            },
+        return _crypto_state_not_covered(
+            code,
+            str(exc),
             _merge_citations(state_citations, tax_base_citations),
-            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
         )
 
     # Incremental state tax in full precision, rounded ONCE (avoids the off-by-a-cent drift that
@@ -1296,17 +1286,10 @@ def _crypto_state_tax(
                 base_without_gain, brackets
             )
     except (KeyError, ValueError) as exc:
-        return (
-            {
-                "state": code,
-                "status": "not_covered",
-                "not_covered": True,
-                "type": "not_covered",
-                "tax": 0.00,
-                "reason": str(exc),
-            },
+        return _crypto_state_not_covered(
+            code,
+            str(exc),
             _merge_citations(state_citations, tax_base_citations),
-            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
         )
 
     state_tax = _money_decimal(max(Decimal("0"), incremental))

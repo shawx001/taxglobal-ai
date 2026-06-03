@@ -828,6 +828,20 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
           <option value="LIFO">LIFO 后进先出</option>
           <option value="HIFO">HIFO 最高成本先出</option>
         </select></div>
+      <div class="field"><label class="flabel">所在州（资本利得州税）</label>
+        <select class="sel" id="cr-state" onchange="calcCrypto()">
+          <option value="">（不计州税）</option>
+          <option value="CA">加州 CA</option>
+          <option value="NY">纽约 NY</option>
+          <option value="GA">乔治亚 GA</option>
+          <option value="IL">伊利诺伊 IL</option>
+          <option value="CO">科罗拉多 CO</option>
+          <option value="WA">华盛顿 WA（长期 excise）</option>
+          <option value="FL">佛州 FL（无所得税）</option>
+          <option value="NV">内华达 NV（无所得税）</option>
+          <option value="TX">德州 TX（暂未覆盖）</option>
+          <option value="MA">马萨诸塞 MA（暂未覆盖）</option>
+        </select></div>
       <div class="field"><label class="flabel">其他普通应税收入</label><input class="inp mono" type="number" min="0" id="cr-other" value="0" oninput="calcCrypto()"></div>
       <div class="field"><label class="flabel">Modified AGI（可留空）</label><input class="inp mono" type="number" min="0" id="cr-magi" placeholder="填后 NIIT 更精确" oninput="calcCrypto()"></div>
     </div>
@@ -1936,22 +1950,58 @@ function readCryptoDisposals(){
   }).filter(Boolean);
 }
 function cryptoQty(value){ return (Number(value)||0).toLocaleString('en-US',{maximumFractionDigits:8}); }
-function cryptoStateBanner(magiRaw){
+function cryptoMethodTotal(payload){
+  const result=payload&&payload.result;
+  if(!result) return NaN;
+  return result.total_tax_including_state!=null?Number(result.total_tax_including_state):Number(result.tax_estimate&&result.tax_estimate.total);
+}
+function cryptoRate(value){
+  const rate=Number(value);
+  if(!Number.isFinite(rate)) return '';
+  return (rate*100).toLocaleString('en-US',{maximumFractionDigits:3})+'%';
+}
+function cryptoStateBanner(r,magiRaw){
+  const state=r&&r.state;
+  if(state&&state.status==='not_covered'){
+    const reason=state.reason?'<div style="margin-top:6px;color:var(--ink3)">'+escapeHtml(state.reason)+'</div>':'';
+    return '<div class="alert-box" style="border-color:var(--gold);background:var(--goldbg)">'+
+      '<div class="alert-ico" style="background:var(--gold)">!</div><div><div class="alert-title">该州（'+escapeHtml(state.state)+'）州税暂未覆盖，以下仅含联邦资本利得 + NIIT</div>'+
+      '<div class="alert-text">系统不会用假州税补数；州税按 $0 处理。'+reason+'</div></div></div>';
+  }
+  if(state) return '';
   const niitHint=magiRaw===''?'<div style="margin-top:6px;color:var(--ink3)">提示: 填写 Modified AGI 可让 NIIT 估算更精确。</div>':'';
   return '<div class="alert-box" style="border-color:rgba(192,57,43,.35);background:var(--redbg)">'+
     '<div class="alert-ico">!</div><div><div class="alert-title">本测算仅含联邦资本利得 + NIIT,不含州税</div>'+
     '<div class="alert-text">多数州把资本利得按普通收入征税,例如 CA 最高 13.3%;WA 对长期资本利得另有 7%/超百万 9.9% excise。'+niitHint+'</div></div></div>';
 }
+function cryptoStateRows(r){
+  const state=r&&r.state;
+  if(!state||state.status==='not_covered') return '';
+  const total='<div class="rrow tot"><span class="rl">总税（联邦 + NIIT + 州）</span><span class="rv">'+taxMoney(r.total_tax_including_state)+'</span></div>';
+  if(state.type==='no_state_income_tax'){
+    return '<div class="rrow"><span class="rl">州税</span><span class="rv">'+taxMoney(state.tax)+'</span></div>'+
+      '<div style="font-size:12px;color:var(--ink3);margin:4px 0 10px">该州无个人所得税，加密利得州税为 $0。</div>'+total;
+  }
+  if(state.type==='excise'){
+    const surtax=Number(state.surtax_rate)>0?'；超 '+taxMoney(state.surtax_threshold)+' 部分加 '+cryptoRate(state.surtax_rate):'';
+    return '<div class="rrow"><span class="rl">州资本利得 excise（仅长期）</span><span class="rv">'+taxMoney(state.tax)+'</span></div>'+
+      '<div style="font-size:12px;color:var(--ink3);margin:4px 0 10px">长期利得 '+taxMoney(state.long_term_gain)+' · 标准扣除 '+taxMoney(state.standard_deduction)+' · WA 应税资本利得 '+taxMoney(state.taxable_washington_capital_gain)+' · 税率 '+cryptoRate(state.rate)+surtax+'；短期利得不计入 WA excise。</div>'+total;
+  }
+  if(state.type==='ordinary_income'){
+    return '<div class="rrow"><span class="rl">州所得税（资本利得按普通收入）</span><span class="rv">'+taxMoney(state.tax)+'</span></div>'+total;
+  }
+  return '';
+}
 function cryptoMethodCards(byMethod, selectedMethod, cheapestMethods){
   cheapestMethods=cheapestMethods||[];
   return CRYPTO_METHODS.map(method=>{
     const payload=byMethod[method.key];
-    const total=payload&&payload.result&&payload.result.tax_estimate?Number(payload.result.tax_estimate.total)||0:0;
+    const total=cryptoMethodTotal(payload);
     const isCheapest=cheapestMethods.includes(method.key);
     return '<div class="cm-btn '+(selectedMethod===method.key?'sel':'')+'" onclick="document.getElementById(\'cr-method\').value=\''+method.key+'\';calcCrypto()">'+
       '<div class="cm-name">'+method.name+' '+(isCheapest?'<span class="badge bg">最省</span>':'')+'</div>'+
       '<div class="cm-desc">'+method.desc+'</div>'+
-      '<div class="cm-gain" style="color:'+(isCheapest?'var(--g)':'var(--ink3)')+'">税 '+taxMoney(total)+'</div></div>';
+      '<div class="cm-gain" style="color:'+(isCheapest?'var(--g)':'var(--ink3)')+'">税 '+(Number.isFinite(total)?taxMoney(total):'--')+'</div></div>';
   }).join('');
 }
 function cryptoMatchTable(matches){
@@ -1975,7 +2025,7 @@ function cryptoResultBlock(payload, byMethod, selectedMethod, cheapestMethods, m
   const r=payload.result;
   const realized=r.realized||{};
   const tax=r.tax_estimate||{};
-  return cryptoStateBanner(magiRaw)+
+  return cryptoStateBanner(r,magiRaw)+
     '<div style="font-size:12px;color:var(--ink3);margin-bottom:10px">三法真实引擎对比</div>'+
     '<div class="crypto-method">'+cryptoMethodCards(byMethod,selectedMethod,cheapestMethods)+'</div>'+
     '<div class="rrow"><span class="rl">当前方法 '+taxCitations(payload.citations)+'</span><span class="rv">'+escapeHtml(r.method||selectedMethod)+'</span></div>'+
@@ -1986,6 +2036,7 @@ function cryptoResultBlock(payload, byMethod, selectedMethod, cheapestMethods, m
     '<div class="rrow"><span class="rl">长期资本利得税</span><span class="rv">'+taxMoney(tax.long_term_capital_gains_tax)+'</span></div>'+
     '<div class="rrow"><span class="rl">NIIT 3.8%</span><span class="rv">'+taxMoney(tax.net_investment_income_tax)+'</span></div>'+
     '<div class="rrow tot"><span class="rl">联邦 + NIIT 总税</span><span class="rv">'+taxMoney(tax.total)+'</span></div>'+
+    cryptoStateRows(r)+
     cryptoMatchTable(r.lots_matched)+
     taxAssumptions(payload.assumptions);
 }
@@ -2004,6 +2055,7 @@ async function calcCrypto(){
   const magiRaw=(document.getElementById('cr-magi').value||'').trim();
   const otherRaw=Number(document.getElementById('cr-other').value);
   const magiValue=Number(magiRaw);
+  const stateCode=(document.getElementById('cr-state').value||'').trim();
   const base={
     lots:lots,
     disposals:disposals,
@@ -2011,6 +2063,7 @@ async function calcCrypto(){
     other_taxable_income:Math.max(0,Number.isFinite(otherRaw)?otherRaw:0),
   };
   if(magiRaw!=='') base.modified_agi=Math.max(0,Number.isFinite(magiValue)?magiValue:0);
+  if(stateCode) base.state_code=stateCode;
   result.innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
   try{
     const methods=CRYPTO_METHODS.map(m=>m.key);
@@ -2019,7 +2072,7 @@ async function calcCrypto(){
     const byMethod={};
     methods.forEach((method,index)=>{ byMethod[method]=responses[index]; });
     const totals=methods.map(method=>{
-      const total=Number(byMethod[method]&&byMethod[method].result&&byMethod[method].result.tax_estimate&&byMethod[method].result.tax_estimate.total);
+      const total=cryptoMethodTotal(byMethod[method]);
       if(!Number.isFinite(total)) throw new Error('Crypto response missing tax total for '+method+'.');
       return {method:method,total:total};
     });

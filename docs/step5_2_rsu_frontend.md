@@ -10,13 +10,15 @@ Move the frontend RSU panel from prototype-only calculations to the backend `/ca
 - Rebuilt the RSU panel inputs in `frontend/index.html`:
   - `other_taxable_income`
   - `shares_vested`
-  - `fmv_per_share` sent to `/calc/rsu` (`fair_market_value_per_share` is normalized by `TaxGlobalApi.rsu(...)` before the HTTP request)
+  - `fmv_per_share` as the `/calc/rsu` HTTP request field
   - `vest_date`
   - optional sale scenario: `sale_date` and `sale_price_per_share`
 - Removed the prototype-only option value and future growth inputs.
 - Replaced the old frontend RSU tax calculation with a `/calc/rsu` call.
 - Displayed backend `vesting`, optional `hold_vs_sell`, citations, and assumptions.
 - Added `REQ-006` in `docs/product_backlog.md` for a future standalone stock-options module.
+
+`TaxGlobalApi.rsu(...)` accepts the frontend semantic alias `fair_market_value_per_share`, normalizes it to the HTTP field `fmv_per_share`, and then sends the request.
 
 ## Acceptance Criteria
 

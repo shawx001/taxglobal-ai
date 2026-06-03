@@ -212,6 +212,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["qbi_deduction"], 15_587.04)
         self.assertEqual(result["result"]["state_taxable_base"], 77_935.22)
         self.assertEqual(result["result"]["state_income_tax"]["tax"], 3_429.15)
+        self.assertIn("Colorado QBI addback", "\n".join(result["assumptions"]))
 
     def test_income_tax_summary_invalid_filing_status(self):
         result = income_tax_summary(100_000, filing_status="unsupported", state_code="FL")

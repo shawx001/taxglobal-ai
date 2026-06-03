@@ -181,13 +181,14 @@ def _decimal_input(value: Any, field_name: str) -> Decimal:
 
 
 def _summary_rule_version(
+    tax_year: int,
     federal_rules: dict[str, Any],
     fica_rules: dict[str, Any],
     qbi_rules: dict[str, Any],
     state_rules: dict[str, Any],
 ) -> str:
     return (
-        "us-2025-income-summary-v0.1+"
+        f"us-{tax_year}-income-summary-v0.1+"
         f"{federal_rules['rule_version']}+{fica_rules['rule_version']}+"
         f"{qbi_rules['rule_version']}+{state_rules['rule_version']}"
     )
@@ -696,7 +697,7 @@ def income_tax_summary(
     fica_rules = load_fica_rules(tax_year)
     qbi_rules = load_qbi_rules(tax_year)
     state_rules = load_state_rules(tax_year)
-    rule_version = _summary_rule_version(federal_rules, fica_rules, qbi_rules, state_rules)
+    rule_version = _summary_rule_version(tax_year, federal_rules, fica_rules, qbi_rules, state_rules)
 
     base_citations = _merge_citations(
         _citations(federal_rules["standard_deduction"], federal_rules["ordinary_income_brackets"]),
@@ -750,7 +751,13 @@ def income_tax_summary(
         tax_year=tax_year,
     )
     if qbi_result["status"] != "ok":
-        return qbi_result
+        return _invalid_input(
+            input_data={**raw_input, "filing_status": filing},
+            rule_version=rule_version,
+            reason=f"QBI deduction failed: {qbi_result['reason']}",
+            citations=_merge_citations(base_citations, qbi_result["citations"]),
+            assumptions=qbi_result["assumptions"],
+        )
     qbi_deduction_amount = _decimal_rule(qbi_result["result"]["deduction"])
 
     taxable_income = max(Decimal("0"), taxable_before_qbi - qbi_deduction_amount)
@@ -825,6 +832,11 @@ def income_tax_summary(
     if normalized_state_code == "IL":
         assumptions.append(
             "Illinois exemption allowance assumes MFJ has two exemptions and all other filing statuses have one."
+        )
+    if normalized_state_code == "CO" and state_result is not None and state_result["status"] == "ok":
+        assumptions.append(
+            "Colorado QBI addback is applied from stored tax_base data, but Colorado-specific statutory conditions "
+            "for that addback are not fully modeled in this summary."
         )
 
     result = {

@@ -49,6 +49,7 @@
 | 黄金测试运行器（数据驱动） | ✅ | 3 | `tests/test_golden.py` |
 | ruff + GitHub Actions CI | ✅ | 3 | ruff / unittest / 数据校验 三卡点 |
 | 写码规范 + 评审清单 | ✅ | — | `coding_standards.md` / `code_review_checklist.md` |
+| 引擎模块化分层（`tax_engine.py` shim + 小模块） | ✅ | Step A.5 | 行为不变重构；公共 API 兼容；为扩州/扩税年防屎山 |
 
 ## D. 后续大模块（未开始）
 
@@ -96,6 +97,7 @@
 | 5.7 Nexus 前端接后端 | `step5_7_design_nexus_frontend.md` | `step5_7_nexus_frontend.md` |
 | REQ-002 前端合并计税总览 | `req002_design_frontend_overview.md` | `req002_frontend_overview.md` |
 | Step A 2026 税年数据集 | `tax_year_2026_design.md` | `tax_year_2026.md` |
+| Step A.5 引擎模块化重构 | `step_a5_design_engine_modularization.md` | `step_a5_engine_modularization.md` |
 
 流程/标准类：`engineering_process.md`、`phase1_define_us_mvp.md`、`coding_standards.md`、`code_review_checklist.md`、`feature_status.md`（本文件）。
 

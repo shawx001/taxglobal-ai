@@ -48,6 +48,7 @@
 | 单测与代码同行 | Codex 交函数必交单测，覆盖**正常流 / 边界值(0/空/极大) / 异常流**三类。M3 黄金测试即此原则的集中体现；SE/nexus 必须随实现交测试 |
 | 单一职责（SRP） | 一函数只做一件事，尽量 < 50 行、优先纯函数。决策 **SE-4**（SE 函数不掺所得税）就是这条 |
 | 持续微重构 | 发现为堆功能复制粘贴 → 立即提取公共模块（如已抽出的 `_response` / `_not_covered` / `_money`）。Claude review 会盯重复代码 |
+| 引擎模块边界 | engine 采用门面 + 小模块结构：`engine/__init__.py` 暴露公共 API，`engine/tax_engine.py` 仅作兼容 shim；新增能力优先落在 `federal/payroll/qbi/feie/state/crypto/rsu/nexus/summary` 等领域模块，不把新逻辑继续堆回上帝文件 |
 
 ## 六、上线工程标准（企业级；设计阶段即考虑，实现按场景生效）
 

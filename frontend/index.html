@@ -1390,7 +1390,9 @@ function readOptionalDays(id){
   if(!el) return undefined;
   const raw=String(el.value||'').trim();
   if(raw==='') return undefined;
-  return Number(raw);
+  const value=Number(raw);
+  if(!Number.isFinite(value)) return undefined;
+  return value;
 }
 function addOptionalMoney(payload, id, key){
   const value=readOptionalMoney(id);
@@ -1448,7 +1450,6 @@ async function calcTax(){
   const country=document.getElementById('tx-country').value;
   const income=readOptionalMoney('tx-income')||0;
   const filing=document.getElementById('tx-filing').value;
-  const k401=readOptionalMoney('tx-401k');
   const dedMode=document.getElementById('tx-ded').value;
   document.getElementById('tx-income-lbl').textContent='$'+f(income);
   document.getElementById('tx-item-wrap').style.display = dedMode==='item'?'block':'none';

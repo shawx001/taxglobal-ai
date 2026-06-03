@@ -33,6 +33,6 @@
       "married_filing_jointly": 494600
     },
     "notes": "Below the taxable-income threshold, the core QBI deduction can be modeled as the lesser of 20% of qualified business income or 20% of taxable income minus net capital gain. Above the threshold and through the upper limit, W-2 wage, UBIA, and SSTB phase-in rules require business-specific inputs. Above the upper limit, those limitations fully apply. This data file stores thresholds only; high-income phase-out logic must be modeled in a later engine step and must not be presented as precise without W-2 wage, UBIA, and SSTB inputs.",
-    "rev_proc_2024_40_status_mapping_note": "Rev. Proc. 2024-40 lists Section 199A rows for Married Filing Jointly, Married Filing Separately, and All Other Returns. single, head_of_household, and qualifying_surviving_spouse are mapped to All Other Returns."
+    "rev_proc_2024_40_filing_status_mapping_note": "Rev. Proc. 2024-40 lists Section 199A rows for Married Filing Jointly, Married Filing Separately, and All Other Returns. single, head_of_household, and qualifying_surviving_spouse are mapped to All Other Returns."
   }
 }

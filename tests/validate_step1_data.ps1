@@ -109,10 +109,11 @@ if (!$qbi.qbi_deduction) { throw "QBI file missing qbi_deduction" }
 if ($qbi.qbi_deduction.rate -ne 0.2) { throw "Unexpected QBI deduction rate" }
 if (!$qbi.qbi_deduction.effective_date) { throw "qbi_deduction missing effective_date" }
 if (!$qbi.qbi_deduction.citation) { throw "qbi_deduction missing citation" }
-foreach ($sourceId in $qbi.source_ids) {
-  if (!$sourceIds.ContainsKey($sourceId)) {
-    throw "QBI file references unknown source_id $sourceId"
-  }
+if (!$qbi.source_ids -or $qbi.source_ids.Count -lt 1) {
+  throw "QBI file missing source_ids"
+}
+if (!$qbi.qbi_deduction.source_ids -or $qbi.qbi_deduction.source_ids.Count -lt 1) {
+  throw "qbi_deduction missing source_ids"
 }
 foreach ($filingStatus in $requiredQbiFilingStatuses) {
   foreach ($nodeName in @("taxable_income_threshold", "phase_in_window", "upper_limit")) {

@@ -543,6 +543,8 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
       <div class="card">
         <div class="ch"><div class="ct">收入与扣除</div></div>
         <div class="cb">
+          <style>.txbar{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:18px 0 10px;padding:7px 11px;background:rgba(34,197,94,.07);border-left:3px solid var(--g);border-radius:6px;font-weight:600;font-size:13px;color:var(--ink)}.txbar:first-child{margin-top:0}.txbar span{font-weight:400;font-size:11px;color:var(--ink3)}</style>
+          <div class="txbar">申报基础<span>报税国 / 申报状态 / 州</span></div>
           <div class="field"><label class="flabel">报税国</label>
             <select class="sel" id="tx-country" onchange="onTaxCountry();calcTax()">
               <option value="us">🇺🇸 美国</option>
@@ -553,6 +555,13 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
               <option value="de">🇩🇪 德国</option>
             </select>
           </div>
+          <div class="field"><label class="flabel">申报状态</label>
+            <select class="sel" id="tx-filing" onchange="calcTax()">
+              <option value="single">单身申报</option>
+              <option value="married_filing_jointly">已婚联合申报</option>
+              <option value="married_filing_separately">已婚分别申报</option>
+              <option value="head_of_household">户主申报</option>
+            </select></div>
           <div class="field" id="tx-state-wrap"><label class="flabel">所在州（可选，决定州所得税）</label>
             <select class="sel" id="tx-state" onchange="calcTax()">
               <option value="">不计州税</option>
@@ -568,38 +577,36 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
               <option value="MA">麻省 MA（暂未覆盖）</option>
             </select>
           </div>
+          <div class="txbar">普通收入 General<span>W-2 工资等普通收入 → 联邦 + 州税</span></div>
           <div class="field"><label class="flabel"><span>W-2 工资（含 W-2 RSU 归属）</span><span class="mono" id="tx-income-lbl" style="color:var(--g)">$120,000</span></label>
             <input class="inp mono" type="number" id="tx-income" value="120000" min="0" step="0.01" oninput="calcTax()"></div>
-          <div class="field"><label class="flabel">申报状态</label>
-            <select class="sel" id="tx-filing" onchange="calcTax()">
-              <option value="single">单身申报</option>
-              <option value="married_filing_jointly">已婚联合申报</option>
-              <option value="married_filing_separately">已婚分别申报</option>
-              <option value="head_of_household">户主申报</option>
-            </select></div>
+          <div class="field"><label class="flabel">其他普通收入<span class="mono" style="color:var(--ink3);font-weight:400"> 利息/普通分红等</span></label>
+            <input class="inp mono" type="number" id="tx-other-income" value="0" min="0" step="0.01" oninput="calcTax()"></div>
+          <div class="txbar">自雇 Self-Employment<span>自雇税 + QBI</span></div>
           <div class="field"><label class="flabel">自雇净利润</label>
             <input class="inp mono" type="number" id="tx-se-profit" value="0" min="0" step="0.01" oninput="calcTax()"></div>
-          <div class="field"><label class="flabel">其他普通收入</label>
-            <input class="inp mono" type="number" id="tx-other-income" value="0" min="0" step="0.01" oninput="calcTax()"></div>
+          <div class="field"><label class="flabel">自雇健康保险</label>
+            <input class="inp mono" type="number" id="tx-se-health" value="0" min="0" step="0.01" oninput="calcTax()"></div>
+          <div class="txbar">资本利得 Capital Gains<span>长期享优惠税率，可能触发 NIIT</span></div>
           <div class="field"><label class="flabel">长期资本利得</label>
             <input class="inp mono" type="number" id="tx-ltcg" value="0" min="0" step="0.01" oninput="calcTax()"></div>
           <div class="field"><label class="flabel">短期资本利得</label>
             <input class="inp mono" type="number" id="tx-stcg" value="0" min="0" step="0.01" oninput="calcTax()"></div>
+          <div class="txbar">海外收入 FEIE<span>满足 330 天测试可豁免，税率叠加</span></div>
           <div class="field"><label class="flabel">海外赚取收入</label>
             <input class="inp mono" type="number" id="tx-feie-income" placeholder="留空则不启用 FEIE" min="0" step="0.01" oninput="calcTax()"></div>
           <div class="field"><label class="flabel">海外天数</label>
             <input class="inp mono" type="number" id="tx-days-abroad" placeholder="0-366，非整数会报错" min="0" max="366" step="1" oninput="calcTax()"></div>
+          <div class="txbar">扣除 Deductions</div>
           <div class="field"><label class="flabel"><span>税前退休供款</span><span class="mono" style="color:var(--ink3)">401(k)/SEP 等</span></label>
             <input class="inp mono" type="number" id="tx-401k" value="0" min="0" step="0.01" oninput="calcTax()"></div>
-          <div class="field"><label class="flabel">自雇健康保险</label>
-            <input class="inp mono" type="number" id="tx-se-health" value="0" min="0" step="0.01" oninput="calcTax()"></div>
           <div class="field"><label class="flabel">扣除方式</label>
             <select class="sel" id="tx-ded" onchange="calcTax()">
               <option value="std">标准扣除</option><option value="item">分项扣除（输入下方）</option>
             </select></div>
           <div class="field" id="tx-item-wrap" style="display:none"><label class="flabel">分项扣除总额</label>
             <input class="inp mono" type="number" id="tx-itemamt" placeholder="留空则用标准扣除" min="0" step="0.01" oninput="calcTax()"></div>
-          <details style="grid-column:1/-1;margin-top:2px">
+          <details style="margin-top:2px">
             <summary class="flabel" style="cursor:pointer;margin-bottom:12px">高级参数（QBI / NIIT）</summary>
             <div class="g2">
               <div class="field"><label class="flabel">QBI W-2 工资</label><input class="inp mono" type="number" id="tx-qbi-w2" min="0" step="0.01" placeholder="留空用 0" oninput="calcTax()"></div>
@@ -1012,7 +1019,23 @@ const TAB_META = {
 
 let selectedTypes = [];   // onboarding multi-select
 let profile = {country:'us', income:120000, filing:'single', location:'us', name:'', email:'',
-  wages:120000, seInc:80000, cryptoGain:42000, bizProfit:2000000};
+  wages:120000, seInc:0, cryptoGain:0, bizProfit:2000000,
+  otherIncome:0, ltcg:0, stcg:0, foreignIncome:'', daysAbroad:'', retirement:0, seHealth:0,
+  state:'', dedMode:'std', itemAmt:'', qbiW2:'', qbiUbia:'', magi:'', sstb:false};
+// profile 是收入档案的单一真相源，持久化到 localStorage，跨页/刷新不丢失。
+const PROFILE_LS_KEY='taxglobal.profile.v1';
+function persistProfile(){
+  try{ localStorage.setItem(PROFILE_LS_KEY, JSON.stringify({profile:profile, selectedTypes:selectedTypes})); }catch(e){}
+}
+function loadPersistedProfile(){
+  try{
+    const raw=localStorage.getItem(PROFILE_LS_KEY); if(!raw) return false;
+    const data=JSON.parse(raw); if(!data||typeof data.profile!=='object'||data.profile===null) return false;
+    Object.assign(profile, data.profile);
+    if(Array.isArray(data.selectedTypes)){ selectedTypes.length=0; data.selectedTypes.forEach(t=>{ if(TYPES[t]) selectedTypes.push(t); }); }
+    return true;
+  }catch(e){ return false; }
+}
 const f = n => Math.round(n).toLocaleString('en-US');
 // 跨身份汇总应税收入（个人侧）
 function aggregateIncome(){
@@ -1141,52 +1164,69 @@ function go(tab, el){
   if(tab==='biz'){ renderJur(); calcBiz(); }
   if(tab==='treaty') calcTreaty();
   if(tab==='dash') renderDash();
+  if(tab==='tax') calcTax();
   if(tab==='profile'){ renderObTypes('profileTypes',true); renderEnabled(); renderIdDetails(); }
   setCopilotContext(tab);
 }
 
-function enterApp(){
+function enterApp(opts){
+  opts=opts||{};
   if(selectedTypes.length===0) selectedTypes=['tech'];
-  profile.country=document.getElementById('obCountry').value||'us';
-  const inc=+document.getElementById('obIncome').value||120000;
-  profile.income=inc;
-  profile.location=profile.country; // 初始假设居住地=报税国，可在档案修改
-  // 把入职填写的收入落到主身份对应的收入桶
-  if(selectedTypes.includes('tech')) profile.wages=inc;
-  else if(selectedTypes.includes('self')||selectedTypes.includes('ecom')) profile.seInc=inc;
-  else if(selectedTypes.includes('crypto')) profile.cryptoGain=inc;
-  else if(selectedTypes.includes('biz')){ profile.bizProfit=inc; profile.wages=inc; }
-  else profile.wages=inc;
-  profile.filing=document.getElementById('obFiling').value||'single';
+  if(!opts.restored){
+    profile.country=document.getElementById('obCountry').value||'us';
+    const inc=+document.getElementById('obIncome').value||120000;
+    profile.income=inc;
+    profile.location=profile.country; // 初始假设居住地=报税国，可在档案修改
+    // 先清零个人收入桶，再把入职填写的收入落到主身份对应的桶（避免演示种子值串入总览）
+    profile.wages=0; profile.seInc=0; profile.cryptoGain=0; profile.ltcg=0;
+    profile.otherIncome=0; profile.stcg=0; profile.foreignIncome=''; profile.daysAbroad='';
+    profile.retirement=0; profile.seHealth=0;
+    if(selectedTypes.includes('tech')) profile.wages=inc;
+    else if(selectedTypes.includes('self')||selectedTypes.includes('ecom')) profile.seInc=inc;
+    else if(selectedTypes.includes('crypto')){ profile.cryptoGain=inc; profile.ltcg=inc; }
+    else if(selectedTypes.includes('biz')){ profile.bizProfit=inc; profile.wages=inc; }
+    else profile.wages=inc;
+    profile.filing=document.getElementById('obFiling').value||'single';
+  }
   document.getElementById('ob').classList.add('hide');
   document.getElementById('app').classList.add('on');
   document.getElementById('floatBtn').style.display='flex';
   document.getElementById('floatRing').style.display='block';
   buildNav();
   buildTaxSubtabs();
-  syncProfileInputs({resetSelfDeductions:true});
+  syncProfileInputs({resetSelfDeductions:!opts.restored});
   renderDash();
   calcTax();
   if((selectedTypes.includes('self')||selectedTypes.includes('ecom')) && typeof calcSE==='function') calcSE();
   initCopilot();
+  persistProfile();
 }
 function syncProfileInputs(options={}){
   const resetSelfDeductions=options.resetSelfDeductions===true;
+  const setVal=(id,v)=>{const e=document.getElementById(id); if(e && v!==undefined && v!==null) e.value=v;};
   ['tx-country','pf-country'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.country;});
-  const txIncome=document.getElementById('tx-income');
-  if(txIncome) txIncome.value=selectedTypes.includes('tech')?profile.wages:0;
-  const txSeProfit=document.getElementById('tx-se-profit');
-  if(txSeProfit) txSeProfit.value=(selectedTypes.includes('self')||selectedTypes.includes('ecom'))?profile.seInc:0;
-  const txLtcg=document.getElementById('tx-ltcg');
-  if(txLtcg) txLtcg.value=selectedTypes.includes('crypto')?profile.cryptoGain:0;
-  const pfIncome=document.getElementById('pf-income');
-  if(pfIncome) pfIncome.value=profile.income;
-  const seNet=document.getElementById('se-net');
-  if(seNet) seNet.value=(selectedTypes.includes('self')||selectedTypes.includes('ecom'))?profile.seInc:0;
-  const seExp=document.getElementById('se-exp');
-  if(seExp && resetSelfDeductions && (selectedTypes.includes('self')||selectedTypes.includes('ecom'))) seExp.value=0;
-  const seSep=document.getElementById('se-sep');
-  if(seSep && resetSelfDeductions && (selectedTypes.includes('self')||selectedTypes.includes('ecom'))) seSep.value=0;
+  // 税务总览：profile 是单一真相源，所有收入桶无条件带入（不再按身份清零，避免"看不见/对不上"）。
+  setVal('tx-income', profile.wages);
+  setVal('tx-se-profit', profile.seInc);
+  setVal('tx-other-income', profile.otherIncome);
+  setVal('tx-ltcg', (profile.ltcg!==''&&profile.ltcg!=null&&Number(profile.ltcg)>0)?profile.ltcg:(profile.cryptoGain||0));
+  setVal('tx-stcg', profile.stcg);
+  setVal('tx-feie-income', profile.foreignIncome);
+  setVal('tx-days-abroad', profile.daysAbroad);
+  setVal('tx-401k', profile.retirement);
+  setVal('tx-se-health', profile.seHealth);
+  setVal('tx-itemamt', profile.itemAmt);
+  setVal('tx-qbi-w2', profile.qbiW2);
+  setVal('tx-qbi-ubia', profile.qbiUbia);
+  setVal('tx-magi', profile.magi);
+  const txState=document.getElementById('tx-state'); if(txState) txState.value=profile.state||'';
+  const txDed=document.getElementById('tx-ded'); if(txDed) txDed.value=profile.dedMode||'std';
+  const txItemWrap=document.getElementById('tx-item-wrap'); if(txItemWrap) txItemWrap.style.display=(profile.dedMode==='item')?'block':'none';
+  const txSstb=document.getElementById('tx-sstb'); if(txSstb) txSstb.checked=!!profile.sstb;
+  const pfIncome=document.getElementById('pf-income'); if(pfIncome) pfIncome.value=profile.income;
+  const seNet=document.getElementById('se-net'); if(seNet) seNet.value=profile.seInc||0;
+  const seExp=document.getElementById('se-exp'); if(seExp && resetSelfDeductions) seExp.value=0;
+  const seSep=document.getElementById('se-sep'); if(seSep && resetSelfDeductions) seSep.value=0;
   const txFiling=document.getElementById('tx-filing');
   if(txFiling){
     const filingMap={mfj:'married_filing_jointly',mfs:'married_filing_separately',hoh:'head_of_household'};
@@ -1195,6 +1235,29 @@ function syncProfileInputs(options={}){
   ['pf-filing','se-filing'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.filing;});
   const loc=document.getElementById('pf-location'); if(loc)loc.value=profile.location;
   if(typeof onTaxCountry==='function') onTaxCountry();
+}
+// 税务总览页 → profile 反向写回（输入即落库），保证离开/返回/刷新不丢，且与档案页一致。
+function syncProfileFromTaxForm(){
+  const num=id=>{const v=readOptionalMoney(id); return v===undefined?0:v;};
+  const rawOpt=id=>{const e=document.getElementById(id); return e?String(e.value||'').trim():'';};
+  profile.wages=num('tx-income');
+  profile.seInc=num('tx-se-profit');
+  profile.otherIncome=num('tx-other-income');
+  profile.ltcg=num('tx-ltcg');
+  profile.stcg=num('tx-stcg');
+  profile.foreignIncome=rawOpt('tx-feie-income');
+  profile.daysAbroad=rawOpt('tx-days-abroad');
+  profile.retirement=num('tx-401k');
+  profile.seHealth=num('tx-se-health');
+  const st=document.getElementById('tx-state'); profile.state=st?st.value:'';
+  const dd=document.getElementById('tx-ded'); profile.dedMode=dd?dd.value:'std';
+  profile.itemAmt=rawOpt('tx-itemamt');
+  profile.qbiW2=rawOpt('tx-qbi-w2'); profile.qbiUbia=rawOpt('tx-qbi-ubia'); profile.magi=rawOpt('tx-magi');
+  const sb=document.getElementById('tx-sstb'); profile.sstb=sb?!!sb.checked:false;
+  const fl=document.getElementById('tx-filing');
+  if(fl){ const canonToShort={married_filing_jointly:'mfj',married_filing_separately:'mfs',head_of_household:'hoh',single:'single'}; profile.filing=canonToShort[fl.value]||fl.value; }
+  profile.income=aggregateIncome();
+  persistProfile();
 }
 </script>
 
@@ -1359,9 +1422,14 @@ function summaryBreakdownRows(rows, stateResult){
   if(!Array.isArray(rows)||!rows.length) return '';
   return rows.map(row=>{
     const label=labels[row&&row.label]||String(row&&row.label||'项目');
-    const isState=row&&row.label==='state_income_tax'&&stateResult&&stateResult.status&&stateResult.status!=='ok';
-    const amount=isState?'<span style="color:var(--gold)">未覆盖</span>':summaryMoney(row&&row.amount);
-    const reason=isState&&stateResult.reason?'<div style="font-size:12px;color:var(--ink3);margin-top:4px">'+escapeHtml(stateResult.reason)+'</div>':'';
+    let amount, reason='';
+    if(row&&row.label==='state_income_tax'){
+      if(!stateResult){ amount='<span style="color:var(--ink3)">未选择州</span>'; }
+      else if(stateResult.status&&stateResult.status!=='ok'){
+        amount='<span style="color:var(--gold)">未覆盖</span>';
+        if(stateResult.reason) reason='<div style="font-size:12px;color:var(--ink3);margin-top:4px">'+escapeHtml(stateResult.reason)+'</div>';
+      } else { amount=summaryMoney(row&&row.amount); }
+    } else { amount=summaryMoney(row&&row.amount); }
     return '<div style="padding:9px 0;border-bottom:1px solid var(--bd2)">'+
       '<div class="rrow"><span class="rl">'+escapeHtml(label)+'</span><span class="rv">'+amount+'</span></div>'+
       reason+
@@ -1369,6 +1437,7 @@ function summaryBreakdownRows(rows, stateResult){
   }).join('');
 }
 async function calcTax(){
+  syncProfileFromTaxForm();
   const country=document.getElementById('tx-country').value;
   const income=readOptionalMoney('tx-income')||0;
   const filing=document.getElementById('tx-filing').value;
@@ -2320,9 +2389,10 @@ function applyProfile(){
   if(g('pf-location')) profile.location=g('pf-location').value;
   if(g('d-wages')) profile.wages=+g('d-wages').value||0;
   if(g('d-se')) profile.seInc=+g('d-se').value||0;
-  if(g('d-crypto')) profile.cryptoGain=+g('d-crypto').value||0;
+  if(g('d-crypto')){ profile.cryptoGain=+g('d-crypto').value||0; profile.ltcg=profile.cryptoGain; }
   if(g('d-biz')) profile.bizProfit=+g('d-biz').value||0;
   profile.income=aggregateIncome();
+  persistProfile();
   syncProfileInputs(); calcTax();
   if((selectedTypes.includes('self')||selectedTypes.includes('ecom')) && typeof calcSE==='function') calcSE();
   renderDash();
@@ -2430,4 +2500,6 @@ function askCopilot(q){ if(!chatOpen) toggleChat(); setTimeout(()=>handleQ(q),ch
 /* ════════ INIT ════════ */
 renderObTypes('obTypes', true);
 showObStep();
+// 已有持久化档案 → 直接进入应用并恢复数据（刷新/重开不丢失）。
+if(loadPersistedProfile() && selectedTypes.length){ enterApp({restored:true}); }
 </script>

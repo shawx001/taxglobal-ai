@@ -58,6 +58,7 @@
 | 前端自雇总税接后端 | ✅ | 5.4 |
 | 前端加密税务接后端（含州税展示） | ✅ | 5.5 / 5.6 |
 | 前端 Nexus 监控接后端 | ✅ | 5.7 |
+| 前端合并计税总览（档案 → `/calc/income-summary`） | ✅ | REQ-002 |
 | 美国知识库 MVP | ⬜ | 6 |
 | 知识库驱动提醒系统 | ⬜ | 7 |
 | Copilot（检索+引擎+guardrail） | ⬜ | 8 |
@@ -92,6 +93,7 @@
 | 5.5 加密前端接后端逐笔成本 | `step5_5_design_crypto_frontend.md` | `step5_5_crypto_frontend.md` |
 | 5.6 加密前端显示州税 | `step5_6_design_crypto_state_frontend.md` | `step5_6_crypto_state_frontend.md` |
 | 5.7 Nexus 前端接后端 | `step5_7_design_nexus_frontend.md` | `step5_7_nexus_frontend.md` |
+| REQ-002 前端合并计税总览 | `req002_design_frontend_overview.md` | `req002_frontend_overview.md` |
 
 流程/标准类：`engineering_process.md`、`phase1_define_us_mvp.md`、`coding_standards.md`、`code_review_checklist.md`、`feature_status.md`（本文件）。
 

@@ -640,7 +640,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
             <option value="hoh">户主申报</option>
           </select></div>
       </div></div>
-      <div class="card"><div class="ch"><div class="ct">Schedule SE 自雇税</div><span class="badge bp">/calc/income-summary</span></div>
+      <div class="card"><div class="ch"><div class="ct">自雇总税测算</div><span class="badge bp">/calc/income-summary</span></div>
         <div class="cb" id="seResult"></div></div>
     </div>
   </div>
@@ -1108,12 +1108,22 @@ function enterApp(){
   syncProfileInputs();
   renderDash();
   calcTax();
+  if((selectedTypes.includes('self')||selectedTypes.includes('ecom')) && typeof calcSE==='function') calcSE();
   initCopilot();
 }
 function syncProfileInputs(){
   ['tx-country','pf-country'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.country;});
-  ['tx-income','pf-income'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.income;});
-  ['tx-filing','pf-filing'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.filing;});
+  const txIncome=document.getElementById('tx-income');
+  if(txIncome) txIncome.value=selectedTypes.includes('tech')?profile.wages:0;
+  const pfIncome=document.getElementById('pf-income');
+  if(pfIncome) pfIncome.value=profile.income;
+  const seNet=document.getElementById('se-net');
+  if(seNet) seNet.value=(selectedTypes.includes('self')||selectedTypes.includes('ecom'))?profile.seInc:0;
+  const seExp=document.getElementById('se-exp');
+  if(seExp && (selectedTypes.includes('self')||selectedTypes.includes('ecom'))) seExp.value=0;
+  const seSep=document.getElementById('se-sep');
+  if(seSep && (selectedTypes.includes('self')||selectedTypes.includes('ecom'))) seSep.value=0;
+  ['tx-filing','pf-filing','se-filing'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.filing;});
   const loc=document.getElementById('pf-location'); if(loc)loc.value=profile.location;
   if(typeof onTaxCountry==='function') onTaxCountry();
 }
@@ -1508,9 +1518,11 @@ async function calcSE(){
     const r=summary.result;
     const state=r.state_income_tax||{};
     const stateCovered=state.status==='ok';
+    const statePrefix=String(payload.state_code||'').toLowerCase()+'_';
+    const statePayload={citations:(summary.citations||[]).filter(c=>String(c.source_id||'').toLowerCase().startsWith(statePrefix))};
     const stateHtml=stateCovered
-      ? taxBlock('州所得税', Number(state.tax)||0, summary)
-      : taxBlock('州所得税', 0, summary, {notCovered:true, reason:state.reason});
+      ? taxBlock('州所得税', Number(state.tax)||0, statePayload)
+      : taxBlock('州所得税', 0, statePayload, {notCovered:true, reason:state.reason});
     let html =
       '<div class="rrow"><span class="rl">净营业利润 '+taxCitations(summary.citations)+'</span><span class="rv">'+taxMoney(payload.net_self_employment_profit)+'</span></div>'+
       '<div class="rrow"><span class="rl">自雇税 §1401</span><span class="rv">'+taxMoney(r.self_employment_tax)+'</span></div>';
@@ -1929,8 +1941,9 @@ function applyProfile(){
   if(g('d-crypto')) profile.cryptoGain=+g('d-crypto').value||0;
   if(g('d-biz')) profile.bizProfit=+g('d-biz').value||0;
   profile.income=aggregateIncome();
-  if(g('pf-income')) g('pf-income').value=profile.income;
-  syncProfileInputs(); calcTax(); renderDash();
+  syncProfileInputs(); calcTax();
+  if((selectedTypes.includes('self')||selectedTypes.includes('ecom')) && typeof calcSE==='function') calcSE();
+  renderDash();
 }
 function saveProfile(){ applyProfile(); toast('已保存并同步到所有功能与方案'); }
 function renderEnabled(){

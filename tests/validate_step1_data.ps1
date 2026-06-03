@@ -232,11 +232,12 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
         if (!$taxBase.exemption_allowance_per_person) {
           throw "State $($stateProp.Name) uses exemption allowance but missing exemption_allowance_per_person"
         }
-        if (!($taxBase.PSObject.Properties.Name -contains "exemption_phaseout_agi")) {
+        $exemptionPhaseoutAgi = $taxBase.exemption_phaseout_agi
+        if (!$exemptionPhaseoutAgi) {
           throw "State $($stateProp.Name) uses exemption allowance but missing exemption_phaseout_agi"
         }
         foreach ($filingStatus in $requiredStateFilingStatuses) {
-          if (!($taxBase.exemption_phaseout_agi.PSObject.Properties.Name -contains $filingStatus)) {
+          if (!($exemptionPhaseoutAgi.PSObject.Properties.Name -contains $filingStatus)) {
             throw "State $($stateProp.Name) exemption_phaseout_agi missing filing status $filingStatus"
           }
         }

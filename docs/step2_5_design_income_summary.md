@@ -37,7 +37,7 @@ qbi_amount = max(0, agi − other_ordinary_income)            # 经营收入部�
 QBI = qbi_deduction(qbi=qbi_amount, taxable_income=taxable_before_qbi, filing,
                     w2_wages=qbi_w2_wages, ubia=qbi_ubia, is_sstb=is_sstb).deduction
 taxable_income = max(0, taxable_before_qbi − QBI)
-federal_income_tax = bracket_tax(taxable_income, us_federal.brackets[filing])   # 注意:不用 federal_income_tax(),避免重复减标准扣除
+federal_income_tax = bracket_tax(taxable_income, us_federal.ordinary_income_brackets[filing])   # 注意:不用 federal_income_tax(),避免重复减标准扣除
 state = state_income_tax(state_code, taxable_income, filing) if state_code else None
 total_tax = SE.self_employment_tax + SE.additional_medicare_tax + federal_income_tax + (state.tax if state ok else 0)
 quarterly_estimate = total_tax / 4                          # §6654

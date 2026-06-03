@@ -223,9 +223,9 @@
       "jurisdiction": "IL",
       "topics": ["state_income_tax", "exemption_allowance"],
       "local_path": "data/sources/us/2025/raw/il_2025_il1040_step4_exemptions.html",
-      "content_hash": "2553B5A5285B9985944C3DC0FEB2778EF3B28EF18036248D11F360831B8E3405",
+      "content_hash": "1A56FDB9A30F50C3BB4E334EDA88651E012BB59AC9627260E725BCCD2F4304BB",
       "status": "archived_redacted",
-      "notes": "Page snapshot redacts Mapbox and Weglot public tokens embedded in the official HTML template. Tax content is otherwise retained."
+      "notes": "Page snapshot redacts Mapbox, Weglot, and Elastic search public tokens embedded in the official HTML template. Tax content is otherwise retained."
     },
     {
       "source_id": "co_individual_income_tax_guide",

@@ -51,6 +51,7 @@
 | FastAPI 后端（`/calc/*`） | ✅ | 4 |
 | 前端改调后端 | ✅ | 5 |
 | 前端自雇总税接后端 | ✅ | 5.4 |
+| 前端加密税务接后端 | ✅ | 5.5 |
 | 美国知识库 MVP | ⬜ | 6 |
 | 知识库驱动提醒系统 | ⬜ | 7 |
 | Copilot（检索+引擎+guardrail） | ⬜ | 8 |
@@ -78,6 +79,7 @@
 | 4 FastAPI 后端 | `step4_design_fastapi.md` | `step4_fastapi_backend.md` |
 | 5 Frontend income tax API | `step5_design_frontend.md` | `step5_frontend_api.md` |
 | 5.4 自雇前端接后端总税 | `step5_4_design_se_frontend.md` | `step5_4_se_frontend.md` |
+| 5.5 加密前端接后端逐笔成本 | `step5_5_design_crypto_frontend.md` | `step5_5_crypto_frontend.md` |
 
 流程/标准类：`engineering_process.md`、`phase1_define_us_mvp.md`、`coding_standards.md`、`code_review_checklist.md`、`feature_status.md`（本文件）。
 

@@ -191,6 +191,27 @@ class CalcApiTests(unittest.TestCase):
         self.assertEqual(body["result"]["state_income_tax"]["status"], "not_covered")
         self.assertEqual(body["result"]["total_tax"], 22760.15)
 
+    def test_crypto_endpoint_accepts_state_code(self):
+        response = self.client.post(
+            "/calc/crypto",
+            json={
+                "lots": [
+                    {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+                    {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000},
+                ],
+                "disposals": [{"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}],
+                "method": "FIFO",
+                "filing_status": "single",
+                "other_taxable_income": 100000,
+                "state_code": "CA",
+            },
+        )
+
+        body = self.assert_engine_payload(response)
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["result"]["state"]["tax"], 3255.00)
+        self.assertEqual(body["result"]["total_tax_including_state"], 8888.00)
+
     def test_income_summary_invalid_filing_maps_to_422(self):
         response = self.client.post(
             "/calc/income-summary",

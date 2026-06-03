@@ -1142,6 +1142,195 @@ def _crypto_tax_estimate(
     )
 
 
+def _crypto_state_tax(
+    state_code: str,
+    *,
+    net_short_term_gain: Decimal,
+    net_long_term_gain: Decimal,
+    other_state_income: Decimal,
+    filing: str,
+    tax_year: int,
+    state_rules: dict[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]], list[str]]:
+    code = state_code.upper()
+    state = state_rules["states"].get(code)
+    if not state:
+        return (
+            {
+                "state": code,
+                "status": "not_covered",
+                "not_covered": True,
+                "type": "not_covered",
+                "tax": 0.00,
+                "reason": f"State {code} is not present in stored {tax_year} state rules.",
+            },
+            [],
+            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
+        )
+
+    state_citations = _citations(state)
+    status = state.get("status")
+    if status != "effective":
+        return (
+            {
+                "state": code,
+                "status": "not_covered",
+                "not_covered": True,
+                "type": "not_covered",
+                "tax": 0.00,
+                "reason": f"State {code} rule status is {status}; crypto state tax calculation is blocked.",
+            },
+            state_citations,
+            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
+        )
+
+    capital_gains_excise = state.get("capital_gains_excise")
+    if capital_gains_excise:
+        excise_citations = _merge_citations(state_citations, _citations(capital_gains_excise))
+        long_term_gain = max(Decimal("0"), net_long_term_gain)
+        standard_deduction = _decimal_rule(capital_gains_excise["standard_deduction"])
+        taxable_washington_gain = max(Decimal("0"), long_term_gain - standard_deduction)
+        threshold = _decimal_rule(capital_gains_excise["surtax_threshold"])
+        base_rate = _decimal_rule(capital_gains_excise["rate"])
+        surtax_rate = _decimal_rule(capital_gains_excise["surtax_rate"])
+        base_tax = min(taxable_washington_gain, threshold) * base_rate
+        surtax = max(Decimal("0"), taxable_washington_gain - threshold) * (base_rate + surtax_rate)
+        tax = base_tax + surtax
+        return (
+            {
+                "state": code,
+                "status": "ok",
+                "type": "excise",
+                "tax": _money_decimal(tax),
+                "long_term_only": bool(capital_gains_excise.get("long_term_only")),
+                "taxable_long_term_gain": _money_decimal(long_term_gain),
+                "standard_deduction": _money_decimal(standard_deduction),
+                "taxable_washington_capital_gain": _money_decimal(taxable_washington_gain),
+                "rate": float(base_rate),
+                "surtax_rate": float(surtax_rate),
+                "surtax_threshold": _money_decimal(threshold),
+            },
+            excise_citations,
+            [
+                "Washington capital gains excise is modeled only on net long-term capital gains above the stored "
+                "standard deduction; short-term gains are not included.",
+                "Washington residency and allocation are assumed in-state; exempt asset categories such as real "
+                "estate, retirement accounts, and certain business assets are not modeled for crypto.",
+                "The Washington $1,000,000 tier is applied to taxable Washington capital gains after the standard "
+                "deduction, matching the archived DOR special notice wording.",
+            ],
+        )
+
+    tax_type = state.get("income_tax_type")
+    if tax_type == "none":
+        return (
+            {
+                "state": code,
+                "status": "ok",
+                "type": "no_state_income_tax",
+                "tax": 0.00,
+            },
+            state_citations,
+            ["Requested state has no individual income tax and no modeled crypto capital gains excise."],
+        )
+
+    tax_base = state.get("tax_base", {})
+    tax_base_citations = _citations(tax_base)
+    if tax_type not in {"flat", "progressive"} or tax_base.get("capital_gains_treatment") != "ordinary_income":
+        return (
+            {
+                "state": code,
+                "status": "not_covered",
+                "not_covered": True,
+                "type": "not_covered",
+                "tax": 0.00,
+                "reason": f"State {code} does not have modeled ordinary-income capital gains treatment.",
+            },
+            _merge_citations(state_citations, tax_base_citations),
+            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
+        )
+
+    # Schedule D netting: states tax the NET capital gain that flows into federal AGI, so a
+    # short-term loss offsets a long-term gain (and vice versa) before the state rate applies.
+    # Must net the same way the federal _crypto_tax_estimate does, or a net loss would be taxed.
+    gain = max(Decimal("0"), net_short_term_gain + net_long_term_gain)
+    try:
+        base_without_gain = _state_taxable_base(
+            state,
+            federal_agi=other_state_income,
+            federal_taxable_income=other_state_income,
+            federal_qbi_deduction=Decimal("0"),
+            filing=filing,
+        )
+        base_with_gain = _state_taxable_base(
+            state,
+            federal_agi=other_state_income + gain,
+            federal_taxable_income=other_state_income + gain,
+            federal_qbi_deduction=Decimal("0"),
+            filing=filing,
+        )
+    except ValueError as exc:
+        return (
+            {
+                "state": code,
+                "status": "not_covered",
+                "not_covered": True,
+                "type": "not_covered",
+                "tax": 0.00,
+                "reason": str(exc),
+            },
+            _merge_citations(state_citations, tax_base_citations),
+            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
+        )
+
+    # Incremental state tax in full precision, rounded ONCE (avoids the off-by-a-cent drift that
+    # double-rounding tax_with_gain - tax_without_gain can introduce). Flat states are linear;
+    # progressive states use the Decimal bracket helper. Status/coverage were already validated
+    # above, so a missing bracket/rate here is treated defensively as not_covered.
+    try:
+        if state.get("income_tax_type") == "flat":
+            incremental = (base_with_gain - base_without_gain) * _decimal_rule(state["flat_rate"])
+        else:
+            brackets = state["brackets"][filing]
+            incremental = _bracket_tax_decimal(base_with_gain, brackets) - _bracket_tax_decimal(
+                base_without_gain, brackets
+            )
+    except (KeyError, ValueError) as exc:
+        return (
+            {
+                "state": code,
+                "status": "not_covered",
+                "not_covered": True,
+                "type": "not_covered",
+                "tax": 0.00,
+                "reason": str(exc),
+            },
+            _merge_citations(state_citations, tax_base_citations),
+            ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
+        )
+
+    state_tax = _money_decimal(max(Decimal("0"), incremental))
+    return (
+        {
+            "state": code,
+            "status": "ok",
+            "type": "ordinary_income",
+            "tax": state_tax,
+            "capital_gains_treatment": "ordinary_income",
+            "taxable_base_without_gain": _money_decimal(base_without_gain),
+            "taxable_base_with_gain": _money_decimal(base_with_gain),
+        },
+        _merge_citations(state_citations, tax_base_citations),
+        [
+            "Covered income-tax states model crypto net capital gains as ordinary income at the state level; "
+            "short-term and long-term gains are not treated differently for these states.",
+            "Crypto state tax uses other_taxable_income as the state stacking base, matching the income_summary "
+            "MVP approximation; state-specific residual adjustments and credits are not modeled.",
+            "Net capital losses produce $0 crypto state tax in this function.",
+        ],
+    )
+
+
 def crypto_gain_estimate(
     lots: list[dict[str, Any]],
     disposals: list[dict[str, Any]],
@@ -1149,6 +1338,7 @@ def crypto_gain_estimate(
     filing_status: str = "single",
     other_taxable_income: float = 0.0,
     modified_agi: float | None = None,
+    state_code: str | None = None,
     tax_year: int = 2025,
 ) -> dict[str, Any]:
     """Estimate crypto capital gains from deterministic lot matching and stored tax rules."""
@@ -1162,9 +1352,14 @@ def crypto_gain_estimate(
         "modified_agi": modified_agi,
         "tax_year": tax_year,
     }
+    if state_code is not None:
+        input_data["state_code"] = state_code.upper()
     capital_gains_rules = load_capital_gains_rules(tax_year)
     federal_rules = load_federal_rules(tax_year)
+    state_rules = load_state_rules(tax_year) if state_code is not None else None
     rule_version = _capital_gains_rule_version(capital_gains_rules, federal_rules)
+    if state_rules is not None:
+        rule_version = f"{rule_version}+{state_rules['rule_version']}"
     citations = _citations(
         capital_gains_rules["long_term_capital_gains"],
         capital_gains_rules["short_term_capital_gains"],
@@ -1199,6 +1394,20 @@ def crypto_gain_estimate(
         federal_rules=federal_rules,
         capital_gains_rules=capital_gains_rules,
     )
+    result_citations = citations
+    state_result: dict[str, Any] | None = None
+    if state_code is not None and state_rules is not None:
+        state_result, state_citations, state_assumptions = _crypto_state_tax(
+            state_code,
+            net_short_term_gain=short_term_gain,
+            net_long_term_gain=long_term_gain,
+            other_state_income=ordinary_income,
+            filing=filing,
+            tax_year=tax_year,
+            state_rules=state_rules,
+        )
+        result_citations = _merge_citations(result_citations, state_citations)
+        assumptions.extend(state_assumptions)
 
     lots_matched = [
         {
@@ -1214,27 +1423,39 @@ def crypto_gain_estimate(
         for match in matches
     ]
 
+    result = {
+        "method": normalized_method,
+        "realized": {
+            "short_term_gain": _money_decimal(short_term_gain),
+            "long_term_gain": _money_decimal(long_term_gain),
+            "net_capital_gain": _money_decimal(net_capital_gain),
+        },
+        "lots_matched": lots_matched,
+        "tax_estimate": tax_estimate,
+    }
+    if state_result is not None:
+        result["state"] = state_result
+        result["total_tax_including_state"] = _money_decimal(
+            _decimal_rule(tax_estimate["total"]) + _decimal_rule(state_result["tax"])
+        )
+
+    breakdown = [
+        {"label": "short_term_gain", "amount": _money_decimal(short_term_gain)},
+        {"label": "long_term_gain", "amount": _money_decimal(long_term_gain)},
+        {"label": "net_capital_gain", "amount": _money_decimal(net_capital_gain)},
+        {"label": "crypto_tax_estimate_total", "amount": tax_estimate["total"]},
+    ]
+    if state_result is not None:
+        breakdown.append({"label": "crypto_state_tax", "amount": state_result["tax"]})
+        breakdown.append({"label": "total_tax_including_state", "amount": result["total_tax_including_state"]})
+
     return _response(
         status="ok",
         input_data={**input_data, "method": normalized_method, "filing_status": filing},
-        result={
-            "method": normalized_method,
-            "realized": {
-                "short_term_gain": _money_decimal(short_term_gain),
-                "long_term_gain": _money_decimal(long_term_gain),
-                "net_capital_gain": _money_decimal(net_capital_gain),
-            },
-            "lots_matched": lots_matched,
-            "tax_estimate": tax_estimate,
-        },
-        breakdown=[
-            {"label": "short_term_gain", "amount": _money_decimal(short_term_gain)},
-            {"label": "long_term_gain", "amount": _money_decimal(long_term_gain)},
-            {"label": "net_capital_gain", "amount": _money_decimal(net_capital_gain)},
-            {"label": "crypto_tax_estimate_total", "amount": tax_estimate["total"]},
-        ],
+        result=result,
+        breakdown=breakdown,
         rule_version=rule_version,
-        citations=citations,
+        citations=result_citations,
         assumptions=assumptions,
     )
 

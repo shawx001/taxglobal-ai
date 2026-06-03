@@ -88,6 +88,7 @@ class CryptoRequest(TaxYearModel):
     filing_status: FilingStatus = "single"
     other_taxable_income: float = Field(default=0, ge=0)
     modified_agi: float | None = Field(default=None, ge=0)
+    state_code: str | None = Field(default=None, min_length=2, max_length=2)
 
 
 class RsuSaleScenario(BaseModel):

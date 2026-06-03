@@ -280,6 +280,32 @@
       "status": "archived"
     },
     {
+      "source_id": "wa_dor_capital_gains_2025",
+      "title": "Washington Department of Revenue: Capital Gains Tax",
+      "source_url": "https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax",
+      "source_type": "html",
+      "publisher": "Washington Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "WA",
+      "topics": ["capital_gains_excise", "state_capital_gains_tax", "standard_deduction"],
+      "local_path": "data/sources/us/2025/raw/wa_dor_capital_gains_tax.html",
+      "content_hash": "CBA7C3F099F1A53FFAAE88F936FE21D60CBD11387F78263E0336755903A7AD33",
+      "status": "archived"
+    },
+    {
+      "source_id": "wa_dor_capital_gains_tiered_rates_2025",
+      "title": "Washington Department of Revenue: New Tiered Rates for Washington's Capital Gains Tax",
+      "source_url": "https://dor.wa.gov/forms-publications/publications-subject/special-notices/new-tiered-rates-washingtons-capital-gains-tax",
+      "source_type": "html",
+      "publisher": "Washington Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "WA",
+      "topics": ["capital_gains_excise", "state_capital_gains_tax", "tiered_rates"],
+      "local_path": "data/sources/us/2025/raw/wa_dor_capital_gains_tiered_rates_2025.html",
+      "content_hash": "F1BD910449DEAF2BF6D6B80B58B21A445C51F4227CAFC55ABC290B28023CE80C",
+      "status": "archived"
+    },
+    {
       "source_id": "nv_tax_notes_194",
       "title": "Nevada Tax Notes Issue 194",
       "source_url": "https://tax.nv.gov/wp-content/uploads/2024/05/01-2023-Tax-Notes-Issue-194-compressed.pdf",

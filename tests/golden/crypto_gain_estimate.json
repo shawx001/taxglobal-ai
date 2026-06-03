@@ -120,6 +120,285 @@
       }
     },
     {
+      "name": "state_ca_ordinary_income",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "CA"
+      },
+      "expected": {
+        "status": "ok",
+        "state": {
+          "state": "CA",
+          "status": "ok",
+          "type": "ordinary_income",
+          "tax": 3255.00
+        },
+        "total_tax_including_state": 8888.00
+      }
+    },
+    {
+      "name": "state_ca_net_loss_taxes_zero",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2020-01-01", "quantity": 1.0, "cost_basis": 100000},
+          {"asset": "ETH", "date": "2025-01-01", "quantity": 1.0, "cost_basis": 1000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-06-01", "quantity": 1.0, "proceeds": 60000},
+          {"asset": "ETH", "date": "2025-09-01", "quantity": 1.0, "proceeds": 31000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "CA"
+      },
+      "expected": {
+        "status": "ok",
+        "realized": {"short_term_gain": 30000.00, "long_term_gain": -40000.00, "net_capital_gain": -10000.00},
+        "state": {"state": "CA", "status": "ok", "type": "ordinary_income", "tax": 0.00},
+        "total_tax_including_state": 0.00
+      }
+    },
+    {
+      "name": "state_ga_nets_st_loss_against_lt_gain",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2020-01-01", "quantity": 1.0, "cost_basis": 0},
+          {"asset": "ETH", "date": "2025-01-01", "quantity": 1.0, "cost_basis": 15000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-06-01", "quantity": 1.0, "proceeds": 30000},
+          {"asset": "ETH", "date": "2025-09-01", "quantity": 1.0, "proceeds": 10000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "GA"
+      },
+      "expected": {
+        "status": "ok",
+        "realized": {"short_term_gain": -5000.00, "long_term_gain": 30000.00, "net_capital_gain": 25000.00},
+        "state": {"state": "GA", "status": "ok", "type": "ordinary_income", "tax": 1297.50},
+        "total_tax_including_state": 5047.50
+      }
+    },
+    {
+      "name": "state_ny_ordinary_income",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "NY"
+      },
+      "expected": {
+        "status": "ok",
+        "state": {
+          "state": "NY",
+          "status": "ok",
+          "type": "ordinary_income",
+          "tax": 2100.00
+        },
+        "total_tax_including_state": 7733.00
+      }
+    },
+    {
+      "name": "state_ga_flat",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "GA"
+      },
+      "expected": {
+        "status": "ok",
+        "state": {
+          "state": "GA",
+          "status": "ok",
+          "type": "ordinary_income",
+          "tax": 1816.50
+        },
+        "total_tax_including_state": 7449.50
+      }
+    },
+    {
+      "name": "state_il_flat",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "IL"
+      },
+      "expected": {
+        "status": "ok",
+        "state": {
+          "state": "IL",
+          "status": "ok",
+          "type": "ordinary_income",
+          "tax": 1732.50
+        },
+        "total_tax_including_state": 7365.50
+      }
+    },
+    {
+      "name": "state_co_flat",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "CO"
+      },
+      "expected": {
+        "status": "ok",
+        "state": {
+          "state": "CO",
+          "status": "ok",
+          "type": "ordinary_income",
+          "tax": 1540.00
+        },
+        "total_tax_including_state": 7173.00
+      }
+    },
+    {
+      "name": "state_fl_no_income_tax",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "FL"
+      },
+      "expected": {
+        "status": "ok",
+        "state": {
+          "state": "FL",
+          "status": "ok",
+          "type": "no_state_income_tax",
+          "tax": 0.00
+        },
+        "total_tax_including_state": 5633.00
+      }
+    },
+    {
+      "name": "state_ma_not_covered",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "MA"
+      },
+      "expected": {
+        "status": "ok",
+        "state": {
+          "state": "MA",
+          "status": "not_covered",
+          "tax": 0.00
+        },
+        "total_tax_including_state": 5633.00
+      }
+    },
+    {
+      "name": "state_wa_below_standard_deduction",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
+          {"asset": "BTC", "date": "2024-06-01", "quantity": 1.0, "cost_basis": 40000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.5, "proceeds": 75000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "WA"
+      },
+      "expected": {
+        "status": "ok",
+        "state": {
+          "state": "WA",
+          "status": "ok",
+          "type": "excise",
+          "tax": 0.00,
+          "standard_deduction": 278000.00
+        },
+        "total_tax_including_state": 5633.00
+      }
+    },
+    {
+      "name": "state_wa_excise_large_long_term",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 0}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-03-01", "quantity": 1.0, "proceeds": 500000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 0,
+        "state_code": "WA"
+      },
+      "expected": {
+        "status": "ok",
+        "state": {
+          "state": "WA",
+          "status": "ok",
+          "type": "excise",
+          "tax": 15540.00,
+          "taxable_washington_capital_gain": 222000.00
+        }
+      }
+    },
+    {
       "name": "oversell_invalid",
       "input": {
         "lots": [

@@ -203,7 +203,9 @@ class EngineTests(unittest.TestCase):
         self.assertTrue(result["result"]["state_income_tax"]["not_covered"])
         self.assertEqual(result["result"]["state_income_tax"]["tax"], 0.00)
         self.assertEqual(result["result"]["total_tax"], 22_760.15)
-        self.assertIn("federal and SE tax only", "\n".join(result["assumptions"]))
+        self.assertIn(
+            "total tax includes federal income tax and total payroll tax", "\n".join(result["assumptions"])
+        )
 
     def test_income_tax_summary_co_adds_back_qbi_to_state_base(self):
         result = income_tax_summary(100_000, filing_status="single", state_code="CO")

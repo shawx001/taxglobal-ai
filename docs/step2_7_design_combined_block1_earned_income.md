@@ -17,7 +17,7 @@
 4. **½SE 先舍入到分再进 AGI**:现有引擎用的是 `self_employment_tax` 输出的**已 `_money` 舍入**的 deductible_half_se_tax;Block 1 必须 `half_se = _money_decimal(se_tax/2)` 后再算 AGI/QBI,否则 w2=0 会与现有差 1 分(已踩坑验证)。
 
 ## 1. 函数契约(扩 `income_tax_summary`,新增 `w2_wages`)
-新增可选入参:`w2_wages: float = 0.0`(W-2 box-1/Medicare 工资;含已在 W-2 上的 RSU 归属值)。其余沿用。
+新增可选入参:`w2_wages: float = 0.0`(W-2 工资;**MVP 用同一入参同时作所得税工资基与 FICA(SS/Medicare)工资基,假设 Box 1 = Box 5(无 401k 等税前扣除使其分离),SS 受 wage base 上限**;含已在 W-2 上的 RSU 归属值)。其余沿用。
 > `other_ordinary_income`:其它普通应税收入(不再被 SE/FICA 计税的部分,如利息);仍作累进与州基。
 `result` 新增:`w2_wages`、`w2_fica_tax`(W-2 员工 SS+Medicare)、`total_payroll_tax`(W-2 FICA + 自雇 SE + 附加医保)。`total_tax` 现含 `w2_fica_tax`(w2=0 时为 0 → 旧值不变)。
 

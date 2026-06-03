@@ -740,7 +740,7 @@ def income_tax_summary(
     deduction: float | None = None,
     tax_year: int = 2025,
 ) -> dict[str, Any]:
-    """Combine self-employment, QBI, federal, and state income tax for self-employment income."""
+    """Combine W-2 wages, self-employment income, QBI, federal, payroll, and state income tax into one summary."""
 
     raw_input = {
         "w2_wages": w2_wages,
@@ -896,13 +896,16 @@ def income_tax_summary(
         "state credits, and dependent-specific IL exemption counts.",
         "NIIT is not applied to active self-employment income in this summary.",
         "Self-employment health insurance and retirement contributions are caller-provided above-line deductions.",
+        "w2_wages is used as both the income-tax wage base and the FICA (Social Security/Medicare) wage base; "
+        "the MVP assumes W-2 Box 1 equals Box 5 (no pre-tax deductions splitting them), with Social Security "
+        "capped at the wage base.",
         "AMT, equity-option timing, passive foreign income, foreign tax credits, and credits are not modeled in this "
         "combined earned-income block.",
     ]
     if state_result is not None and state_result["status"] != "ok":
         assumptions.append(
-            "State income tax is not covered for the requested state; total tax includes federal and SE tax only "
-            "when w2_wages is zero, and federal plus payroll tax when W-2 wages are present."
+            "State income tax is not covered for the requested state; total tax includes federal income tax and "
+            "total payroll tax (W-2 FICA + self-employment tax + Additional Medicare) only, with no state tax."
         )
     if normalized_state_code == "IL":
         assumptions.append(

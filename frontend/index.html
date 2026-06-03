@@ -671,6 +671,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
           <select class="sel" id="se-filing" onchange="calcSE()">
             <option value="single">单身申报</option>
             <option value="mfj">已婚联合申报</option>
+            <option value="mfs">已婚分别申报</option>
             <option value="hoh">户主申报</option>
           </select></div>
       </div></div>
@@ -939,7 +940,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
       <div class="field"><label class="flabel">报税国</label>
         <select class="sel" id="pf-country"><option value="us">🇺🇸 美国</option><option value="pt">🇵🇹 葡萄牙</option><option value="sg">🇸🇬 新加坡</option><option value="ae">🇦🇪 迪拜</option><option value="uk">🇬🇧 英国</option><option value="de">🇩🇪 德国</option></select></div>
       <div class="field"><label class="flabel">年收入</label><input class="inp mono" type="number" id="pf-income" value="120000"></div>
-      <div class="field"><label class="flabel">申报状态</label><select class="sel" id="pf-filing"><option value="single">单身</option><option value="mfj">已婚联合</option><option value="hoh">户主</option></select></div>
+      <div class="field"><label class="flabel">申报状态</label><select class="sel" id="pf-filing"><option value="single">单身</option><option value="mfj">已婚联合</option><option value="mfs">已婚分别</option><option value="hoh">户主</option></select></div>
       <button class="btn pri" style="width:100%" onclick="saveProfile()">保存并同步到所有功能</button>
     </div></div>
     <div class="card"><div class="ch"><div class="ct">当前开启的功能</div><span class="badge bg" id="enabledCount"></span></div>
@@ -1027,6 +1028,10 @@ const PROFILE_LS_KEY='taxglobal.profile.v1';
 function persistProfile(){
   try{ localStorage.setItem(PROFILE_LS_KEY, JSON.stringify({profile:profile, selectedTypes:selectedTypes})); }catch(e){}
 }
+// 逐字符输入会高频触发，debounce 落库避免阻塞主线程；内存里的 profile 始终是最新的。
+let _persistTimer=null;
+function persistProfileDebounced(){ clearTimeout(_persistTimer); _persistTimer=setTimeout(persistProfile, 250); }
+if(typeof window!=='undefined'){ window.addEventListener('beforeunload', persistProfile); }
 function loadPersistedProfile(){
   try{
     const raw=localStorage.getItem(PROFILE_LS_KEY); if(!raw) return false;
@@ -1257,7 +1262,7 @@ function syncProfileFromTaxForm(){
   const fl=document.getElementById('tx-filing');
   if(fl){ const canonToShort={married_filing_jointly:'mfj',married_filing_separately:'mfs',head_of_household:'hoh',single:'single'}; profile.filing=canonToShort[fl.value]||fl.value; }
   profile.income=aggregateIncome();
-  persistProfile();
+  persistProfileDebounced();
 }
 </script>
 
@@ -2394,7 +2399,7 @@ function applyProfile(){
   if(g('d-crypto')){ profile.cryptoGain=+g('d-crypto').value||0; profile.ltcg=profile.cryptoGain; }
   if(g('d-biz')) profile.bizProfit=+g('d-biz').value||0;
   profile.income=aggregateIncome();
-  persistProfile();
+  persistProfileDebounced();
   syncProfileInputs(); calcTax();
   if((selectedTypes.includes('self')||selectedTypes.includes('ecom')) && typeof calcSE==='function') calcSE();
   renderDash();

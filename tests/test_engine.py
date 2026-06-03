@@ -305,6 +305,91 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["net_investment_income_tax"], 0.00)
         self.assertEqual(result["result"]["total_tax"], 50_458.23)
 
+    def test_income_tax_summary_feie_applies_rate_stacking(self):
+        result = income_tax_summary(foreign_earned_income=200_000, days_abroad=330, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["feie_excluded_income"], 130_000.00)
+        self.assertTrue(result["result"]["foreign_tax_rate_stacking_applied"])
+        self.assertEqual(result["result"]["ordinary_taxable_income"], 55_000.00)
+        self.assertEqual(result["result"]["federal_income_tax"], 13_200.00)
+        self.assertEqual(result["result"]["total_tax"], 13_200.00)
+
+    def test_income_tax_summary_feie_below_330_days_does_not_exclude_income(self):
+        result = income_tax_summary(foreign_earned_income=100_000, days_abroad=329, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["feie_excluded_income"], 0.00)
+        self.assertFalse(result["result"]["foreign_tax_rate_stacking_applied"])
+        self.assertEqual(result["result"]["adjusted_gross_income"], 100_000.00)
+        self.assertEqual(result["result"]["federal_income_tax"], 13_614.00)
+
+    def test_income_tax_summary_feie_under_limit_can_exclude_full_foreign_income(self):
+        result = income_tax_summary(foreign_earned_income=50_000, days_abroad=330, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["feie_excluded_income"], 50_000.00)
+        self.assertTrue(result["result"]["foreign_tax_rate_stacking_applied"])
+        self.assertEqual(result["result"]["adjusted_gross_income"], 0.00)
+        self.assertEqual(result["result"]["total_tax"], 0.00)
+
+    def test_income_tax_summary_feie_addback_can_trigger_niit(self):
+        result = income_tax_summary(
+            foreign_earned_income=200_000,
+            days_abroad=330,
+            w2_wages=50_000,
+            long_term_capital_gain=30_000,
+            filing_status="single",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["net_investment_income_tax"], 1_140.00)
+        self.assertEqual(result["result"]["total_tax"], 37_681.00)
+
+    def test_income_tax_summary_modified_agi_overrides_feie_niit_addback(self):
+        result = income_tax_summary(
+            foreign_earned_income=200_000,
+            days_abroad=330,
+            w2_wages=50_000,
+            long_term_capital_gain=30_000,
+            modified_agi=150_000,
+            filing_status="single",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["net_investment_income_tax"], 0.00)
+
+    def test_income_tax_summary_feie_keeps_qbi_net_capital_gain_guard(self):
+        result = income_tax_summary(
+            net_self_employment_profit=60_000,
+            long_term_capital_gain=40_000,
+            foreign_earned_income=100_000,
+            days_abroad=330,
+            filing_status="single",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["qbi_deduction"], 8_152.23)
+        self.assertEqual(result["result"]["federal_income_tax"], 7_759.14)
+        self.assertEqual(result["result"]["long_term_capital_gains_tax"], 3_638.84)
+        self.assertEqual(result["result"]["total_tax"], 19_875.71)
+
+    def test_income_tax_summary_foreign_zero_reproduces_block2(self):
+        result = income_tax_summary(
+            foreign_earned_income=0,
+            w2_wages=200_000,
+            long_term_capital_gain=50_000,
+            filing_status="single",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["feie_excluded_income"], 0.00)
+        self.assertFalse(result["result"]["foreign_tax_rate_stacking_applied"])
+        self.assertEqual(result["result"]["federal_income_tax"], 37_247.00)
+        self.assertEqual(result["result"]["long_term_capital_gains_tax"], 7_500.00)
+        self.assertEqual(result["result"]["net_investment_income_tax"], 1_900.00)
+        self.assertEqual(result["result"]["total_tax"], 60_465.20)
+
     def test_state_taxable_base_blocks_unmodeled_agi_qbi_allowed_combo(self):
         state_block = {
             "tax_base": {

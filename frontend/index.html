@@ -1918,7 +1918,7 @@ function readCryptoLots(){
     const quantity=Number(row.querySelector('.cr-lot-qty').value);
     const cost_basis=Number(row.querySelector('.cr-lot-cost').value);
     return {asset,date,quantity,cost_basis};
-  }).filter(row=>row.asset||row.date||row.quantity||row.cost_basis);
+  }).filter(row=>row.asset&&row.date&&row.quantity>0);
 }
 function readCryptoDisposals(){
   return Array.from(document.querySelectorAll('#cryptoDisposals .crypto-row')).map(row=>{
@@ -1927,7 +1927,7 @@ function readCryptoDisposals(){
     const quantity=Number(row.querySelector('.cr-disp-qty').value);
     const proceeds=Number(row.querySelector('.cr-disp-proceeds').value);
     return {asset,date,quantity,proceeds};
-  }).filter(row=>row.asset||row.date||row.quantity||row.proceeds);
+  }).filter(row=>row.asset&&row.date&&row.quantity>0);
 }
 function cryptoQty(value){ return (Number(value)||0).toLocaleString('en-US',{maximumFractionDigits:8}); }
 function cryptoStateBanner(magiRaw){

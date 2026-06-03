@@ -597,14 +597,18 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
   <!-- RSU/期权 -->
   <div class="subpg" id="sub-rsu">
     <div class="g2">
-      <div class="card"><div class="ch"><div class="ct">RSU / 期权参数</div></div><div class="cb">
-        <div class="field"><label class="flabel">基础工资</label><input class="inp mono" type="number" id="rsu-base" value="180000" oninput="calcRSU()"></div>
-        <div class="field"><label class="flabel">本年 RSU 归属价值</label><input class="inp mono" type="number" id="rsu-vest" value="80000" oninput="calcRSU()"></div>
-        <div class="field"><label class="flabel">未行权期权价值</label><input class="inp mono" type="number" id="rsu-opt" value="50000" oninput="calcRSU()"></div>
-        <div class="field"><label class="flabel"><span>预期明年股价涨幅</span><span class="mono" id="rsu-growth-lbl" style="color:var(--g)">20%</span></label>
-          <input class="range" type="range" id="rsu-growth" min="-20" max="60" value="20" oninput="calcRSU()"></div>
+      <div class="card"><div class="ch"><div class="ct">RSU 归属参数</div></div><div class="cb">
+        <div class="field"><label class="flabel">其他普通应税收入</label><input class="inp mono" type="number" id="rsu-base" value="180000" min="0" step="0.01" oninput="calcRSU()"></div>
+        <div class="field"><label class="flabel">本次归属股数</label><input class="inp mono" type="number" id="rsu-shares" value="1000" min="1" step="1" oninput="calcRSU()"></div>
+        <div class="field"><label class="flabel">归属 FMV / 股</label><input class="inp mono" type="number" id="rsu-fmv" value="50" min="0" step="0.01" oninput="calcRSU()"></div>
+        <div class="field"><label class="flabel">归属日期</label><input class="inp mono" type="date" id="rsu-vest-date" value="2025-03-01" oninput="calcRSU()"></div>
+        <label class="flabel" style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><input type="checkbox" id="rsu-sale-enabled" checked onchange="calcRSU()"> 加入卖出场景</label>
+        <div id="rsu-sale-fields">
+          <div class="field"><label class="flabel">卖出日期</label><input class="inp mono" type="date" id="rsu-sale-date" value="2026-06-01" oninput="calcRSU()"></div>
+          <div class="field"><label class="flabel">卖出价 / 股</label><input class="inp mono" type="number" id="rsu-sale-price" value="80" min="0" step="0.01" oninput="calcRSU()"></div>
+        </div>
       </div></div>
-      <div class="card"><div class="ch"><div class="ct">行权时机对比</div><span class="badge bp">analyze_rsu_options</span></div>
+      <div class="card"><div class="ch"><div class="ct">RSU 税务测算</div><span class="badge bp">/calc/rsu</span></div>
         <div class="cb" id="rsuResult"></div></div>
     </div>
   </div>
@@ -1179,6 +1183,9 @@ function taxText(key){
   return copy[key]||key;
 }
 function taxMoney(value){ return '$'+f(Number(value)||0); }
+function taxMoneyExact(value, digits){
+  return '$'+(Number(value)||0).toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+}
 function escapeHtml(value){
   return String(value==null?'':value).replace(/[&<>"']/g, function(ch){
     return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
@@ -1412,28 +1419,57 @@ function renderAlerts(){
 }
 
 /* ════════ RSU ════════ */
-function calcRSU(){
-  const base=+document.getElementById('rsu-base').value||0;
-  const vest=+document.getElementById('rsu-vest').value||0;
-  const opt=+document.getElementById('rsu-opt').value||0;
-  const growth=+document.getElementById('rsu-growth').value/100;
-  document.getElementById('rsu-growth-lbl').textContent=(growth*100).toFixed(0)+'%';
-  const thisYear=usTaxTotal(base+vest+opt, 'single', 23500);
-  const baseOnly=usTaxTotal(base+vest, 'single', 23500);
-  const exerciseCost=thisYear-baseOnly;
-  const futureValue=opt*(1+growth);
-  const ltcg=(futureValue-opt)*0.20;
-  const nextYearOrdinary=futureValue*marginalRate(base+vest+futureValue,'single');
-  const ltcgSaving=nextYearOrdinary-ltcg;
-  const better = ltcgSaving>exerciseCost;
-  document.getElementById('rsuResult').innerHTML=`
-    <div class="rrow"><span class="rl">RSU 归属当日普通收入税 <span class="cite" title="IRC §83">§83</span></span><span class="rv">$${f(vest*marginalRate(base+vest,'single'))}</span></div>
-    <div class="rrow"><span class="rl">今年立即行权额外税负</span><span class="rv">$${f(exerciseCost)}</span></div>
-    <div class="rrow"><span class="rl">明年股价 ${(growth*100).toFixed(0)}% → 持有>1年 LTCG 20% <span class="cite" title="IRC §1(h)">§1(h)</span></span><span class="rv">$${f(ltcg)}</span></div>
-    <div class="rrow tot"><span class="rl">${better?'建议持有满 1 年':'建议今年行权'}</span><span class="rv" style="color:${better?'var(--g)':'var(--gold)'}">${better?'省 $'+f(ltcgSaving-exerciseCost):'锁定收益'}</span></div>
-    <div style="margin-top:12px;padding:11px;background:var(--gbg);border-radius:9px;font-size:12px;color:var(--ink2);line-height:1.6">
-      💡 ${better?`预期涨幅 ${(growth*100).toFixed(0)}%，行权后持有满 1 年转为长期资本利得（20%），相比明年按普通收入税，<strong style="color:var(--g)">净省约 $${f(ltcgSaving-exerciseCost)}</strong>。建议今年行权 + 加大 401(k) 至上限对冲。`:`若预期涨幅有限，今年行权多缴 $${f(exerciseCost)}，但可锁定当前收益避免股价回落风险。`}
-    </div>`;
+let rsuRequestSeq=0;
+function rsuResultBlock(payload){
+  const v=payload.result.vesting;
+  const h=payload.result.hold_vs_sell;
+  let html =
+    '<div class="rrow"><span class="rl">归属普通收入</span><span class="rv">'+taxMoney(v.ordinary_income)+'</span></div>'+
+    '<div class="rrow"><span class="rl">成本基 / 股</span><span class="rv">'+taxMoneyExact(v.cost_basis_per_share,2)+'</span></div>'+
+    '<div class="rrow"><span class="rl">归属带来的所得税 '+taxCitations(payload.citations)+'</span><span class="rv">'+taxMoney(v.vest_income_tax)+'</span></div>';
+  if(h){
+    const term=h.term==='long'?'长期资本利得':'短期资本利得';
+    html +=
+      '<div style="height:1px;background:var(--bd2);margin:12px 0"></div>'+
+      '<div class="rrow"><span class="rl">卖出日期</span><span class="rv mono">'+escapeHtml(h.sale_date)+'</span></div>'+
+      '<div class="rrow"><span class="rl">资本利得</span><span class="rv">'+taxMoney(h.capital_gain)+'</span></div>'+
+      '<div class="rrow"><span class="rl">'+term+'</span><span class="rv">'+taxMoney(h.capital_gains_tax)+'</span></div>'+
+      '<div style="margin-top:8px;font-size:12px;color:var(--ink3);line-height:1.5">'+escapeHtml(h.note)+'</div>';
+  }
+  return html+taxAssumptions(payload.assumptions);
+}
+async function calcRSU(){
+  const requestId=++rsuRequestSeq;
+  const result=document.getElementById('rsuResult');
+  const saleEnabled=document.getElementById('rsu-sale-enabled').checked;
+  document.getElementById('rsu-sale-fields').style.display=saleEnabled?'block':'none';
+  if(document.getElementById('tx-country').value!=='us'){
+    result.innerHTML='<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+taxText('usOnly')+'</div></div>';
+    return;
+  }
+  result.innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
+  const payload={
+    shares_vested:+document.getElementById('rsu-shares').value||0,
+    fair_market_value_per_share:+document.getElementById('rsu-fmv').value||0,
+    vest_date:document.getElementById('rsu-vest-date').value,
+    filing_status:document.getElementById('tx-filing').value,
+    other_taxable_income:+document.getElementById('rsu-base').value||0,
+  };
+  if(saleEnabled){
+    payload.sale_scenario={
+      sale_date:document.getElementById('rsu-sale-date').value,
+      sale_price_per_share:+document.getElementById('rsu-sale-price').value||0,
+    };
+  }
+  try{
+    const rsu=await TaxGlobalApi.rsu(payload);
+    if(requestId!==rsuRequestSeq) return;
+    result.innerHTML=rsuResultBlock(rsu);
+  }catch(error){
+    if(requestId!==rsuRequestSeq) return;
+    const message=error&&error.code==='service_unavailable'?taxText('backendDown'):(error&&error.message?error.message:taxText('backendDown'));
+    result.innerHTML='<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+escapeHtml(message)+'</div></div>';
+  }
 }
 
 /* ════════ 自雇税 ════════ */

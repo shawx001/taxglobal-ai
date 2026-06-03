@@ -52,6 +52,7 @@
     fica: function (payload) { return postCalc("/calc/fica", payload); },
     stateIncome: function (payload) { return postCalc("/calc/state-income", payload); },
     incomeSummary: function (payload) { return postCalc("/calc/income-summary", payload); },
+    crypto: function (payload) { return postCalc("/calc/crypto", payload); },
     feie: function (payload) { return postCalc("/calc/feie", payload); },
     rsu: function (payload) {
       var apiPayload = Object.assign({}, payload);

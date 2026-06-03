@@ -4,18 +4,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-FILING_STATUS_VALUES = (
-    "single",
-    "married_filing_jointly",
-    "married_filing_separately",
-    "head_of_household",
-    "qualifying_surviving_spouse",
-    "mfj",
-    "mfs",
-    "hoh",
-    "qss",
-)
-
 FilingStatus = Literal[
     "single",
     "married_filing_jointly",
@@ -60,7 +48,7 @@ class SelfEmploymentRequest(TaxYearModel):
 class IncomeSummaryRequest(TaxYearModel):
     net_self_employment_profit: float = Field(default=0, ge=0)
     other_ordinary_income: float = Field(default=0, ge=0)
-    filing_status: str = Field(default="single", json_schema_extra={"enum": list(FILING_STATUS_VALUES)})
+    filing_status: str = "single"
     state_code: str | None = Field(default=None, min_length=2, max_length=2)
     se_health_insurance: float = Field(default=0, ge=0)
     retirement_contributions: float = Field(default=0, ge=0)

@@ -291,9 +291,6 @@ class CalcApiTests(unittest.TestCase):
             "/calc/nexus",
         }
         self.assertTrue(expected_paths.issubset(paths.keys()))
-        income_summary_schema = response.json()["components"]["schemas"]["IncomeSummaryRequest"]
-        self.assertIn("single", income_summary_schema["properties"]["filing_status"]["enum"])
-        self.assertIn("head_of_household", income_summary_schema["properties"]["filing_status"]["enum"])
 
 
 if __name__ == "__main__":

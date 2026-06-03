@@ -633,10 +633,6 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
         <div class="field"><label class="flabel">海外赚取收入</label><input class="inp mono" type="number" id="feie-income" value="140000" oninput="calcFEIE()"></div>
         <div style="font-size:12px;color:var(--ink3);line-height:1.55;margin:-4px 0 14px">FEIE 只适用于海外劳动/服务赚取收入；海外股息、利息、租金、资本利得等被动收入后续走 FTC / 被动收入模块。</div>
         <div class="field"><label class="flabel">海外居住天数（330天测试）</label><input class="inp mono" type="number" id="feie-days" value="340" oninput="calcFEIE()"></div>
-        <div class="field"><label class="flabel">居住国</label>
-          <select class="sel" id="feie-country" onchange="calcFEIE()">
-            <option value="pt">🇵🇹 葡萄牙（NHR）</option><option value="sg">🇸🇬 新加坡</option><option value="ae">🇦🇪 迪拜</option><option value="es">🇪🇸 西班牙（Beckham）</option>
-          </select></div>
       </div></div>
       <div class="card"><div class="ch"><div class="ct">FEIE 测算</div><span class="badge bp">assess_feie · IRC §911</span></div>
         <div class="cb" id="feieResult"></div></div>
@@ -1496,26 +1492,35 @@ function calcSE(){
 }
 
 /* ════════ FEIE ════════ */
-function calcFEIE(){
+let feieRequestSeq=0;
+function feieResultBlock(payload){
+  const r=payload.result;
+  const passed=!!r.qualifies_physical_presence_test;
+  const remaining=Number(r.remaining_income)||0;
+  return ''+
+    '<div class="rrow"><span class="rl">330 天境外测试 '+taxCitations(payload.citations)+'</span><span class="rv" style="color:'+(passed?'var(--g)':'var(--red)')+'">'+(passed?'通过':'未满足')+'</span></div>'+
+    '<div class="rrow"><span class="rl">FEIE 豁免额</span><span class="rv" style="color:var(--g)">-'+taxMoney(r.excluded_income)+'</span></div>'+
+    '<div class="rrow"><span class="rl">剩余美国应税收入</span><span class="rv">'+taxMoney(remaining)+'</span></div>'+
+    '<div style="margin-top:12px;padding:11px;background:var(--gbg);border-radius:9px;font-size:12px;color:var(--ink2);line-height:1.6">'+
+      '剩余 '+taxMoney(remaining)+' 仍是美国应税收入，请在「普通收入」模块连同其他收入一起计算总税（叠加后税率才准）。'+
+    '</div>'+
+    taxAssumptions(payload.assumptions);
+}
+async function calcFEIE(){
+  const requestId=++feieRequestSeq;
   const income=+document.getElementById('feie-income').value||0;
   const days=+document.getElementById('feie-days').value||0;
-  const country=document.getElementById('feie-country').value;
-  const limit=130000; // 2025 FEIE 上限近似
-  const qualifies=days>=330;
-  const excluded=qualifies?Math.min(income,limit):0;
-  const remaining=income-excluded;
-  const usTaxOnRemaining=bracketTax(Math.max(0,remaining-15000),FED.single);
-  const localNote={pt:'葡萄牙 NHR 20%',sg:'新加坡累进',ae:'迪拜 0%',es:'西班牙 Beckham 24% 封顶'}[country];
-  document.getElementById('feieResult').innerHTML=`
-    <div class="rrow"><span class="rl">330 天境外测试 <span class="cite" title="IRC §911(d)(1)">§911(d)</span></span><span class="rv" style="color:${qualifies?'var(--g)':'var(--red)'}">${qualifies?'✓ 通过':'✗ 未满足'}</span></div>
-    <div class="rrow"><span class="rl">海外赚取收入</span><span class="rv">$${f(income)}</span></div>
-    <div class="rrow"><span class="rl">FEIE 豁免额 <span class="cite" title="IRC §911(b)(2)">§911(b)</span></span><span class="rv" style="color:var(--g)">−$${f(excluded)}</span></div>
-    <div class="rrow"><span class="rl">超出部分应税</span><span class="rv">$${f(remaining)}</span></div>
-    <div class="rrow"><span class="rl">美国剩余税额</span><span class="rv">$${f(usTaxOnRemaining)}</span></div>
-    <div class="rrow tot"><span class="rl">当地税（${localNote}）</span><span class="rv">见协定查询</span></div>
-    <div style="margin-top:12px;padding:11px;background:var(--gbg);border-radius:9px;font-size:12px;color:var(--ink2);line-height:1.6">
-      💡 ${qualifies?`你满足实际居住测试，可豁免 $${f(excluded)} 美国税。结合${localNote}，整体有效税负可显著降低。注意：美国公民全球征税，FEIE 之外仍需申报。`:`未满 330 天，暂不符合 FEIE。可考虑外国税收抵免（FTC, §901）作为替代。`}
-    </div>`;
+  const result=document.getElementById('feieResult');
+  result.innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
+  try{
+    const feie=await TaxGlobalApi.feie({foreign_earned_income:income,days_abroad:days});
+    if(requestId!==feieRequestSeq) return;
+    result.innerHTML=feieResultBlock(feie);
+  }catch(error){
+    if(requestId!==feieRequestSeq) return;
+    const message=error&&error.code==='service_unavailable'?taxText('backendDown'):(error&&error.message?error.message:taxText('backendDown'));
+    result.innerHTML='<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+escapeHtml(message)+'</div></div>';
+  }
 }
 </script>
 

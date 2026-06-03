@@ -1420,7 +1420,9 @@ function summaryBreakdownRows(rows, stateResult){
     total_tax:'总税',
   };
   if(!Array.isArray(rows)||!rows.length) return '';
-  return rows.map(row=>{
+  // 这三行已在结果区头部/底部单独展示，过滤掉避免重复。
+  var headlineLabels=['adjusted_gross_income','taxable_income','total_tax'];
+  return rows.filter(function(r){return !(r&&headlineLabels.indexOf(r.label)>=0);}).map(row=>{
     const label=labels[row&&row.label]||String(row&&row.label||'项目');
     let amount, reason='';
     if(row&&row.label==='state_income_tax'){

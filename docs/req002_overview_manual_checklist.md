@@ -3,8 +3,9 @@
 ## 启动
 
 ```powershell
-& "C:\Users\shawx\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" scripts\run_overview_dev.py
+python scripts\run_overview_dev.py
 ```
+> 用你自己的 Python 解释器即可；若 `python` 不在 PATH，可用 `py -3 scripts\run_overview_dev.py` 或替换为解释器绝对路径。
 
 打开 `http://127.0.0.1:5173/index.html` 后进入「税务计算」→「普通收入」。每次场景先清空不相关输入，州留空代表不计州税。
 

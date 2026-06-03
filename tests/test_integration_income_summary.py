@@ -61,7 +61,12 @@ class IncomeSummaryOverviewIntegrationTests(unittest.TestCase):
     def test_frontend_overview_payloads_match_golden_totals(self):
         for scenario in OVERVIEW_SCENARIOS:
             with self.subTest(scenario=scenario["name"]):
-                response = self.client.post("/calc/income-summary", json=scenario["payload"])
+                # Mirror the frontend, which hard-codes tax_year: 2025; this keeps the
+                # 2025 contract locked even if the backend default tax_year changes later.
+                response = self.client.post(
+                    "/calc/income-summary",
+                    json={"tax_year": 2025, **scenario["payload"]},
+                )
 
                 self.assertEqual(response.status_code, 200)
                 body = response.json()

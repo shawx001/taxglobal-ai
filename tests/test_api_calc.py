@@ -180,6 +180,20 @@ class CalcApiTests(unittest.TestCase):
         self.assertEqual(body["result"]["total_tax"], 22760.15)
         self.assertEqual(body["result"]["state_income_tax"]["tax"], 0.00)
 
+    def test_income_summary_endpoint_combines_w2_and_self_employment_payroll(self):
+        response = self.client.post(
+            "/calc/income-summary",
+            json={"w2_wages": 150000, "net_self_employment_profit": 50000, "filing_status": "single"},
+        )
+
+        body = self.assert_engine_payload(response)
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["result"]["w2_fica_tax"], 11475.00)
+        self.assertEqual(body["result"]["self_employment_tax"], 4575.48)
+        self.assertEqual(body["result"]["total_payroll_tax"], 16050.48)
+        self.assertEqual(body["result"]["qbi_deduction"], 9542.45)
+        self.assertEqual(body["result"]["total_tax"], 50458.23)
+
     def test_income_summary_endpoint_embeds_state_not_covered(self):
         response = self.client.post(
             "/calc/income-summary",

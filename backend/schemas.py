@@ -47,6 +47,7 @@ class SelfEmploymentRequest(TaxYearModel):
 
 class IncomeSummaryRequest(TaxYearModel):
     net_self_employment_profit: float = Field(default=0, ge=0)
+    w2_wages: float = Field(default=0, ge=0)
     other_ordinary_income: float = Field(default=0, ge=0)
     filing_status: str = "single"
     state_code: str | None = Field(default=None, min_length=2, max_length=2)

@@ -747,7 +747,7 @@ def income_tax_summary(
     deduction: float | None = None,
     tax_year: int = 2025,
 ) -> dict[str, Any]:
-    """Combine W-2 wages, self-employment income, QBI, federal, payroll, and state income tax into one summary."""
+    """Combine W-2, self-employment, capital gains, QBI, federal, payroll, NIIT, and state tax into one summary."""
 
     raw_input = {
         "w2_wages": w2_wages,
@@ -958,7 +958,7 @@ def income_tax_summary(
         "the MVP assumes W-2 Box 1 equals Box 5 (no pre-tax deductions splitting them), with Social Security "
         "capped at the wage base.",
         "AMT, equity-option timing, passive foreign income, foreign tax credits, and credits are not modeled in this "
-        "combined earned-income block.",
+        "combined income block.",
     ]
     if modified_agi_value is None and net_investment_income > 0:
         assumptions.append(

@@ -190,6 +190,58 @@
         "federal_income_tax": 8630.60,
         "total_tax": 22760.15
       }
+    },
+    {
+      "name": "combined_w2_200k_long_term_gain_50k_single",
+      "input": {"w2_wages": 200000, "long_term_capital_gain": 50000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "w2_wages": 200000.00,
+        "long_term_capital_gain": 50000.00,
+        "adjusted_gross_income": 250000.00,
+        "taxable_income": 235000.00,
+        "ordinary_taxable_income": 185000.00,
+        "federal_income_tax": 37247.00,
+        "long_term_capital_gains_tax": 7500.00,
+        "net_investment_income_tax": 1900.00,
+        "total_payroll_tax": 13818.20,
+        "total_tax": 60465.20,
+        "citation_source_ids": ["irs_topic_409", "irs_topic_559"],
+        "assumption_contains": "modified_agi was not provided"
+      }
+    },
+    {
+      "name": "combined_w2_150k_self_employment_50k_long_term_gain_40k_single",
+      "input": {
+        "w2_wages": 150000,
+        "net_self_employment_profit": 50000,
+        "long_term_capital_gain": 40000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "qbi_deduction": 4692.55,
+        "taxable_income": 218019.71,
+        "ordinary_taxable_income": 178019.71,
+        "federal_income_tax": 35571.73,
+        "long_term_capital_gains_tax": 6000.00,
+        "net_investment_income_tax": 1433.07,
+        "total_payroll_tax": 16050.48,
+        "total_tax": 59055.28
+      }
+    },
+    {
+      "name": "combined_capital_gains_default_zero_block1_regression_single",
+      "input": {"w2_wages": 150000, "net_self_employment_profit": 50000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "federal_income_tax": 34407.75,
+        "long_term_capital_gains_tax": 0.00,
+        "net_investment_income_tax": 0.00,
+        "ordinary_taxable_income": 173169.81,
+        "taxable_income": 173169.81,
+        "total_tax": 50458.23
+      }
     }
   ]
 }

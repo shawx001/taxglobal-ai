@@ -194,6 +194,20 @@ class CalcApiTests(unittest.TestCase):
         self.assertEqual(body["result"]["qbi_deduction"], 9542.45)
         self.assertEqual(body["result"]["total_tax"], 50458.23)
 
+    def test_income_summary_endpoint_combines_capital_gains(self):
+        response = self.client.post(
+            "/calc/income-summary",
+            json={"w2_wages": 200000, "long_term_capital_gain": 50000, "filing_status": "single"},
+        )
+
+        body = self.assert_engine_payload(response)
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["result"]["ordinary_taxable_income"], 185000.00)
+        self.assertEqual(body["result"]["federal_income_tax"], 37247.00)
+        self.assertEqual(body["result"]["long_term_capital_gains_tax"], 7500.00)
+        self.assertEqual(body["result"]["net_investment_income_tax"], 1900.00)
+        self.assertEqual(body["result"]["total_tax"], 60465.20)
+
     def test_income_summary_endpoint_embeds_state_not_covered(self):
         response = self.client.post(
             "/calc/income-summary",

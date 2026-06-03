@@ -20,7 +20,7 @@ FilingStatus = Literal[
 class TaxYearModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    tax_year: int = Field(default=2025, ge=2025)
+    tax_year: int = Field(default=2026, ge=2025)
 
 
 class FederalIncomeRequest(TaxYearModel):

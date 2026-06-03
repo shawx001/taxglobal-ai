@@ -45,29 +45,29 @@ def load_rule_file(tax_year: int, filename: str) -> dict[str, Any]:
     return deepcopy(_load_rule_file_cached(tax_year, filename))
 
 
-def load_federal_rules(tax_year: int = 2025) -> dict[str, Any]:
+def load_federal_rules(tax_year: int = 2026) -> dict[str, Any]:
     return load_rule_file(tax_year, "us_federal.json")
 
 
-def load_fica_rules(tax_year: int = 2025) -> dict[str, Any]:
+def load_fica_rules(tax_year: int = 2026) -> dict[str, Any]:
     return load_rule_file(tax_year, "us_fica.json")
 
 
-def load_feie_rules(tax_year: int = 2025) -> dict[str, Any]:
+def load_feie_rules(tax_year: int = 2026) -> dict[str, Any]:
     return load_rule_file(tax_year, "us_feie.json")
 
 
-def load_state_rules(tax_year: int = 2025) -> dict[str, Any]:
+def load_state_rules(tax_year: int = 2026) -> dict[str, Any]:
     return load_rule_file(tax_year, "us_states.json")
 
 
-def load_nexus_rules(tax_year: int = 2025) -> dict[str, Any]:
+def load_nexus_rules(tax_year: int = 2026) -> dict[str, Any]:
     return load_rule_file(tax_year, "us_nexus.json")
 
 
-def load_capital_gains_rules(tax_year: int = 2025) -> dict[str, Any]:
+def load_capital_gains_rules(tax_year: int = 2026) -> dict[str, Any]:
     return load_rule_file(tax_year, "us_capital_gains.json")
 
 
-def load_qbi_rules(tax_year: int = 2025) -> dict[str, Any]:
+def load_qbi_rules(tax_year: int = 2026) -> dict[str, Any]:
     return load_rule_file(tax_year, "us_qbi.json")

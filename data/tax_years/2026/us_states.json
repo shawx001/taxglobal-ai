@@ -1,0 +1,604 @@
+{
+  "schema_version": "0.1",
+  "rule_version": "us-2026-states-v0.1",
+  "tax_year": 2026,
+  "jurisdiction": "US_STATES",
+  "effective_date": "2026-01-01",
+  "states": {
+    "CA": {
+      "name": "California",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "ca_2025_540_tax_rate_schedules"
+      ],
+      "citation": "California FTB 2025 Form 540 tax rate schedules list California personal income tax brackets by filing status.",
+      "notes": "Base rate schedule only; 1% Mental Health Services Tax over $1,000,000 not modeled (MVP estimate).",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "capital_gains_treatment": "ordinary_income",
+        "standard_deduction": {
+          "single": 5706,
+          "married_filing_separately": 5706,
+          "married_filing_jointly": 11412,
+          "qualifying_surviving_spouse": 11412,
+          "head_of_household": 11412
+        },
+        "citation": "California Form 540 instructions list 2025 California standard deduction amounts. California federal-conformity guidance says California does not conform to the federal qualified business income deduction under IRC Section 199A.",
+        "source_ids": [
+          "ca_2025_540_instructions",
+          "ca_summary_federal_income_tax_changes"
+        ],
+        "notes": "State-specific Schedule CA adjustments, age/blind extra amounts, exemption credits, and other credits are not modeled."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 11079,
+            "rate": 0.01
+          },
+          {
+            "up_to": 26264,
+            "rate": 0.02
+          },
+          {
+            "up_to": 41452,
+            "rate": 0.04
+          },
+          {
+            "up_to": 57542,
+            "rate": 0.06
+          },
+          {
+            "up_to": 72724,
+            "rate": 0.08
+          },
+          {
+            "up_to": 371479,
+            "rate": 0.093
+          },
+          {
+            "up_to": 445771,
+            "rate": 0.103
+          },
+          {
+            "up_to": 742953,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 11079,
+            "rate": 0.01
+          },
+          {
+            "up_to": 26264,
+            "rate": 0.02
+          },
+          {
+            "up_to": 41452,
+            "rate": 0.04
+          },
+          {
+            "up_to": 57542,
+            "rate": 0.06
+          },
+          {
+            "up_to": 72724,
+            "rate": 0.08
+          },
+          {
+            "up_to": 371479,
+            "rate": 0.093
+          },
+          {
+            "up_to": 445771,
+            "rate": 0.103
+          },
+          {
+            "up_to": 742953,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 22158,
+            "rate": 0.01
+          },
+          {
+            "up_to": 52528,
+            "rate": 0.02
+          },
+          {
+            "up_to": 82904,
+            "rate": 0.04
+          },
+          {
+            "up_to": 115084,
+            "rate": 0.06
+          },
+          {
+            "up_to": 145448,
+            "rate": 0.08
+          },
+          {
+            "up_to": 742958,
+            "rate": 0.093
+          },
+          {
+            "up_to": 891542,
+            "rate": 0.103
+          },
+          {
+            "up_to": 1485906,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 22158,
+            "rate": 0.01
+          },
+          {
+            "up_to": 52528,
+            "rate": 0.02
+          },
+          {
+            "up_to": 82904,
+            "rate": 0.04
+          },
+          {
+            "up_to": 115084,
+            "rate": 0.06
+          },
+          {
+            "up_to": 145448,
+            "rate": 0.08
+          },
+          {
+            "up_to": 742958,
+            "rate": 0.093
+          },
+          {
+            "up_to": 891542,
+            "rate": 0.103
+          },
+          {
+            "up_to": 1485906,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 22173,
+            "rate": 0.01
+          },
+          {
+            "up_to": 52530,
+            "rate": 0.02
+          },
+          {
+            "up_to": 67716,
+            "rate": 0.04
+          },
+          {
+            "up_to": 83805,
+            "rate": 0.06
+          },
+          {
+            "up_to": 98990,
+            "rate": 0.08
+          },
+          {
+            "up_to": 505208,
+            "rate": 0.093
+          },
+          {
+            "up_to": 606251,
+            "rate": 0.103
+          },
+          {
+            "up_to": 1010417,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
+        ]
+      },
+      "state_parameter_year": 2025
+    },
+    "NY": {
+      "name": "New York",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "ny_2025_it201_instructions",
+        "ny_2025_tax_tables"
+      ],
+      "citation": "New York 2025 IT-201 instructions and tax tables list marginal tax brackets by filing status.",
+      "notes": "Marginal brackets only; tax benefit recapture above $107,650 NYAGI not modeled (estimate understates above that).",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "capital_gains_treatment": "ordinary_income",
+        "standard_deduction": {
+          "single": 8000,
+          "married_filing_separately": 8000,
+          "married_filing_jointly": 16050,
+          "qualifying_surviving_spouse": 16050,
+          "head_of_household": 11200
+        },
+        "citation": "New York 2025 IT-201 instructions list the New York State standard deduction table by filing status.",
+        "source_ids": [
+          "ny_2025_it201_instructions"
+        ],
+        "notes": "New York modifications, credits, and tax benefit recapture above $107,650 NYAGI are not modeled."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 8500,
+            "rate": 0.04
+          },
+          {
+            "up_to": 11700,
+            "rate": 0.045
+          },
+          {
+            "up_to": 13900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 80650,
+            "rate": 0.055
+          },
+          {
+            "up_to": 215400,
+            "rate": 0.06
+          },
+          {
+            "up_to": 1077550,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 8500,
+            "rate": 0.04
+          },
+          {
+            "up_to": 11700,
+            "rate": 0.045
+          },
+          {
+            "up_to": 13900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 80650,
+            "rate": 0.055
+          },
+          {
+            "up_to": 215400,
+            "rate": 0.06
+          },
+          {
+            "up_to": 1077550,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 17150,
+            "rate": 0.04
+          },
+          {
+            "up_to": 23600,
+            "rate": 0.045
+          },
+          {
+            "up_to": 27900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 161550,
+            "rate": 0.055
+          },
+          {
+            "up_to": 323200,
+            "rate": 0.06
+          },
+          {
+            "up_to": 2155350,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 17150,
+            "rate": 0.04
+          },
+          {
+            "up_to": 23600,
+            "rate": 0.045
+          },
+          {
+            "up_to": 27900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 161550,
+            "rate": 0.055
+          },
+          {
+            "up_to": 323200,
+            "rate": 0.06
+          },
+          {
+            "up_to": 2155350,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 12800,
+            "rate": 0.04
+          },
+          {
+            "up_to": 17650,
+            "rate": 0.045
+          },
+          {
+            "up_to": 20900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 107650,
+            "rate": 0.055
+          },
+          {
+            "up_to": 269300,
+            "rate": 0.06
+          },
+          {
+            "up_to": 1616450,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
+        ]
+      },
+      "state_parameter_year": 2025
+    },
+    "IL": {
+      "name": "Illinois",
+      "income_tax_type": "flat",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0.0495,
+      "source_ids": [
+        "il_2025_individual_income_tax_whats_new"
+      ],
+      "citation": "Illinois Department of Revenue 2025 individual income tax instructions state the Illinois income tax rate is 4.95%.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "capital_gains_treatment": "ordinary_income",
+        "uses_exemption_allowance": true,
+        "exemption_allowance_per_person": 2850,
+        "exemption_phaseout_agi": {
+          "single": 250000,
+          "head_of_household": 250000,
+          "married_filing_separately": 250000,
+          "qualifying_surviving_spouse": 250000,
+          "married_filing_jointly": 500000
+        },
+        "citation": "Illinois 2025 IL-1040 exemption instructions list the $2,850 exemption allowance and deny the exemption allowance above $250,000 federal AGI for non-joint filers or $500,000 for joint filers.",
+        "source_ids": [
+          "il_2025_individual_income_tax_whats_new",
+          "il_2025_il1040_step4_exemptions"
+        ],
+        "notes": "Illinois additions, subtractions such as federally-taxed retirement income, credits, and exact exemption count beyond filing status are not modeled."
+      },
+      "state_parameter_year": 2025
+    },
+    "CO": {
+      "name": "Colorado",
+      "income_tax_type": "flat",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0.044,
+      "source_ids": [
+        "co_individual_income_tax_guide"
+      ],
+      "citation": "Colorado Individual Income Tax Guide lists the 2025 Colorado income tax rate as 4.4%.",
+      "tax_base": {
+        "start_from": "federal_taxable_income",
+        "allows_qbi": false,
+        "capital_gains_treatment": "ordinary_income",
+        "qbi_addback": true,
+        "citation": "Colorado Individual Income Tax Guide states Colorado income tax is based on federal taxable income and describes a qualified business income deduction addback that may apply.",
+        "source_ids": [
+          "co_individual_income_tax_guide"
+        ],
+        "notes": "Colorado additions/subtractions are not modeled. The QBI addback has statutory conditions, including AGI and entity-specific rules; later engine steps must not treat this flag as a complete unconditional addback model without those inputs."
+      },
+      "state_parameter_year": 2025
+    },
+    "GA": {
+      "name": "Georgia",
+      "income_tax_type": "flat",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0.0519,
+      "source_ids": [
+        "ga_2025_it511_booklet"
+      ],
+      "citation": "Georgia 2025 IT-511 booklet states the 2025 income tax rate is 5.19%.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "capital_gains_treatment": "ordinary_income",
+        "standard_deduction": {
+          "single": 12000,
+          "married_filing_separately": 12000,
+          "married_filing_jointly": 24000,
+          "qualifying_surviving_spouse": 12000,
+          "head_of_household": 12000
+        },
+        "citation": "Georgia 2025 IT-511 booklet lists the 2025 standard deduction by filing status.",
+        "source_ids": [
+          "ga_2025_it511_booklet"
+        ],
+        "notes": "Georgia retirement income exclusion, additions, subtractions, and credits are not modeled."
+      },
+      "state_parameter_year": 2025
+    },
+    "FL": {
+      "name": "Florida",
+      "income_tax_type": "none",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0,
+      "source_ids": [
+        "fl_personal_income_tax_faq"
+      ],
+      "citation": "Florida Department of Revenue FAQ states Florida does not impose a personal income tax.",
+      "state_parameter_year": 2025
+    },
+    "WA": {
+      "name": "Washington",
+      "income_tax_type": "none",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0,
+      "source_ids": [
+        "wa_income_tax"
+      ],
+      "citation": "Washington Department of Revenue states Washington does not have an individual income tax.",
+      "capital_gains_excise": {
+        "rate": 0.07,
+        "surtax_rate": 0.029,
+        "surtax_threshold": 1000000,
+        "standard_deduction": 278000,
+        "long_term_only": true,
+        "citation": "Washington Department of Revenue capital gains guidance states the 2025 standard deduction is $278,000 and the tax applies to long-term capital assets; DOR's tiered-rate special notice states tax year 2025 taxable Washington capital gains are taxed at 7% on the first $1,000,000 and 9.9% above $1,000,000.",
+        "source_ids": [
+          "wa_dor_capital_gains_2025",
+          "wa_dor_capital_gains_tiered_rates_2025"
+        ],
+        "notes": "Washington capital gains tax is an excise tax, not an income tax. Real estate, retirement accounts, and certain business assets are exempt; crypto is modeled as a non-exempt long-term capital asset when long-term. Residency and Washington allocation are assumed in-state. The $1,000,000 tier is applied to taxable Washington capital gains after the standard deduction, matching the DOR special notice phrasing."
+      },
+      "state_parameter_year": 2025
+    },
+    "NV": {
+      "name": "Nevada",
+      "income_tax_type": "none",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0,
+      "source_ids": [
+        "nv_tax_notes_194"
+      ],
+      "citation": "Nevada Department of Taxation Tax Notes states Nevada does not impose an individual income tax.",
+      "state_parameter_year": 2025
+    },
+    "MA": {
+      "name": "Massachusetts",
+      "income_tax_type": "flat",
+      "status": "source_pending",
+      "effective_date": null,
+      "source_ids": [],
+      "notes": "Massachusetts official tax-rate page returned 403 during scripted archive. Do not use a Massachusetts rate until an official source is archived.",
+      "state_parameter_year": 2025
+    },
+    "TX": {
+      "name": "Texas",
+      "income_tax_type": "none",
+      "status": "source_pending",
+      "effective_date": null,
+      "source_ids": [],
+      "notes": "No official individual income tax source has been archived yet. Treat Texas state income tax as not ready for calculation despite prototype assumptions.",
+      "state_parameter_year": 2025
+    }
+  }
+}

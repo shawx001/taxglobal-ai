@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1",
+  "retrieved_at": "2026-06-03",
+  "sources": [
+    {
+      "source_id": "irs_rp_2025_32",
+      "title": "Revenue Procedure 2025-32: 2026 Inflation Adjustments",
+      "source_url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+      "source_type": "pdf",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "federal_income_tax",
+        "standard_deduction",
+        "capital_gains",
+        "qbi",
+        "feie"
+      ],
+      "local_path": "data/sources/us/2026/raw/irs_rp_2025_32_2026_inflation_adjustments.pdf",
+      "content_hash": "E9ADA115FB43A4AF5EA326CA91EDD40AB0BF29B9BE01D2C13D7B8FA96214635B",
+      "status": "archived"
+    },
+    {
+      "source_id": "ssa_press_2026",
+      "title": "SSA Contribution and Benefit Base for earnings in 2026",
+      "source_url": "https://www.ssa.gov/oact/COLA/cbb.html",
+      "source_type": "html",
+      "publisher": "Social Security Administration",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "fica",
+        "social_security_wage_base"
+      ],
+      "status": "source_verified_raw_fetch_blocked",
+      "notes": "SSA page reports the 2026 contribution and benefit base as $184,500. Raw archival fetch was blocked by SSA edge access controls; value was verified against the official SSA page via search/open tooling."
+    }
+  ]
+}

@@ -229,7 +229,7 @@ $requiredStateFilingStatuses = @(
   "head_of_household",
   "married_filing_separately"
 )
-$allowedStateTaxBaseStarts = @("federal_agi", "federal_taxable_income")
+$allowedStateTaxBaseStarts = @("federal_agi", "federal_taxable_income", "gross_income")
 foreach ($stateProp in $states.states.PSObject.Properties) {
   $state = $stateProp.Value
   $hasTaxBase = $state.PSObject.Properties.Name -contains "tax_base"
@@ -250,11 +250,11 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
   if ($state.income_tax_type -eq "none" -and $hasTaxBase) {
     throw "State $($stateProp.Name) has no income tax but has tax_base"
   }
-  if ($hasTaxBase) {
-    $taxBase = $state.tax_base
-    if ($taxBase.start_from -notin $allowedStateTaxBaseStarts) {
-      throw "State $($stateProp.Name) tax_base has unsupported start_from $($taxBase.start_from)"
-    }
+    if ($hasTaxBase) {
+      $taxBase = $state.tax_base
+      if ($taxBase.start_from -notin $allowedStateTaxBaseStarts) {
+        throw "State $($stateProp.Name) tax_base has unsupported start_from $($taxBase.start_from)"
+      }
     if (!($taxBase.allows_qbi -is [bool])) {
       throw "State $($stateProp.Name) tax_base allows_qbi must be boolean"
     }
@@ -266,10 +266,10 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
         throw "State $($stateProp.Name) tax_base has unsupported capital_gains_treatment $($taxBase.capital_gains_treatment)"
       }
     }
-    if ($taxBase.start_from -eq "federal_agi") {
-      if ($taxBase.allows_qbi -eq $true) {
-        throw "State $($stateProp.Name) federal_agi tax_base with allows_qbi=true is not modeled"
-      }
+      if ($taxBase.start_from -eq "federal_agi") {
+        if ($taxBase.allows_qbi -eq $true) {
+          throw "State $($stateProp.Name) federal_agi tax_base with allows_qbi=true is not modeled"
+        }
       $hasStandardDeduction = $taxBase.PSObject.Properties.Name -contains "standard_deduction"
       $usesExemptionAllowance = ($taxBase.PSObject.Properties.Name -contains "uses_exemption_allowance") -and $taxBase.uses_exemption_allowance
       if (!$hasStandardDeduction -and !$usesExemptionAllowance) {
@@ -296,7 +296,35 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
           }
         }
       }
-    }
+      }
+      if ($taxBase.start_from -eq "gross_income") {
+        if ($taxBase.allows_qbi -eq $true) {
+          throw "State $($stateProp.Name) gross_income tax_base with allows_qbi=true is not modeled"
+        }
+        $hasGrossExemption = $taxBase.PSObject.Properties.Name -contains "exemption_per_person"
+        $hasGrossStandardDeduction = $taxBase.PSObject.Properties.Name -contains "standard_deduction"
+        $hasNoTaxGrossThreshold = $taxBase.PSObject.Properties.Name -contains "no_tax_gross_income_threshold"
+        if ($hasGrossExemption -and $taxBase.exemption_per_person -le 0) {
+          throw "State $($stateProp.Name) gross_income exemption_per_person must be positive"
+        }
+        if ($hasNoTaxGrossThreshold) {
+          foreach ($filingStatus in $requiredStateFilingStatuses) {
+            if (!($taxBase.no_tax_gross_income_threshold.PSObject.Properties.Name -contains $filingStatus)) {
+              throw "State $($stateProp.Name) gross_income no_tax_gross_income_threshold missing filing status $filingStatus"
+            }
+            if ($taxBase.no_tax_gross_income_threshold.$filingStatus -lt 0) {
+              throw "State $($stateProp.Name) gross_income no_tax_gross_income_threshold for $filingStatus must be non-negative"
+            }
+          }
+        }
+        if ($hasGrossStandardDeduction) {
+          foreach ($filingStatus in $requiredStateFilingStatuses) {
+            if (!($taxBase.standard_deduction.PSObject.Properties.Name -contains $filingStatus)) {
+              throw "State $($stateProp.Name) gross_income standard_deduction missing filing status $filingStatus"
+            }
+          }
+        }
+      }
   }
   if ($state.PSObject.Properties.Name -contains "capital_gains_excise") {
     $capitalGainsExcise = $state.capital_gains_excise
@@ -349,10 +377,34 @@ if ($states.states.CO.tax_base.start_from -ne "federal_taxable_income") {
 if ($states.states.CO.tax_base.qbi_addback -ne $true) {
   throw "Colorado tax_base must include qbi_addback"
 }
-foreach ($stateCode in @("CA", "NY", "GA", "IL", "CO")) {
+foreach ($stateCode in @("CA", "NY", "GA", "IL", "CO", "NJ", "PA")) {
   if ($states.states.$stateCode.tax_base.capital_gains_treatment -ne "ordinary_income") {
     throw "State $stateCode must treat capital gains as ordinary income for crypto state-tax modeling"
   }
+}
+if ($states.states.NJ.tax_base.start_from -ne "gross_income") {
+  throw "New Jersey tax_base must start from gross_income"
+}
+if ($states.states.NJ.tax_base.exemption_per_person -ne 1000) {
+  throw "Unexpected NJ exemption_per_person"
+}
+if ($states.states.NJ.tax_base.no_tax_gross_income_threshold.single -ne 10000) {
+  throw "Unexpected NJ single no-tax gross income threshold"
+}
+if ($states.states.NJ.tax_base.no_tax_gross_income_threshold.married_filing_jointly -ne 20000) {
+  throw "Unexpected NJ MFJ no-tax gross income threshold"
+}
+if ($states.states.NJ.brackets.single[0].up_to -ne 20000) {
+  throw "Unexpected NJ single first bracket cap"
+}
+if ($states.states.NJ.brackets.married_filing_jointly[2].rate -ne 0.0245) {
+  throw "Unexpected NJ MFJ 2.45 percent bracket"
+}
+if ($states.states.PA.tax_base.start_from -ne "gross_income") {
+  throw "Pennsylvania tax_base must start from gross_income"
+}
+if ($states.states.PA.flat_rate -ne 0.0307) {
+  throw "Unexpected PA flat_rate"
 }
 if ($states.states.WA.capital_gains_excise.standard_deduction -ne 278000) {
   throw "Unexpected WA 2025 capital gains standard deduction"
@@ -624,6 +676,24 @@ foreach ($stateProp in $states2026.states.PSObject.Properties) {
   if ($stateProp.Value.state_parameter_year -ne 2025) {
     throw "2026 state $($stateProp.Name) must declare state_parameter_year 2025"
   }
+}
+if ($states2026.states.NJ.tax_base.start_from -ne "gross_income") {
+  throw "2026 New Jersey tax_base must start from gross_income"
+}
+if ($states2026.states.NJ.tax_base.exemption_per_person -ne 1000) {
+  throw "Unexpected 2026 NJ exemption_per_person"
+}
+if ($states2026.states.NJ.tax_base.no_tax_gross_income_threshold.single -ne 10000) {
+  throw "Unexpected 2026 NJ single no-tax gross income threshold"
+}
+if ($states2026.states.NJ.tax_base.no_tax_gross_income_threshold.married_filing_jointly -ne 20000) {
+  throw "Unexpected 2026 NJ MFJ no-tax gross income threshold"
+}
+if ($states2026.states.PA.tax_base.start_from -ne "gross_income") {
+  throw "2026 Pennsylvania tax_base must start from gross_income"
+}
+if ($states2026.states.PA.flat_rate -ne 0.0307) {
+  throw "Unexpected 2026 PA flat_rate"
 }
 
 $nexus2026 = Read-Json "data/tax_years/2026/us_nexus.json"

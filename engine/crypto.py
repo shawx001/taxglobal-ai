@@ -347,6 +347,7 @@ def _crypto_state_tax(
     try:
         base_without_gain = _state_taxable_base(
             state,
+            gross_income=other_state_income,
             federal_agi=other_state_income,
             federal_taxable_income=other_state_income,
             federal_qbi_deduction=Decimal("0"),
@@ -354,6 +355,7 @@ def _crypto_state_tax(
         )
         base_with_gain = _state_taxable_base(
             state,
+            gross_income=other_state_income + gain,
             federal_agi=other_state_income + gain,
             federal_taxable_income=other_state_income + gain,
             federal_qbi_deduction=Decimal("0"),

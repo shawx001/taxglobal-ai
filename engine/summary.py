@@ -175,6 +175,7 @@ def income_tax_summary(
     )
     taxable_before_qbi = max(Decimal("0"), adjusted_gross_income - deduction_used)
     qbi_amount = max(Decimal("0"), net_profit - above_line_deductions)
+    gross_income = w2 + net_profit + other_income + short_term_gain + long_term_gain + foreign_income
 
     qbi_result = qbi_deduction(
         qbi=qbi_amount,
@@ -230,6 +231,7 @@ def income_tax_summary(
     state_capital_gains_excise_tax = Decimal("0")
     state_citations: list[dict[str, Any]] = []
     normalized_state_code = None if state_code is None else state_code.upper()
+    state_block: dict[str, Any] | None = None
 
     if normalized_state_code:
         state_block = state_rules["states"].get(normalized_state_code)
@@ -242,6 +244,7 @@ def income_tax_summary(
             try:
                 state_taxable_base = _state_taxable_base(
                     state_block,
+                    gross_income=gross_income,
                     federal_agi=adjusted_gross_income,
                     federal_taxable_income=taxable_income,
                     federal_qbi_deduction=qbi_deduction_amount,
@@ -361,6 +364,12 @@ def income_tax_summary(
                 "in-state, matching the crypto module's state excise treatment.",
             ]
         )
+    if state_block and state_block.get("tax_base", {}).get("start_from") == "gross_income":
+        assumptions.append(
+            "Gross-income state taxable bases use federal above-line-deduction-before gross income as an MVP proxy; "
+            "state-specific income categories, pension exclusions, classified-loss rules, deductions, credits, and "
+            "resident/source allocation are not modeled."
+        )
     if normalized_state_code == "IL":
         assumptions.append(
             "Illinois exemption allowance assumes MFJ has two exemptions and all other filing statuses have one."
@@ -383,6 +392,7 @@ def income_tax_summary(
         "additional_medicare_tax": _money_decimal(additional_medicare_tax),
         "deductible_half_se_tax": _money_decimal(deductible_half_se_tax),
         "total_payroll_tax": _money_decimal(total_payroll_tax),
+        "gross_income": _money_decimal(gross_income),
         "adjusted_gross_income": _money_decimal(adjusted_gross_income),
         "deduction_used": _money_decimal(deduction_used),
         "taxable_before_qbi": _money_decimal(taxable_before_qbi),
@@ -410,6 +420,7 @@ def income_tax_summary(
         {"label": "long_term_capital_gain", "amount": _money_decimal(long_term_gain)},
         {"label": "deductible_half_se_tax", "amount": _money_decimal(deductible_half_se_tax)},
         {"label": "above_line_deductions", "amount": _money_decimal(above_line_deductions)},
+        {"label": "gross_income", "amount": _money_decimal(gross_income)},
         {"label": "adjusted_gross_income", "amount": _money_decimal(adjusted_gross_income)},
         {"label": "deduction_used", "amount": _money_decimal(deduction_used)},
         {"label": "taxable_before_qbi", "amount": _money_decimal(taxable_before_qbi)},
@@ -450,6 +461,7 @@ def income_tax_summary(
             "modified_agi": None if modified_agi_value is None else _money_decimal(modified_agi_value),
             "se_health_insurance": _money_decimal(health_insurance),
             "retirement_contributions": _money_decimal(retirement),
+            "gross_income": _money_decimal(gross_income),
             "qbi_w2_wages": _money_decimal(qbi_w2),
             "qbi_ubia": _money_decimal(ubia),
             "deduction": _money_decimal(deduction_used),

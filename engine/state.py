@@ -137,6 +137,7 @@ def state_capital_gains_excise(
 def _state_taxable_base(
     state_block: dict[str, Any],
     *,
+    gross_income: Decimal,
     federal_agi: Decimal,
     federal_taxable_income: Decimal,
     federal_qbi_deduction: Decimal,
@@ -149,6 +150,23 @@ def _state_taxable_base(
         return federal_taxable_income
 
     start_from = tax_base["start_from"]
+    if start_from == "gross_income":
+        if tax_base.get("no_tax_gross_income_threshold"):
+            no_tax_threshold = _decimal_rule(tax_base["no_tax_gross_income_threshold"][filing])
+            if gross_income <= no_tax_threshold:
+                return Decimal("0")
+        base = gross_income
+        if tax_base.get("exemption_per_person"):
+            exemption_count = (
+                Decimal("2")
+                if filing in {"married_filing_jointly", "qualifying_surviving_spouse"}
+                else Decimal("1")
+            )
+            base -= _decimal_rule(tax_base["exemption_per_person"]) * exemption_count
+        elif tax_base.get("standard_deduction"):
+            base -= _decimal_rule(tax_base["standard_deduction"][filing])
+        return max(Decimal("0"), base)
+
     if start_from == "federal_taxable_income":
         addback = federal_qbi_deduction if tax_base.get("qbi_addback") else Decimal("0")
         return max(Decimal("0"), federal_taxable_income + addback)

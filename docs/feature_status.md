@@ -26,6 +26,7 @@
 | `income_tax_summary` REQ-009 Block 2（资本利得 + NIIT 合并） | ✅ | 2.8 | `step2_8_design_combined_block2_capital_gains.md` | `this PR` | Rev. Proc. 2024-40 / IRS Topic 409/559 |
 | `income_tax_summary` REQ-009 Block 3（FEIE 税率叠加） | ✅ | 2.9 | `step2_9_design_combined_block3_feie.md` | `this PR` | IRS Form 2555 / §911 / §1411 |
 | `income_tax_summary` Step B1（WA capital gains excise 接入总税） | ✅ | Step B1 | `step_b1_design_wa_capital_gains_excise.md` | `this PR` | WA DOR capital gains |
+| `income_tax_summary` Step B2（NJ/PA gross-income 州所得税） | ✅ | Step B2 | `step_b2_design_nj_pa_states.md` | `this PR` | NJ Division of Taxation / PA DOR |
 
 ## B. 规则数据层（"大脑只信的真相源"）
 
@@ -100,6 +101,7 @@
 | Step A 2026 税年数据集 | `tax_year_2026_design.md` | `tax_year_2026.md` |
 | Step A.5 引擎模块化重构 | `step_a5_design_engine_modularization.md` | `step_a5_engine_modularization.md` |
 | Step B1 WA capital gains excise 合并计税 | `step_b1_design_wa_capital_gains_excise.md` | `step_b1_wa_excise.md` |
+| Step B2 NJ + PA gross-income 州所得税 | `step_b2_design_nj_pa_states.md` | `step_b2_nj_pa.md` |
 
 流程/标准类：`engineering_process.md`、`phase1_define_us_mvp.md`、`coding_standards.md`、`code_review_checklist.md`、`feature_status.md`（本文件）。
 

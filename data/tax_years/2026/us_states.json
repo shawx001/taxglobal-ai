@@ -449,6 +449,226 @@
       },
       "state_parameter_year": 2025
     },
+    "NJ": {
+      "name": "New Jersey",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "nj_dor_tax_rate_schedules_2025",
+        "nj_dor_gross_income_tax_overview_2025"
+      ],
+      "citation": "New Jersey Division of Taxation gross income tax overview says New Jersey has a graduated income tax rate and the tax rate schedules list brackets by filing status.",
+      "notes": "Gross income tax approximation only; pension exclusions, medical deductions, credits, and other New Jersey-specific deductions are not modeled.",
+      "tax_base": {
+        "start_from": "gross_income",
+        "allows_qbi": false,
+        "capital_gains_treatment": "ordinary_income",
+        "no_tax_gross_income_threshold": {
+          "single": 10000,
+          "married_filing_separately": 10000,
+          "married_filing_jointly": 20000,
+          "head_of_household": 20000,
+          "qualifying_surviving_spouse": 20000
+        },
+        "exemption_per_person": 1000,
+        "citation": "New Jersey gross income tax overview says filers at or below the annual filing-status income thresholds pay no tax, and lists a $1,000 taxpayer exemption plus a $1,000 spouse/civil union partner exemption when not filing separately.",
+        "source_ids": [
+          "nj_dor_gross_income_tax_overview_2025"
+        ],
+        "notes": "The MVP uses federal above-line-deduction-before gross income as a proxy for New Jersey gross income. New Jersey-specific income categories, pension exclusions, medical deductions, property tax deduction, dependent exemptions, age/blind exemptions, credits, and residency allocation are not modeled. Qualifying surviving spouse is modeled as MFJ-equivalent (Rate Schedule II plus two $1,000 exemptions) consistent with its surviving-spouse continuation purpose; the exact NJ QSS personal-exemption count is not authoritatively confirmed."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 35000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 40000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 75000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 35000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 40000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 75000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 50000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 70000,
+            "rate": 0.0245
+          },
+          {
+            "up_to": 80000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 50000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 70000,
+            "rate": 0.0245
+          },
+          {
+            "up_to": 80000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 50000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 70000,
+            "rate": 0.0245
+          },
+          {
+            "up_to": 80000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ]
+      },
+      "state_parameter_year": 2025
+    },
+    "PA": {
+      "name": "Pennsylvania",
+      "income_tax_type": "flat",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0.0307,
+      "source_ids": [
+        "pa_dor_pit_rate",
+        "pa_dor_pit_overview"
+      ],
+      "citation": "Pennsylvania Department of Revenue personal income tax rate page lists the rate as 3.07% from 2004-present.",
+      "notes": "Pennsylvania class-of-income loss rules, exclusions, deductions, credits, local earned income taxes, and residency allocation are not modeled.",
+      "tax_base": {
+        "start_from": "gross_income",
+        "allows_qbi": false,
+        "capital_gains_treatment": "ordinary_income",
+        "citation": "Pennsylvania Department of Revenue personal income tax overview says Pennsylvania personal income tax is levied at 3.07% against taxable income and taxes eight classes of income. This MVP uses gross income as the PA taxable income proxy.",
+        "source_ids": [
+          "pa_dor_pit_rate",
+          "pa_dor_pit_overview"
+        ],
+        "notes": "The MVP approximates Pennsylvania taxable income as federal above-line-deduction-before gross income. Pennsylvania class-of-income loss rules, deductions, exclusions, credits, and local income taxes are not modeled."
+      },
+      "state_parameter_year": 2025
+    },
     "IL": {
       "name": "Illinois",
       "income_tax_type": "flat",

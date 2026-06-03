@@ -124,6 +124,65 @@
         "long_term_capital_gains_tax": 0.00,
         "state_capital_gains_excise": 0.00
       }
+    },
+    {
+      "name": "default_2026_nj_w2_150k_single_gross_income_base",
+      "input": {"w2_wages": 150000, "filing_status": "single", "state_code": "NJ"},
+      "expected": {
+        "status": "ok",
+        "gross_income": 150000.00,
+        "federal_income_tax": 24734.00,
+        "total_payroll_tax": 11475.00,
+        "state_taxable_base": 149000.00,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "NJ",
+          "tax": 7365.05,
+          "income_tax_type": "progressive"
+        },
+        "total_tax": 43574.05,
+        "citation_source_ids": ["nj_dor_tax_rate_schedules_2025", "nj_dor_gross_income_tax_overview_2025"],
+        "assumption_contains": "Gross-income state taxable bases"
+      }
+    },
+    {
+      "name": "default_2026_pa_w2_150k_single_gross_income_base",
+      "input": {"w2_wages": 150000, "filing_status": "single", "state_code": "PA"},
+      "expected": {
+        "status": "ok",
+        "gross_income": 150000.00,
+        "federal_income_tax": 24734.00,
+        "total_payroll_tax": 11475.00,
+        "state_taxable_base": 150000.00,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "PA",
+          "tax": 4605.00,
+          "rate": 0.0307
+        },
+        "total_tax": 40814.00,
+        "citation_source_ids": ["pa_dor_pit_rate", "pa_dor_pit_overview"]
+      }
+    },
+    {
+      "name": "default_2026_nj_w2_100k_long_term_gain_50k_single",
+      "input": {"w2_wages": 100000, "long_term_capital_gain": 50000, "filing_status": "single", "state_code": "NJ"},
+      "expected": {
+        "status": "ok",
+        "gross_income": 150000.00,
+        "ordinary_taxable_income": 83900.00,
+        "federal_income_tax": 13170.00,
+        "long_term_capital_gains_tax": 7500.00,
+        "net_investment_income_tax": 0.00,
+        "total_payroll_tax": 7650.00,
+        "state_taxable_base": 149000.00,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "NJ",
+          "tax": 7365.05
+        },
+        "total_tax": 35685.05
+      }
     }
   ]
 }

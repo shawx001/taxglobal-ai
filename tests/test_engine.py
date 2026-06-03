@@ -525,11 +525,122 @@ class EngineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "allows_qbi=true is not modeled"):
             _state_taxable_base(
                 state_block,
+                gross_income=100_000,
                 federal_agi=100_000,
                 federal_taxable_income=80_000,
                 federal_qbi_deduction=10_000,
                 filing="single",
             )
+
+    def test_state_taxable_base_gross_income_exemption_per_person(self):
+        nj = load_state_rules(2026)["states"]["NJ"]
+
+        self.assertEqual(
+            _state_taxable_base(
+                nj,
+                gross_income=150_000,
+                federal_agi=140_000,
+                federal_taxable_income=120_000,
+                federal_qbi_deduction=0,
+                filing="single",
+            ),
+            149_000,
+        )
+        self.assertEqual(
+            _state_taxable_base(
+                nj,
+                gross_income=150_000,
+                federal_agi=140_000,
+                federal_taxable_income=120_000,
+                federal_qbi_deduction=0,
+                filing="married_filing_jointly",
+            ),
+            148_000,
+        )
+        self.assertEqual(
+            _state_taxable_base(
+                nj,
+                gross_income=150_000,
+                federal_agi=140_000,
+                federal_taxable_income=120_000,
+                federal_qbi_deduction=0,
+                filing="qualifying_surviving_spouse",
+            ),
+            148_000,
+        )
+        self.assertEqual(
+            _state_taxable_base(
+                nj,
+                gross_income=10_000,
+                federal_agi=10_000,
+                federal_taxable_income=0,
+                federal_qbi_deduction=0,
+                filing="single",
+            ),
+            0,
+        )
+        self.assertEqual(
+            _state_taxable_base(
+                nj,
+                gross_income=20_000,
+                federal_agi=20_000,
+                federal_taxable_income=0,
+                federal_qbi_deduction=0,
+                filing="married_filing_jointly",
+            ),
+            0,
+        )
+
+    def test_income_tax_summary_nj_w2_uses_gross_income_tax_base(self):
+        result = income_tax_summary(w2_wages=150_000, filing_status="single", state_code="NJ")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["gross_income"], 150_000.00)
+        self.assertEqual(result["result"]["state_taxable_base"], 149_000.00)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 7_365.05)
+        self.assertEqual(result["result"]["total_tax"], 43_574.05)
+        self.assertIn("Gross-income state taxable bases", "\n".join(result["assumptions"]))
+
+    def test_income_tax_summary_pa_w2_uses_gross_income_flat_tax_base(self):
+        result = income_tax_summary(w2_wages=150_000, filing_status="single", state_code="PA")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["gross_income"], 150_000.00)
+        self.assertEqual(result["result"]["state_taxable_base"], 150_000.00)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 4_605.00)
+        self.assertEqual(result["result"]["total_tax"], 40_814.00)
+
+    def test_income_tax_summary_nj_treats_long_term_capital_gain_as_ordinary_state_income(self):
+        result = income_tax_summary(w2_wages=100_000, long_term_capital_gain=50_000, state_code="NJ")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["gross_income"], 150_000.00)
+        self.assertEqual(result["result"]["state_taxable_base"], 149_000.00)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 7_365.05)
+
+    def test_income_tax_summary_nj_low_income_threshold_pays_no_state_income_tax(self):
+        result = income_tax_summary(w2_wages=10_000, filing_status="single", state_code="NJ")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["gross_income"], 10_000.00)
+        self.assertEqual(result["result"]["state_taxable_base"], 0.00)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 0.00)
+
+    def test_income_tax_summary_gross_income_state_includes_feie_excluded_income(self):
+        result = income_tax_summary(
+            foreign_earned_income=50_000,
+            days_abroad=330,
+            filing_status="single",
+            state_code="NJ",
+            tax_year=2026,
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["adjusted_gross_income"], 0.00)
+        self.assertEqual(result["result"]["feie_excluded_income"], 50_000.00)
+        self.assertEqual(result["result"]["gross_income"], 50_000.00)
+        self.assertEqual(result["result"]["state_taxable_base"], 49_000.00)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 1_214.75)
 
     def test_nexus_ca_equal_threshold_uses_strict_greater_than(self):
         result = nexus_estimate("CA", 500_000, tax_year=2025)

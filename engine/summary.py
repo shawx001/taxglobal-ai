@@ -334,12 +334,11 @@ def income_tax_summary(
         assumptions.extend(feie_assumptions)
         assumptions.extend(
             [
-                "FEIE rate stacking is applied by placing excluded foreign earned income below the non-excluded "
-                "ordinary taxable income in the federal brackets.",
+                "FEIE rate stacking (Foreign Earned Income Tax Worksheet) places the excluded foreign earned "
+                "income below BOTH the non-excluded ordinary taxable income and the long-term capital gains, so "
+                "the preferential 0%/15%/20% rates stack on top of the excluded income.",
                 "Most states do not conform to the federal FEIE; this MVP uses the stored state AGI tax_base path "
                 "and does not model state-specific foreign earned income adjustments.",
-                "When FEIE and large long-term capital gains coexist, the IRS combined Foreign Earned Income and "
-                "QDCGT worksheets may differ from this MVP stacking simplification.",
                 "Foreign earned income is assumed not to be subject to US FICA or self-employment tax in this "
                 "summary; foreign self-employment and totalization agreements are not modeled.",
                 "Foreign housing exclusion, bona fide residence testing, FTC, and passive foreign income are not "

@@ -272,7 +272,7 @@
         "net_investment_income_tax": 0.00,
         "total_tax": 13200.00,
         "citation_source_ids": ["irs_feie_figuring_exclusion", "irs_i2555_2025"],
-        "assumption_contains": "FEIE rate stacking is applied"
+        "assumption_contains": "FEIE rate stacking"
       }
     },
     {

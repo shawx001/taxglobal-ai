@@ -10,9 +10,7 @@ Goal: move the e-commerce Nexus monitor from frontend hard-coded thresholds and 
 - Rendered each state row from backend fields:
   - `threshold.sales_amount`
   - `status_label`
-  - `exceeded`
-  - `approaching`
-  - citations
+  - `citations`
 - Removed the frontend `STATE_THR` hard-coded threshold table.
 - Removed the fake `sales * 0.0725` "estimated tax due" calculation.
 - Not-covered or failed state calls now render an honest "nexus rules not covered" row with no fake threshold or percent.
@@ -45,6 +43,6 @@ Goal: move the e-commerce Nexus monitor from frontend hard-coded thresholds and 
 
 ## Known Limits
 
-- `renderNexus()` does not invent transaction counts when the demo store data lacks them; states with transaction-count requirements rely on the backend's existing no-transaction-count behavior.
+- `renderNexus()` does not invent transaction counts when the demo store data lacks them; for states with a transaction-count requirement (e.g. NY `amount_and_transactions`) the row shows an explicit "交易笔数数据缺失，无法确认是否已触发" note so a >100% sales bar is not mistaken for a confirmed trigger.
 - This step only judges registration obligation. Sales tax amount calculation remains out of scope.
 - Remaining REQ-003 cleanup waits for the old 6-country comparison and W-2/prototype tax paths to migrate off frontend state-tax helpers.

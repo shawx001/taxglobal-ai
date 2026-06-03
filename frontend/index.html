@@ -1893,7 +1893,9 @@ async function renderNexus(){
       const meta=nexusStatusMeta(n.result.status_label);
       const pct=Number.isFinite(n.pct)?n.pct:0;
       const cite=taxCitations(n.resp.citations);
-      const note=meta.note+nexusWeeksNote(n.sales,n.thrK,n.result.status_label);
+      const needsTxCount=n.result.threshold&&n.result.threshold.transaction_count!=null&&(!n.result.inputs||n.result.inputs.transaction_count==null);
+      const txNote=needsTxCount?' · 该州还要求交易笔数阈值，但当前无交易笔数数据，无法确认是否已触发':'';
+      const note=meta.note+txNote+nexusWeeksNote(n.sales,n.thrK,n.result.status_label);
       return `<div class="nexus-row">
         <div class="nexus-state">${escapeHtml(n.st)}</div>
         <div class="nexus-bar-wrap"><div class="nexus-bar"><div class="nexus-bar-fill" style="width:${Math.min(100,pct)}%;background:${meta.color}"></div></div>
@@ -1910,8 +1912,8 @@ async function renderNexus(){
     const triggered=top.result.status_label==='triggered';
     alert.style.display='flex';
     document.getElementById('nexusAlertBody').innerHTML=
-      `<div class="alert-title">${top.st} Nexus ${triggered?'已触发':'即将触发'}（独立站销售）</div>
-       <div class="alert-text">${top.st}需自行申报的销售额已达 <strong>$${f(top.sales)}K / $${f(top.thrK)}K（${pct.toFixed(0)}%）</strong>，${triggered?'已超过经济 Nexus 阈值':'已接近经济 Nexus 阈值'} ${taxCitations(top.resp.citations)}。建议尽快注册该州销售税账户并准备申报；本模块只判定注册义务,不估算应缴销售税额。</div>`;
+      `<div class="alert-title">${escapeHtml(top.st)} Nexus ${triggered?'已触发':'即将触发'}（独立站销售）</div>
+       <div class="alert-text">${escapeHtml(top.st)}需自行申报的销售额已达 <strong>$${f(top.sales)}K / $${f(top.thrK)}K（${pct.toFixed(0)}%）</strong>，${triggered?'已超过经济 Nexus 阈值':'已接近经济 Nexus 阈值'} ${taxCitations(top.resp.citations)}。建议尽快注册该州销售税账户并准备申报；本模块只判定注册义务,不估算应缴销售税额。</div>`;
   } else alert.style.display='none';
   // 指标
   const totSales=Object.values(totalAgg).reduce((a,b)=>a+b,0);

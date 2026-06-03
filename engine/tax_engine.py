@@ -125,6 +125,18 @@ def _citations(*items: dict[str, Any]) -> list[dict[str, Any]]:
     return citations
 
 
+def _merge_citations(*citation_lists: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    citations: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for citation_list in citation_lists:
+        for citation in citation_list:
+            key = (citation.get("source_id", ""), citation.get("citation", ""))
+            if key not in seen:
+                citations.append(citation)
+                seen.add(key)
+    return citations
+
+
 def _bracket_tax_decimal(taxable_income: Decimal, brackets: list[dict[str, Any]]) -> Decimal:
     taxable = max(Decimal("0"), taxable_income)
     tax = Decimal("0")
@@ -166,6 +178,20 @@ def _decimal_input(value: Any, field_name: str) -> Decimal:
         return Decimal(str(value))
     except Exception as exc:
         raise ValueError(f"{field_name} must be numeric") from exc
+
+
+def _summary_rule_version(
+    tax_year: int,
+    federal_rules: dict[str, Any],
+    fica_rules: dict[str, Any],
+    qbi_rules: dict[str, Any],
+    state_rules: dict[str, Any],
+) -> str:
+    return (
+        f"us-{tax_year}-income-summary-v0.1+"
+        f"{federal_rules['rule_version']}+{fica_rules['rule_version']}+"
+        f"{qbi_rules['rule_version']}+{state_rules['rule_version']}"
+    )
 
 
 def bracket_tax(taxable_income: float, brackets: list[dict[str, Any]]) -> float:
@@ -602,6 +628,266 @@ def state_income_tax(
         rule_version=rules["rule_version"],
         citations=_citations(state),
         reason=f"State {code} income_tax_type {tax_type} is not implemented.",
+    )
+
+
+def _state_taxable_base(
+    state_block: dict[str, Any],
+    *,
+    federal_agi: Decimal,
+    federal_taxable_income: Decimal,
+    federal_qbi_deduction: Decimal,
+    filing: str,
+) -> Decimal:
+    """Calculate state taxable base from stored state tax_base data."""
+
+    tax_base = state_block.get("tax_base")
+    if tax_base is None:
+        return federal_taxable_income
+
+    start_from = tax_base["start_from"]
+    if start_from == "federal_taxable_income":
+        addback = federal_qbi_deduction if tax_base.get("qbi_addback") else Decimal("0")
+        return max(Decimal("0"), federal_taxable_income + addback)
+
+    if start_from != "federal_agi":
+        raise ValueError(f"Unsupported state tax_base start_from: {start_from}")
+    if tax_base.get("allows_qbi"):
+        raise ValueError("federal_agi tax_base with allows_qbi=true is not modeled")
+
+    if tax_base.get("uses_exemption_allowance"):
+        exemption_count = Decimal("2") if filing == "married_filing_jointly" else Decimal("1")
+        phaseout = _decimal_rule(tax_base["exemption_phaseout_agi"][filing])
+        allowance = Decimal("0")
+        if federal_agi <= phaseout:
+            allowance = _decimal_rule(tax_base["exemption_allowance_per_person"]) * exemption_count
+        return max(Decimal("0"), federal_agi - allowance)
+
+    standard_deduction = _decimal_rule(tax_base["standard_deduction"][filing])
+    return max(Decimal("0"), federal_agi - standard_deduction)
+
+
+def income_tax_summary(
+    net_self_employment_profit: float = 0.0,
+    other_ordinary_income: float = 0.0,
+    filing_status: str = "single",
+    state_code: str | None = None,
+    se_health_insurance: float = 0.0,
+    retirement_contributions: float = 0.0,
+    qbi_w2_wages: float = 0.0,
+    qbi_ubia: float = 0.0,
+    is_sstb: bool = False,
+    deduction: float | None = None,
+    tax_year: int = 2025,
+) -> dict[str, Any]:
+    """Combine self-employment, QBI, federal, and state income tax for self-employment income."""
+
+    raw_input = {
+        "net_self_employment_profit": net_self_employment_profit,
+        "other_ordinary_income": other_ordinary_income,
+        "filing_status": filing_status,
+        "state_code": None if state_code is None else state_code.upper(),
+        "se_health_insurance": se_health_insurance,
+        "retirement_contributions": retirement_contributions,
+        "qbi_w2_wages": qbi_w2_wages,
+        "qbi_ubia": qbi_ubia,
+        "is_sstb": is_sstb,
+        "deduction": deduction,
+        "tax_year": tax_year,
+    }
+    federal_rules = load_federal_rules(tax_year)
+    fica_rules = load_fica_rules(tax_year)
+    qbi_rules = load_qbi_rules(tax_year)
+    state_rules = load_state_rules(tax_year)
+    rule_version = _summary_rule_version(tax_year, federal_rules, fica_rules, qbi_rules, state_rules)
+
+    base_citations = _merge_citations(
+        _citations(federal_rules["standard_deduction"], federal_rules["ordinary_income_brackets"]),
+        _citations(
+            fica_rules["social_security"],
+            fica_rules["medicare"],
+            fica_rules["additional_medicare"],
+            fica_rules["self_employment"],
+        ),
+        _citations(qbi_rules["qbi_deduction"], qbi_rules["qbi_deduction"].get("wage_ubia_limit", {})),
+    )
+
+    try:
+        filing = _normalize_filing_status(filing_status)
+        net_profit = max(Decimal("0"), _decimal_input(net_self_employment_profit, "net_self_employment_profit"))
+        other_income = max(Decimal("0"), _decimal_input(other_ordinary_income, "other_ordinary_income"))
+        health_insurance = max(Decimal("0"), _decimal_input(se_health_insurance, "se_health_insurance"))
+        retirement = max(Decimal("0"), _decimal_input(retirement_contributions, "retirement_contributions"))
+        w2_wages = max(Decimal("0"), _decimal_input(qbi_w2_wages, "qbi_w2_wages"))
+        ubia = max(Decimal("0"), _decimal_input(qbi_ubia, "qbi_ubia"))
+        deduction_used = (
+            _decimal_rule(federal_rules["standard_deduction"][filing])
+            if deduction is None
+            else max(Decimal("0"), _decimal_input(deduction, "deduction"))
+        )
+    except ValueError as exc:
+        return _invalid_input(
+            input_data=raw_input,
+            rule_version=rule_version,
+            reason=str(exc),
+            citations=base_citations,
+        )
+
+    se_result = self_employment_tax(net_profit, filing, tax_year)
+    se_tax = _decimal_rule(se_result["result"]["self_employment_tax"])
+    additional_medicare_tax = _decimal_rule(se_result["result"]["additional_medicare_tax"])
+    deductible_half_se_tax = _decimal_rule(se_result["result"]["deductible_half_se_tax"])
+
+    above_line_deductions = deductible_half_se_tax + health_insurance + retirement
+    adjusted_gross_income = max(Decimal("0"), net_profit + other_income - above_line_deductions)
+    taxable_before_qbi = max(Decimal("0"), adjusted_gross_income - deduction_used)
+    qbi_amount = max(Decimal("0"), adjusted_gross_income - other_income)
+
+    qbi_result = qbi_deduction(
+        qbi=qbi_amount,
+        taxable_income=taxable_before_qbi,
+        filing_status=filing,
+        w2_wages=w2_wages,
+        ubia=ubia,
+        is_sstb=is_sstb,
+        tax_year=tax_year,
+    )
+    if qbi_result["status"] != "ok":
+        return _invalid_input(
+            input_data={**raw_input, "filing_status": filing},
+            rule_version=rule_version,
+            reason=f"QBI deduction failed: {qbi_result['reason']}",
+            citations=_merge_citations(base_citations, qbi_result["citations"]),
+            assumptions=qbi_result["assumptions"],
+        )
+    qbi_deduction_amount = _decimal_rule(qbi_result["result"]["deduction"])
+
+    taxable_income = max(Decimal("0"), taxable_before_qbi - qbi_deduction_amount)
+    federal_income_tax_amount = _bracket_tax_decimal(
+        taxable_income,
+        federal_rules["ordinary_income_brackets"][filing],
+    )
+
+    state_taxable_base = taxable_income
+    state_result = None
+    state_tax = Decimal("0")
+    state_income_tax_result: dict[str, Any] | None = None
+    state_citations: list[dict[str, Any]] = []
+    normalized_state_code = None if state_code is None else state_code.upper()
+
+    if normalized_state_code:
+        state_block = state_rules["states"].get(normalized_state_code)
+        state_tax_base_citations = _citations(state_block.get("tax_base", {})) if state_block else []
+        if (
+            state_block
+            and state_block.get("status") == "effective"
+            and state_block.get("income_tax_type") in {"flat", "progressive"}
+        ):
+            try:
+                state_taxable_base = _state_taxable_base(
+                    state_block,
+                    federal_agi=adjusted_gross_income,
+                    federal_taxable_income=taxable_income,
+                    federal_qbi_deduction=qbi_deduction_amount,
+                    filing=filing,
+                )
+            except ValueError as exc:
+                return _invalid_input(
+                    input_data={**raw_input, "filing_status": filing},
+                    rule_version=rule_version,
+                    reason=str(exc),
+                    citations=base_citations,
+                )
+
+        state_result = state_income_tax(normalized_state_code, state_taxable_base, filing, tax_year)
+        state_citations = _merge_citations(state_result["citations"], state_tax_base_citations)
+        if state_result["status"] == "ok":
+            state_tax = _decimal_rule(state_result["result"]["tax"])
+            state_income_tax_result = {
+                **state_result["result"],
+                "status": "ok",
+            }
+        else:
+            state_income_tax_result = {
+                "status": state_result["status"],
+                "not_covered": True,
+                "tax": 0.00,
+                "reason": state_result["reason"],
+            }
+
+    total_tax = se_tax + additional_medicare_tax + federal_income_tax_amount + state_tax
+    quarterly_estimate = total_tax / Decimal("4")
+
+    assumptions = [
+        "Self-employment summary combines stored SE tax, QBI, federal ordinary income, and state income tax rules.",
+        "State taxable bases use stored tax_base data for start point, state standard deduction or exemption "
+        "allowance, and QBI conformity where available.",
+        "State-specific residual adjustments are not modeled, including NY tax benefit recapture above $107,650 "
+        "NYAGI, IL/GA retirement subtractions, CA Schedule CA adjustments, age/blind additional amounts, "
+        "state credits, and dependent-specific IL exemption counts.",
+        "NIIT is not applied to active self-employment income in this summary.",
+        "Self-employment health insurance and retirement contributions are caller-provided above-line deductions.",
+    ]
+    if state_result is not None and state_result["status"] != "ok":
+        assumptions.append(
+            "State income tax is not covered for the requested state; total tax includes federal and SE tax only."
+        )
+    if normalized_state_code == "IL":
+        assumptions.append(
+            "Illinois exemption allowance assumes MFJ has two exemptions and all other filing statuses have one."
+        )
+    if normalized_state_code == "CO" and state_result is not None and state_result["status"] == "ok":
+        assumptions.append(
+            "Colorado QBI addback is applied from stored tax_base data, but Colorado-specific statutory conditions "
+            "for that addback are not fully modeled in this summary."
+        )
+
+    result = {
+        "self_employment_tax": _money_decimal(se_tax),
+        "additional_medicare_tax": _money_decimal(additional_medicare_tax),
+        "deductible_half_se_tax": _money_decimal(deductible_half_se_tax),
+        "adjusted_gross_income": _money_decimal(adjusted_gross_income),
+        "deduction_used": _money_decimal(deduction_used),
+        "taxable_before_qbi": _money_decimal(taxable_before_qbi),
+        "qbi_deduction": _money_decimal(qbi_deduction_amount),
+        "taxable_income": _money_decimal(taxable_income),
+        "state_taxable_base": None if normalized_state_code is None else _money_decimal(state_taxable_base),
+        "state_income_tax": state_income_tax_result,
+        "federal_income_tax": _money_decimal(federal_income_tax_amount),
+        "total_tax": _money_decimal(total_tax),
+        "quarterly_estimate": _money_decimal(quarterly_estimate),
+    }
+
+    return _response(
+        status="ok",
+        input_data={
+            **raw_input,
+            "filing_status": filing,
+            "net_self_employment_profit": _money_decimal(net_profit),
+            "other_ordinary_income": _money_decimal(other_income),
+            "se_health_insurance": _money_decimal(health_insurance),
+            "retirement_contributions": _money_decimal(retirement),
+            "qbi_w2_wages": _money_decimal(w2_wages),
+            "qbi_ubia": _money_decimal(ubia),
+            "deduction": _money_decimal(deduction_used),
+        },
+        result=result,
+        breakdown=[
+            {"label": "net_self_employment_profit", "amount": _money_decimal(net_profit)},
+            {"label": "deductible_half_se_tax", "amount": _money_decimal(deductible_half_se_tax)},
+            {"label": "above_line_deductions", "amount": _money_decimal(above_line_deductions)},
+            {"label": "adjusted_gross_income", "amount": _money_decimal(adjusted_gross_income)},
+            {"label": "deduction_used", "amount": _money_decimal(deduction_used)},
+            {"label": "taxable_before_qbi", "amount": _money_decimal(taxable_before_qbi)},
+            {"label": "qbi_deduction", "amount": _money_decimal(qbi_deduction_amount)},
+            {"label": "taxable_income", "amount": _money_decimal(taxable_income)},
+            {"label": "federal_income_tax", "amount": _money_decimal(federal_income_tax_amount)},
+            {"label": "state_income_tax", "amount": _money_decimal(state_tax)},
+            {"label": "total_tax", "amount": _money_decimal(total_tax)},
+        ],
+        rule_version=rule_version,
+        citations=_merge_citations(base_citations, state_citations),
+        assumptions=assumptions,
     )
 
 

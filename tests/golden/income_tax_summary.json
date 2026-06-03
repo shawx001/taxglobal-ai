@@ -1,0 +1,140 @@
+{
+  "schema_version": "0.1",
+  "function": "income_tax_summary",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "self_employment_100k_fl",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "FL"},
+      "expected": {
+        "status": "ok",
+        "self_employment_tax": 14129.55,
+        "additional_medicare_tax": 0.00,
+        "deductible_half_se_tax": 7064.78,
+        "adjusted_gross_income": 92935.22,
+        "deduction_used": 15000.00,
+        "taxable_before_qbi": 77935.22,
+        "qbi_deduction": 15587.04,
+        "taxable_income": 62348.18,
+        "federal_income_tax": 8630.60,
+        "state_taxable_base": 62348.18,
+        "state_income_tax": {"status": "ok", "state": "FL", "tax": 0.00, "rate": 0.00},
+        "total_tax": 22760.15,
+        "quarterly_estimate": 5690.04,
+        "citation_source_ids": ["irs_rp_2024_40", "irs_qbi_deduction", "fl_personal_income_tax_faq"],
+        "assumption_contains": "State taxable bases use stored tax_base data"
+      }
+    },
+    {
+      "name": "self_employment_100k_wa",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "WA"},
+      "expected": {
+        "status": "ok",
+        "state_income_tax": {"status": "ok", "state": "WA", "tax": 0.00, "rate": 0.00},
+        "total_tax": 22760.15
+      }
+    },
+    {
+      "name": "self_employment_100k_nv",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "NV"},
+      "expected": {
+        "status": "ok",
+        "state_income_tax": {"status": "ok", "state": "NV", "tax": 0.00, "rate": 0.00},
+        "total_tax": 22760.15
+      }
+    },
+    {
+      "name": "self_employment_100k_ca",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "CA"},
+      "expected": {
+        "status": "ok",
+        "state_taxable_base": 87229.22,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "CA",
+          "tax": 4550.96,
+          "income_tax_type": "progressive"
+        },
+        "total_tax": 27311.11,
+        "citation_source_ids": [
+          "ca_2025_540_tax_rate_schedules",
+          "ca_2025_540_instructions",
+          "ca_summary_federal_income_tax_changes"
+        ]
+      }
+    },
+    {
+      "name": "self_employment_100k_ny",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "NY"},
+      "expected": {
+        "status": "ok",
+        "state_taxable_base": 84935.22,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "NY",
+          "tax": 4527.86,
+          "income_tax_type": "progressive"
+        },
+        "total_tax": 27288.01,
+        "citation_source_ids": ["ny_2025_it201_instructions", "ny_2025_tax_tables"]
+      }
+    },
+    {
+      "name": "self_employment_100k_ga",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "GA"},
+      "expected": {
+        "status": "ok",
+        "state_taxable_base": 80935.22,
+        "state_income_tax": {"status": "ok", "state": "GA", "tax": 4200.54, "rate": 0.0519},
+        "total_tax": 26960.69
+      }
+    },
+    {
+      "name": "self_employment_100k_il",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "IL"},
+      "expected": {
+        "status": "ok",
+        "state_taxable_base": 90085.22,
+        "state_income_tax": {"status": "ok", "state": "IL", "tax": 4459.22, "rate": 0.0495},
+        "total_tax": 27219.37,
+        "assumption_contains": "Illinois exemption allowance assumes MFJ has two exemptions"
+      }
+    },
+    {
+      "name": "self_employment_100k_co",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "CO"},
+      "expected": {
+        "status": "ok",
+        "state_taxable_base": 77935.22,
+        "state_income_tax": {"status": "ok", "state": "CO", "tax": 3429.15, "rate": 0.044},
+        "total_tax": 26189.30
+      }
+    },
+    {
+      "name": "self_employment_100k_ma_not_covered",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "MA"},
+      "expected": {
+        "status": "ok",
+        "state_income_tax": {"status": "not_covered", "not_covered": true, "tax": 0.00},
+        "total_tax": 22760.15,
+        "assumption_contains": "State income tax is not covered"
+      }
+    },
+    {
+      "name": "self_employment_10k_fl",
+      "input": {"net_self_employment_profit": 10000, "filing_status": "single", "state_code": "FL"},
+      "expected": {
+        "status": "ok",
+        "self_employment_tax": 1412.96,
+        "additional_medicare_tax": 0.00,
+        "deductible_half_se_tax": 706.48,
+        "adjusted_gross_income": 9293.52,
+        "taxable_income": 0.00,
+        "federal_income_tax": 0.00,
+        "state_income_tax": {"status": "ok", "state": "FL", "tax": 0.00},
+        "total_tax": 1412.96,
+        "quarterly_estimate": 353.24
+      }
+    }
+  ]
+}

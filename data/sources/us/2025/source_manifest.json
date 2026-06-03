@@ -155,8 +155,9 @@
       "jurisdiction": "CA",
       "topics": ["state_income_tax", "standard_deduction"],
       "local_path": "data/sources/us/2025/raw/ca_2025_540_instructions.html",
-      "content_hash": "EAD6D1B175B56961D3E7A9DD6127FD50B451B7901D020CCD9279FCE0FD4B93C9",
-      "status": "archived"
+      "content_hash": "E1399775068AF194433185C7886379AD015082AE34D508BC62D01F451DD8A705",
+      "status": "archived_redacted",
+      "notes": "Page snapshot redacts an Akamai mPulse/BOOMR analytics script embedded in the official HTML template. Tax content is otherwise retained."
     },
     {
       "source_id": "ca_summary_federal_income_tax_changes",
@@ -168,8 +169,9 @@
       "jurisdiction": "CA",
       "topics": ["state_income_tax", "conformity", "qbi"],
       "local_path": "data/sources/us/2025/raw/ca_summary_federal_income_tax_changes.html",
-      "content_hash": "91CB83B39B5BFC37BDE0158346E05792A53F998FC43541EC8B607BD030A540C4",
-      "status": "archived"
+      "content_hash": "FA9F8288BCDFAA490675E84A6EB491AEDED1BEDDF9DF2D6B31D1FE4614E27C43",
+      "status": "archived_redacted",
+      "notes": "Page snapshot redacts an Akamai mPulse/BOOMR analytics script embedded in the official HTML template. Tax content is otherwise retained."
     },
     {
       "source_id": "ny_2025_it201_instructions",
@@ -221,9 +223,9 @@
       "jurisdiction": "IL",
       "topics": ["state_income_tax", "exemption_allowance"],
       "local_path": "data/sources/us/2025/raw/il_2025_il1040_step4_exemptions.html",
-      "content_hash": "853878AF4D1B88C528F2E8875F3B2C91AC5C90FEEFA74426DBE6BE87304CAAC0",
+      "content_hash": "2553B5A5285B9985944C3DC0FEB2778EF3B28EF18036248D11F360831B8E3405",
       "status": "archived_redacted",
-      "notes": "Page snapshot redacts a Mapbox public token embedded in the official HTML template. Tax content is otherwise retained."
+      "notes": "Page snapshot redacts Mapbox and Weglot public tokens embedded in the official HTML template. Tax content is otherwise retained."
     },
     {
       "source_id": "co_individual_income_tax_guide",

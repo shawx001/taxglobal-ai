@@ -842,6 +842,7 @@ def income_tax_summary(
         qbi=qbi_amount,
         taxable_income=taxable_before_qbi,
         filing_status=filing,
+        net_capital_gain=long_term_gain,
         w2_wages=qbi_w2,
         ubia=ubia,
         is_sstb=is_sstb,

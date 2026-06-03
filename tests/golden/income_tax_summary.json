@@ -242,6 +242,20 @@
         "taxable_income": 173169.81,
         "total_tax": 50458.23
       }
+    },
+    {
+      "name": "combined_self_employment_50k_long_term_gain_30k_single",
+      "input": {"net_self_employment_profit": 50000, "long_term_capital_gain": 30000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "qbi_deduction": 6293.52,
+        "taxable_income": 55174.09,
+        "ordinary_taxable_income": 25174.09,
+        "federal_income_tax": 2782.39,
+        "long_term_capital_gains_tax": 1023.61,
+        "net_investment_income_tax": 0.00,
+        "total_tax": 10870.78
+      }
     }
   ]
 }

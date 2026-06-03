@@ -828,8 +828,8 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
           <option value="LIFO">LIFO 后进先出</option>
           <option value="HIFO">HIFO 最高成本先出</option>
         </select></div>
-      <div class="field"><label class="flabel">其他普通应税收入</label><input class="inp mono" type="number" id="cr-other" value="0" oninput="calcCrypto()"></div>
-      <div class="field"><label class="flabel">Modified AGI（可留空）</label><input class="inp mono" type="number" id="cr-magi" placeholder="填后 NIIT 更精确" oninput="calcCrypto()"></div>
+      <div class="field"><label class="flabel">其他普通应税收入</label><input class="inp mono" type="number" min="0" id="cr-other" value="0" oninput="calcCrypto()"></div>
+      <div class="field"><label class="flabel">Modified AGI（可留空）</label><input class="inp mono" type="number" min="0" id="cr-magi" placeholder="填后 NIIT 更精确" oninput="calcCrypto()"></div>
     </div>
     <div id="cryptoResult"></div>
   </div></div>
@@ -1915,19 +1915,25 @@ function readCryptoLots(){
   return Array.from(document.querySelectorAll('#cryptoLots .crypto-row')).map(row=>{
     const asset=row.querySelector('.cr-lot-asset').value.trim();
     const date=row.querySelector('.cr-lot-date').value;
-    const quantity=Number(row.querySelector('.cr-lot-qty').value);
-    const cost_basis=Number(row.querySelector('.cr-lot-cost').value);
+    const quantityRaw=row.querySelector('.cr-lot-qty').value.trim();
+    const costBasisRaw=row.querySelector('.cr-lot-cost').value.trim();
+    const quantity=Number(quantityRaw);
+    const cost_basis=Number(costBasisRaw);
+    if(!asset||!date||quantityRaw===''||costBasisRaw===''||!Number.isFinite(quantity)||quantity<=0||!Number.isFinite(cost_basis)) return null;
     return {asset,date,quantity,cost_basis};
-  }).filter(row=>row.asset&&row.date&&row.quantity>0);
+  }).filter(Boolean);
 }
 function readCryptoDisposals(){
   return Array.from(document.querySelectorAll('#cryptoDisposals .crypto-row')).map(row=>{
     const asset=row.querySelector('.cr-disp-asset').value.trim();
     const date=row.querySelector('.cr-disp-date').value;
-    const quantity=Number(row.querySelector('.cr-disp-qty').value);
-    const proceeds=Number(row.querySelector('.cr-disp-proceeds').value);
+    const quantityRaw=row.querySelector('.cr-disp-qty').value.trim();
+    const proceedsRaw=row.querySelector('.cr-disp-proceeds').value.trim();
+    const quantity=Number(quantityRaw);
+    const proceeds=Number(proceedsRaw);
+    if(!asset||!date||quantityRaw===''||proceedsRaw===''||!Number.isFinite(quantity)||quantity<=0||!Number.isFinite(proceeds)) return null;
     return {asset,date,quantity,proceeds};
-  }).filter(row=>row.asset&&row.date&&row.quantity>0);
+  }).filter(Boolean);
 }
 function cryptoQty(value){ return (Number(value)||0).toLocaleString('en-US',{maximumFractionDigits:8}); }
 function cryptoStateBanner(magiRaw){
@@ -1996,13 +2002,15 @@ async function calcCrypto(){
     return;
   }
   const magiRaw=(document.getElementById('cr-magi').value||'').trim();
+  const otherRaw=Number(document.getElementById('cr-other').value);
+  const magiValue=Number(magiRaw);
   const base={
     lots:lots,
     disposals:disposals,
     filing_status:document.getElementById('cr-filing').value,
-    other_taxable_income:+document.getElementById('cr-other').value||0,
+    other_taxable_income:Math.max(0,Number.isFinite(otherRaw)?otherRaw:0),
   };
-  if(magiRaw!=='') base.modified_agi=+magiRaw||0;
+  if(magiRaw!=='') base.modified_agi=Math.max(0,Number.isFinite(magiValue)?magiValue:0);
   result.innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
   try{
     const methods=CRYPTO_METHODS.map(m=>m.key);
@@ -2010,10 +2018,15 @@ async function calcCrypto(){
     if(requestId!==cryptoRequestSeq) return;
     const byMethod={};
     methods.forEach((method,index)=>{ byMethod[method]=responses[index]; });
-    const totals=methods.map(method=>({method:method,total:Number(byMethod[method].result.tax_estimate.total)||0}));
+    const totals=methods.map(method=>{
+      const total=Number(byMethod[method]&&byMethod[method].result&&byMethod[method].result.tax_estimate&&byMethod[method].result.tax_estimate.total);
+      if(!Number.isFinite(total)) throw new Error('Crypto response missing tax total for '+method+'.');
+      return {method:method,total:total};
+    });
     const minTotal=Math.min.apply(null,totals.map(item=>item.total));
     const cheapestMethods=totals.filter(item=>item.total===minTotal).map(item=>item.method);
     const selected=byMethod[selectedMethod]||byMethod.FIFO;
+    if(!selected||!selected.result) throw new Error('Crypto response missing result.');
     result.innerHTML=cryptoResultBlock(selected,byMethod,selected.result.method||selectedMethod,cheapestMethods,magiRaw);
   }catch(error){
     if(requestId!==cryptoRequestSeq) return;

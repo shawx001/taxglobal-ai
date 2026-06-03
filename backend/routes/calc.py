@@ -11,6 +11,7 @@ from backend.schemas import (
     FederalIncomeRequest,
     FeieRequest,
     FicaRequest,
+    IncomeSummaryRequest,
     NexusRequest,
     RsuRequest,
     SelfEmploymentRequest,
@@ -21,6 +22,7 @@ from engine import (
     federal_income_tax,
     feie_estimate,
     fica_tax,
+    income_tax_summary,
     nexus_estimate,
     rsu_tax_estimate,
     self_employment_tax,
@@ -88,6 +90,11 @@ def calc_state_income(payload: StateIncomeRequest, request: Request) -> dict[str
 @router.post("/calc/self-employment", response_model=None)
 def calc_self_employment(payload: SelfEmploymentRequest, request: Request) -> dict[str, Any] | JSONResponse:
     return _call_engine(request, self_employment_tax, **payload.model_dump())
+
+
+@router.post("/calc/income-summary", response_model=None)
+def calc_income_summary(payload: IncomeSummaryRequest, request: Request) -> dict[str, Any] | JSONResponse:
+    return _call_engine(request, income_tax_summary, **payload.model_dump())
 
 
 @router.post("/calc/feie", response_model=None)

@@ -51,6 +51,7 @@
     federalIncome: function (payload) { return postCalc("/calc/federal-income", payload); },
     fica: function (payload) { return postCalc("/calc/fica", payload); },
     stateIncome: function (payload) { return postCalc("/calc/state-income", payload); },
+    incomeSummary: function (payload) { return postCalc("/calc/income-summary", payload); },
     feie: function (payload) { return postCalc("/calc/feie", payload); },
     rsu: function (payload) {
       var apiPayload = Object.assign({}, payload);

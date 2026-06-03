@@ -1881,8 +1881,8 @@ function cryptoLotRow(row){
   return '<div class="crypto-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:8px">'+
     '<input class="inp mono cr-lot-asset" value="'+escapeHtml(row.asset||'')+'" placeholder="BTC" oninput="calcCrypto()">'+
     '<input class="inp mono cr-lot-date" type="date" value="'+escapeHtml(row.date||'')+'" oninput="calcCrypto()">'+
-    '<input class="inp mono cr-lot-qty" type="number" step="any" value="'+escapeHtml(row.quantity==null?'':row.quantity)+'" placeholder="数量" oninput="calcCrypto()">'+
-    '<input class="inp mono cr-lot-cost" type="number" step="any" value="'+escapeHtml(row.cost_basis==null?'':row.cost_basis)+'" placeholder="总成本" oninput="calcCrypto()">'+
+    '<input class="inp mono cr-lot-qty" type="number" min="0" step="any" value="'+escapeHtml(row.quantity==null?'':row.quantity)+'" placeholder="数量" oninput="calcCrypto()">'+
+    '<input class="inp mono cr-lot-cost" type="number" min="0" step="any" value="'+escapeHtml(row.cost_basis==null?'':row.cost_basis)+'" placeholder="总成本" oninput="calcCrypto()">'+
     '<button class="btn ghost" onclick="removeCryptoRow(this)">×</button>'+
   '</div>';
 }
@@ -1891,8 +1891,8 @@ function cryptoDisposalRow(row){
   return '<div class="crypto-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:8px">'+
     '<input class="inp mono cr-disp-asset" value="'+escapeHtml(row.asset||'')+'" placeholder="BTC" oninput="calcCrypto()">'+
     '<input class="inp mono cr-disp-date" type="date" value="'+escapeHtml(row.date||'')+'" oninput="calcCrypto()">'+
-    '<input class="inp mono cr-disp-qty" type="number" step="any" value="'+escapeHtml(row.quantity==null?'':row.quantity)+'" placeholder="数量" oninput="calcCrypto()">'+
-    '<input class="inp mono cr-disp-proceeds" type="number" step="any" value="'+escapeHtml(row.proceeds==null?'':row.proceeds)+'" placeholder="总收入" oninput="calcCrypto()">'+
+    '<input class="inp mono cr-disp-qty" type="number" min="0" step="any" value="'+escapeHtml(row.quantity==null?'':row.quantity)+'" placeholder="数量" oninput="calcCrypto()">'+
+    '<input class="inp mono cr-disp-proceeds" type="number" min="0" step="any" value="'+escapeHtml(row.proceeds==null?'':row.proceeds)+'" placeholder="总收入" oninput="calcCrypto()">'+
     '<button class="btn ghost" onclick="removeCryptoRow(this)">×</button>'+
   '</div>';
 }
@@ -1919,7 +1919,7 @@ function readCryptoLots(){
     const costBasisRaw=row.querySelector('.cr-lot-cost').value.trim();
     const quantity=Number(quantityRaw);
     const cost_basis=Number(costBasisRaw);
-    if(!asset||!date||quantityRaw===''||costBasisRaw===''||!Number.isFinite(quantity)||quantity<=0||!Number.isFinite(cost_basis)) return null;
+    if(!asset||!date||quantityRaw===''||costBasisRaw===''||!Number.isFinite(quantity)||quantity<=0||!Number.isFinite(cost_basis)||cost_basis<0) return null;
     return {asset,date,quantity,cost_basis};
   }).filter(Boolean);
 }
@@ -1931,7 +1931,7 @@ function readCryptoDisposals(){
     const proceedsRaw=row.querySelector('.cr-disp-proceeds').value.trim();
     const quantity=Number(quantityRaw);
     const proceeds=Number(proceedsRaw);
-    if(!asset||!date||quantityRaw===''||proceedsRaw===''||!Number.isFinite(quantity)||quantity<=0||!Number.isFinite(proceeds)) return null;
+    if(!asset||!date||quantityRaw===''||proceedsRaw===''||!Number.isFinite(quantity)||quantity<=0||!Number.isFinite(proceeds)||proceeds<0) return null;
     return {asset,date,quantity,proceeds};
   }).filter(Boolean);
 }

@@ -266,6 +266,12 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
     if (!($capitalGainsExcise.long_term_only -is [bool])) {
       throw "State $($stateProp.Name) capital_gains_excise long_term_only must be boolean"
     }
+    if ($null -eq $capitalGainsExcise.surtax_rate) {
+      throw "State $($stateProp.Name) capital_gains_excise missing surtax_rate"
+    }
+    if ($null -eq $capitalGainsExcise.surtax_threshold) {
+      throw "State $($stateProp.Name) capital_gains_excise missing surtax_threshold"
+    }
     if (!$capitalGainsExcise.source_ids) {
       throw "State $($stateProp.Name) capital_gains_excise missing source_ids"
     }

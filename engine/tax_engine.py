@@ -1162,7 +1162,7 @@ def _crypto_state_tax(
                 "not_covered": True,
                 "type": "not_covered",
                 "tax": 0.00,
-                "reason": f"State {code} is not present in stored 2025 state rules.",
+                "reason": f"State {code} is not present in stored {tax_year} state rules.",
             },
             [],
             ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
@@ -1250,7 +1250,10 @@ def _crypto_state_tax(
             ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
         )
 
-    gain = max(Decimal("0"), net_short_term_gain) + max(Decimal("0"), net_long_term_gain)
+    # Schedule D netting: states tax the NET capital gain that flows into federal AGI, so a
+    # short-term loss offsets a long-term gain (and vice versa) before the state rate applies.
+    # Must net the same way the federal _crypto_tax_estimate does, or a net loss would be taxed.
+    gain = max(Decimal("0"), net_short_term_gain + net_long_term_gain)
     try:
         base_without_gain = _state_taxable_base(
             state,
@@ -1280,10 +1283,19 @@ def _crypto_state_tax(
             ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
         )
 
-    tax_without_gain = state_income_tax(code, float(base_without_gain), filing, tax_year)
-    tax_with_gain = state_income_tax(code, float(base_with_gain), filing, tax_year)
-    if tax_without_gain["status"] != "ok" or tax_with_gain["status"] != "ok":
-        reason = tax_with_gain.get("reason") or tax_without_gain.get("reason") or "State income tax is not covered."
+    # Incremental state tax in full precision, rounded ONCE (avoids the off-by-a-cent drift that
+    # double-rounding tax_with_gain - tax_without_gain can introduce). Flat states are linear;
+    # progressive states use the Decimal bracket helper. Status/coverage were already validated
+    # above, so a missing bracket/rate here is treated defensively as not_covered.
+    try:
+        if state.get("income_tax_type") == "flat":
+            incremental = (base_with_gain - base_without_gain) * _decimal_rule(state["flat_rate"])
+        else:
+            brackets = state["brackets"][filing]
+            incremental = _bracket_tax_decimal(base_with_gain, brackets) - _bracket_tax_decimal(
+                base_without_gain, brackets
+            )
+    except (KeyError, ValueError) as exc:
         return (
             {
                 "state": code,
@@ -1291,22 +1303,19 @@ def _crypto_state_tax(
                 "not_covered": True,
                 "type": "not_covered",
                 "tax": 0.00,
-                "reason": reason,
+                "reason": str(exc),
             },
             _merge_citations(state_citations, tax_base_citations),
             ["Crypto state tax is not covered for the requested state; state tax is treated as $0."],
         )
 
-    state_tax = max(
-        Decimal("0"),
-        _decimal_rule(tax_with_gain["result"]["tax"]) - _decimal_rule(tax_without_gain["result"]["tax"]),
-    )
+    state_tax = _money_decimal(max(Decimal("0"), incremental))
     return (
         {
             "state": code,
             "status": "ok",
             "type": "ordinary_income",
-            "tax": _money_decimal(state_tax),
+            "tax": state_tax,
             "capital_gains_treatment": "ordinary_income",
             "taxable_base_without_gain": _money_decimal(base_without_gain),
             "taxable_base_with_gain": _money_decimal(base_with_gain),

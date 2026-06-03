@@ -146,6 +146,52 @@
       }
     },
     {
+      "name": "state_ca_net_loss_taxes_zero",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2020-01-01", "quantity": 1.0, "cost_basis": 100000},
+          {"asset": "ETH", "date": "2025-01-01", "quantity": 1.0, "cost_basis": 1000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-06-01", "quantity": 1.0, "proceeds": 60000},
+          {"asset": "ETH", "date": "2025-09-01", "quantity": 1.0, "proceeds": 31000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "CA"
+      },
+      "expected": {
+        "status": "ok",
+        "realized": {"short_term_gain": 30000.00, "long_term_gain": -40000.00, "net_capital_gain": -10000.00},
+        "state": {"state": "CA", "status": "ok", "type": "ordinary_income", "tax": 0.00},
+        "total_tax_including_state": 0.00
+      }
+    },
+    {
+      "name": "state_ga_nets_st_loss_against_lt_gain",
+      "input": {
+        "lots": [
+          {"asset": "BTC", "date": "2020-01-01", "quantity": 1.0, "cost_basis": 0},
+          {"asset": "ETH", "date": "2025-01-01", "quantity": 1.0, "cost_basis": 15000}
+        ],
+        "disposals": [
+          {"asset": "BTC", "date": "2025-06-01", "quantity": 1.0, "proceeds": 30000},
+          {"asset": "ETH", "date": "2025-09-01", "quantity": 1.0, "proceeds": 10000}
+        ],
+        "method": "FIFO",
+        "filing_status": "single",
+        "other_taxable_income": 100000,
+        "state_code": "GA"
+      },
+      "expected": {
+        "status": "ok",
+        "realized": {"short_term_gain": -5000.00, "long_term_gain": 30000.00, "net_capital_gain": 25000.00},
+        "state": {"state": "GA", "status": "ok", "type": "ordinary_income", "tax": 1297.50},
+        "total_tax_including_state": 5047.50
+      }
+    },
+    {
       "name": "state_ny_ordinary_income",
       "input": {
         "lots": [

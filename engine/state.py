@@ -157,7 +157,11 @@ def _state_taxable_base(
                 return Decimal("0")
         base = gross_income
         if tax_base.get("exemption_per_person"):
-            exemption_count = Decimal("2") if filing == "married_filing_jointly" else Decimal("1")
+            exemption_count = (
+                Decimal("2")
+                if filing in {"married_filing_jointly", "qualifying_surviving_spouse"}
+                else Decimal("1")
+            )
             base -= _decimal_rule(tax_base["exemption_per_person"]) * exemption_count
         elif tax_base.get("standard_deduction"):
             base -= _decimal_rule(tax_base["standard_deduction"][filing])

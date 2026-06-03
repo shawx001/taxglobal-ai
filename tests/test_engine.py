@@ -560,6 +560,17 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(
             _state_taxable_base(
                 nj,
+                gross_income=150_000,
+                federal_agi=140_000,
+                federal_taxable_income=120_000,
+                federal_qbi_deduction=0,
+                filing="qualifying_surviving_spouse",
+            ),
+            148_000,
+        )
+        self.assertEqual(
+            _state_taxable_base(
+                nj,
                 gross_income=10_000,
                 federal_agi=10_000,
                 federal_taxable_income=0,

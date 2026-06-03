@@ -766,12 +766,12 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
 <div class="wrap">
   <div class="eyebrow">🛍 电商合规</div>
   <h1 class="h1">Nexus <em>主动预警</em>，不再被动盯数据</h1>
-  <p class="sub">连接你的电商平台，实时拉取各州销售额，对照经济 Nexus 阈值自动预警——接近时算出"预计几周触发"和"需补缴税额"。</p>
+  <p class="sub">连接你的电商平台，实时拉取各州销售额，对照经济 Nexus 阈值自动预警——接近或触发时给出注册申报提示，不编造销售税额。</p>
 
   <div class="card" style="margin-bottom:18px"><div class="ch"><div class="ct">连接电商平台</div><span class="badge bp" id="storeCount">未连接</span></div>
     <div class="cb">
       <div class="store-grid" id="storeGrid"></div>
-      <div style="font-size:11px;color:var(--ink4);line-height:1.5;margin-top:6px">⚠ 沙盒内连接为演示：点击即模拟 OAuth 授权并拉取该平台的分州销售数据。下方 Nexus 阈值判定、触发周数与补缴估算均为<strong>真实计算逻辑</strong>。生产环境需各平台 API 密钥 + 后端代理。</div>
+      <div style="font-size:11px;color:var(--ink4);line-height:1.5;margin-top:6px">⚠ 沙盒内连接为演示：点击即模拟 OAuth 授权并拉取该平台的分州销售数据。下方 Nexus 阈值判定由后端规则引擎返回；触发周数若出现仅为按 YTD 平均的粗略外推。生产环境需各平台 API 密钥 + 后端代理。</div>
     </div>
   </div>
 
@@ -1447,10 +1447,10 @@ function buildAlerts(){
   if(isEcom && (abroad||profile.location==='other')){
     a.push({p:'hi',t:'你人在境外，但美国州 Nexus 依然适用',d:'经济联结看客户所在州、不看卖家位置；独立站（如 Shopify）销售需自行注册申报，平台订单多由 Amazon/Etsy 代缴。',go:'ecom',cite:'Wayfair v. South Dakota'});
   }
-  // 电商：已触发的州
+  // 电商：Nexus 状态由后端 /calc/nexus 判定，提醒用户查看监控页，不在前端套假阈值。
   if(isEcom){
-    const triggered=Object.entries(aggState()).filter(([st,v])=>v>= (STATE_THR[st]||500)).map(([st])=>st);
-    if(triggered.length) a.push({p:'hi',t:`${triggered.length} 个州已触发销售税申报义务`,d:`${triggered.join('、')} 已超阈值，需注册账户并申报，逾期有罚息。`,go:'ecom',cite:'State Sales Tax Nexus'});
+    const sellerStates=Object.keys(aggState(true));
+    if(sellerStates.length) a.push({p:'mid',t:'检查独立站销售的 Nexus 状态',d:'各州阈值判定已迁移到后端规则引擎；进入电商页查看已触发、接近或未覆盖州。',go:'ecom',cite:'State Sales Tax Nexus'});
   }
   // 自雇/电商：季度预缴
   if(selectedTypes.includes('self')||isEcom) a.push({p:'mid',t:'季度预估税 6/15 截止',d:'自雇/经营收入需按季预缴联邦与州税，欠缴会产生 §6654 罚息。',go:'tax',cite:'IRC §6654'});
@@ -1773,7 +1773,7 @@ const STORES={
   ebay:{emoji:'🏷',name:'eBay',connected:false,facilitator:true,data:{'加州 CA':80,'德州 TX':70,'纽约 NY':110,'华盛顿 WA':130,'佛州 FL':40},txns:[['eBay 刊登费','费用','bb',97]]},
   etsy:{emoji:'🧵',name:'Etsy',connected:false,facilitator:true,data:{'加州 CA':50,'德州 TX':30,'纽约 NY':70,'华盛顿 WA':40,'佛州 FL':60},txns:[['Etsy 交易费','费用','bb',95],['手工材料采购','库存','by',86]]},
 };
-const STATE_THR={'加州 CA':500,'德州 TX':500,'纽约 NY':500,'华盛顿 WA':100,'佛州 FL':100};
+let nexusRequestSeq=0;
 function renderStores(){
   const grid=document.getElementById('storeGrid'); if(!grid) return;
   const n=Object.values(STORES).filter(s=>s.connected).length;
@@ -1810,7 +1810,27 @@ function aggState(sellerOnly){
   });
   return agg;
 }
-function renderNexus(){
+function stateCodeFromLabel(label){
+  const m=String(label||'').match(/\b[A-Z]{2}\b/);
+  return m?m[0]:String(label||'').slice(0,2).toUpperCase();
+}
+function nexusStatusMeta(label){
+  if(label==='triggered') return {color:'var(--red)',note:'已触发，需申报'};
+  if(label==='approaching') return {color:'var(--gold)',note:'接近阈值'};
+  return {color:'var(--g)',note:'安全'};
+}
+function nexusWeeksNote(sales,thrK,label){
+  if(label==='triggered'||!Number.isFinite(sales)||!Number.isFinite(thrK)||sales<=0||sales>=thrK) return '';
+  const now=new Date();
+  const start=new Date(now.getFullYear(),0,1);
+  const weeksElapsed=Math.max(1,(now-start)/(7*24*60*60*1000));
+  const weekly=sales/weeksElapsed;
+  if(weekly<=0) return '';
+  const weeksLeft=Math.max(1,Math.round((thrK-sales)/weekly));
+  return ` · 约 ${weeksLeft} 周缓冲（按 YTD 平均粗略外推,非阈值判定）`;
+}
+async function renderNexus(){
+  const requestId=++nexusRequestSeq;
   const connected=Object.values(STORES).filter(s=>s.connected);
   const hasAny=connected.length>0;
   document.getElementById('ecomEmpty').style.display=hasAny?'none':'block';
@@ -1819,8 +1839,8 @@ function renderNexus(){
   // 注册义务只看"需自行申报"的销售（独立站）；平台订单由 marketplace facilitator 代缴
   const sellerAgg=aggState(true);
   const totalAgg=aggState(false);
-  const rows=Object.entries(sellerAgg).map(([st,sales])=>({st,sales,thr:STATE_THR[st]||500})).sort((a,b)=>b.sales/b.thr-a.sales/a.thr);
   const sellerLiable=Object.values(sellerAgg).reduce((a,b)=>a+b,0);
+  const states=Object.keys(sellerAgg);
 
   // 境外卖家洞察
   const abroad=profile.location&&profile.location!=='us'&&profile.location!=='other'||profile.location==='other';
@@ -1830,37 +1850,76 @@ function renderNexus(){
   } else ab.style.display='none';
 
   // Nexus 列表
-  if(rows.length===0||sellerLiable===0){
+  if(states.length===0){
     document.getElementById('nexusList').innerHTML=`<div class="empty-state" style="padding:20px"><div class="es-t">当前连接的平台均为 marketplace facilitator（如 Amazon/eBay/Etsy），订单销售税由平台代缴，你<strong>暂无自行注册义务</strong>。连接 Shopify 等独立站后这里会显示你的 Nexus 风险。</div></div>`;
+  } else if(sellerLiable===0){
+    document.getElementById('nexusList').innerHTML=`<div class="empty-state" style="padding:20px"><div class="es-t">已连接独立站，但当前需自行申报的销售额为 $0K，暂无可判定的 Nexus 风险。</div></div>`;
   } else {
+    document.getElementById('nexusList').innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
+  }
+  const results=(states.length&&sellerLiable>0)?await Promise.all(states.map(st=>{
+    const payload={state_code:stateCodeFromLabel(st),sales_amount:Math.round((sellerAgg[st]||0)*1000)};
+    return TaxGlobalApi.nexus(payload)
+      .then(resp=>({st:st,sales:sellerAgg[st],resp:resp}))
+      .catch(err=>({st:st,sales:sellerAgg[st],resp:{status:'error',reason:(err&&err.code==='service_unavailable'?taxText('backendDown'):(err&&err.message?err.message:'后端请求失败')),citations:[]}}));
+  })):[];
+  if(requestId!==nexusRequestSeq) return;
+  const rows=results.map(item=>{
+    const resp=item.resp;
+    const result=resp&&resp.status==='ok'?resp.result:null;
+    const threshold=result&&result.threshold&&Number(result.threshold.sales_amount);
+    const thrK=Number.isFinite(threshold)?threshold/1000:null;
+    const pct=thrK&&thrK>0?item.sales/thrK*100:null;
+    return Object.assign({},item,{result:result,thrK:thrK,pct:pct});
+  }).sort((a,b)=>{
+    const aScore=a.result&&Number.isFinite(a.pct)?a.pct:-1;
+    const bScore=b.result&&Number.isFinite(b.pct)?b.pct:-1;
+    return bScore-aScore;
+  });
+  if(rows.length&&sellerLiable>0){
     document.getElementById('nexusList').innerHTML=rows.map(n=>{
-      const pct=n.sales/n.thr*100;
-      const col=pct>=100?'var(--red)':pct>=80?'var(--gold)':'var(--g)';
-      const weekly=n.sales/26;
-      const weeksLeft=pct>=100?0:Math.max(1,Math.round((n.thr-n.sales)/weekly));
-      const note=pct>=100?'已触发，需申报':pct>=80?`约 ${weeksLeft} 周后触发`:`安全（约 ${weeksLeft} 周缓冲）`;
+      if(!n.resp||n.resp.status!=='ok'||!n.result){
+        const status=n.resp&&n.resp.status?n.resp.status:'error';
+        const cite=taxCitations(n.resp&&n.resp.citations);
+        const reason=n.resp&&n.resp.reason?` · ${escapeHtml(n.resp.reason)}`:'';
+        const head=status==='not_covered'?'阈值未覆盖':'请求失败';
+        const body=status==='not_covered'?`该州 nexus 规则未覆盖,未做判定${reason}`:`后端计算失败，请稍后重试${reason}`;
+        return `<div class="nexus-row">
+        <div class="nexus-state">${escapeHtml(n.st)}</div>
+        <div class="nexus-bar-wrap"><div class="nexus-bar"><div class="nexus-bar-fill" style="width:0%;background:var(--ink4)"></div></div>
+        <div class="nexus-nums" style="display:block;line-height:1.35"><div>$${f(n.sales)}K / ${head} ${cite}</div><div style="color:var(--ink4)">${body}</div></div></div>
+        <div class="nexus-pct" style="color:var(--ink4)">--</div></div>`;
+      }
+      const meta=nexusStatusMeta(n.result.status_label);
+      const pct=Number.isFinite(n.pct)?n.pct:0;
+      const cite=taxCitations(n.resp.citations);
+      const needsTxCount=n.result.threshold&&n.result.threshold.transaction_count!=null&&(!n.result.inputs||n.result.inputs.transaction_count==null);
+      const txNote=needsTxCount?' · 该州还要求交易笔数阈值，但当前无交易笔数数据，无法确认是否已触发':'';
+      const note=meta.note+txNote+nexusWeeksNote(n.sales,n.thrK,n.result.status_label);
       return `<div class="nexus-row">
-        <div class="nexus-state">${n.st}</div>
-        <div class="nexus-bar-wrap"><div class="nexus-bar"><div class="nexus-bar-fill" style="width:${Math.min(100,pct)}%;background:${col}"></div></div>
-        <div class="nexus-nums"><span>$${f(n.sales)}K / 阈值 $${n.thr}K</span><span style="color:${col}">${note}</span></div></div>
-        <div class="nexus-pct" style="color:${col}">${pct.toFixed(0)}%</div></div>`;
+        <div class="nexus-state">${escapeHtml(n.st)}</div>
+        <div class="nexus-bar-wrap"><div class="nexus-bar"><div class="nexus-bar-fill" style="width:${Math.min(100,pct)}%;background:${meta.color}"></div></div>
+        <div class="nexus-nums" style="display:block;line-height:1.35"><div>$${f(n.sales)}K / 阈值 $${f(n.thrK)}K ${cite}</div><div style="color:${meta.color}">${note}</div></div></div>
+        <div class="nexus-pct" style="color:${meta.color}">${pct.toFixed(0)}%</div></div>`;
     }).join('');
   }
   // 预警框
-  const top=rows.find(n=>n.sales/n.thr*100>=80);
+  const actionable=rows.filter(n=>n.result&&['triggered','approaching'].includes(n.result.status_label));
+  const top=actionable[0];
   const alert=document.getElementById('nexusAlert');
   if(top){
-    const pct=(top.sales/top.thr*100); const owed=Math.round(top.sales*1000*0.0725); const triggered=pct>=100;
+    const pct=Number.isFinite(top.pct)?top.pct:0;
+    const triggered=top.result.status_label==='triggered';
     alert.style.display='flex';
     document.getElementById('nexusAlertBody').innerHTML=
-      `<div class="alert-title">${top.st} Nexus ${triggered?'已触发':'即将触发'}（独立站销售）</div>
-       <div class="alert-text">${top.st}需自行申报的销售额已达 <strong>$${f(top.sales)}K / $${top.thr}K（${pct.toFixed(0)}%）</strong>，${triggered?'已超过经济 Nexus 阈值':'预计很快触发'} <span class="cite">${top.st.includes('加州')?'CA Rev & Tax §6203':'Wayfair v. South Dakota'}</span>。建议尽快注册该州销售税账户，预估年度应缴约 $${f(owed)}。</div>`;
+      `<div class="alert-title">${escapeHtml(top.st)} Nexus ${triggered?'已触发':'即将触发'}（独立站销售）</div>
+       <div class="alert-text">${escapeHtml(top.st)}需自行申报的销售额已达 <strong>$${f(top.sales)}K / $${f(top.thrK)}K（${pct.toFixed(0)}%）</strong>，${triggered?'已超过经济 Nexus 阈值':'已接近经济 Nexus 阈值'} ${taxCitations(top.resp.citations)}。建议尽快注册该州销售税账户并准备申报；本模块只判定注册义务,不估算应缴销售税额。</div>`;
   } else alert.style.display='none';
   // 指标
   const totSales=Object.values(totalAgg).reduce((a,b)=>a+b,0);
   const facShare=totSales-sellerLiable;
-  const triggeredN=rows.filter(n=>n.sales/n.thr>=1).length;
-  const nearN=rows.filter(n=>{const p=n.sales/n.thr;return p>=0.8&&p<1;}).length;
+  const triggeredN=rows.filter(n=>n.result&&n.result.status_label==='triggered').length;
+  const nearN=rows.filter(n=>n.result&&n.result.status_label==='approaching').length;
   document.getElementById('ecomMetrics').innerHTML=`
     <div class="mcard"><div class="mac" style="background:var(--g)"></div><div class="mlabel">总销售额（YTD）</div><div class="mval">$${(totSales/1000).toFixed(2)}M</div><div class="msub">${connected.length} 个平台合并</div></div>
     <div class="mcard"><div class="mac" style="background:var(--blue)"></div><div class="mlabel">平台代缴部分</div><div class="mval">$${(facShare/1000).toFixed(2)}M</div><div class="msub">无需自行注册</div></div>

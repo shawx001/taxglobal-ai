@@ -45,6 +45,19 @@ class SelfEmploymentRequest(TaxYearModel):
     filing_status: FilingStatus = "single"
 
 
+class IncomeSummaryRequest(TaxYearModel):
+    net_self_employment_profit: float = Field(default=0, ge=0)
+    other_ordinary_income: float = Field(default=0, ge=0)
+    filing_status: str = "single"
+    state_code: str | None = Field(default=None, min_length=2, max_length=2)
+    se_health_insurance: float = Field(default=0, ge=0)
+    retirement_contributions: float = Field(default=0, ge=0)
+    qbi_w2_wages: float = Field(default=0, ge=0)
+    qbi_ubia: float = Field(default=0, ge=0)
+    is_sstb: bool = False
+    deduction: float | None = Field(default=None, ge=0)
+
+
 class FeieRequest(TaxYearModel):
     foreign_earned_income: float = Field(ge=0)
     days_abroad: int = Field(ge=0, le=366)

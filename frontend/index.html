@@ -620,8 +620,27 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
         <div class="field"><label class="flabel">净自雇收入</label><input class="inp mono" type="number" id="se-net" value="150000" oninput="calcSE()"></div>
         <div class="field"><label class="flabel">业务支出</label><input class="inp mono" type="number" id="se-exp" value="30000" oninput="calcSE()"></div>
         <div class="field"><label class="flabel">SEP-IRA 供款</label><input class="inp mono" type="number" id="se-sep" value="20000" oninput="calcSE()"></div>
+        <div class="field"><label class="flabel">所在州（决定州所得税）</label>
+          <select class="sel" id="se-state" onchange="calcSE()">
+            <option value="CA">加州 CA</option>
+            <option value="NY">纽约 NY</option>
+            <option value="GA">乔治亚 GA</option>
+            <option value="IL">伊利诺伊 IL</option>
+            <option value="CO">科罗拉多 CO</option>
+            <option value="TX">德州 TX（暂未覆盖）</option>
+            <option value="FL">佛州 FL（无所得税）</option>
+            <option value="WA">华盛顿 WA（无所得税）</option>
+            <option value="NV">内华达 NV（无所得税）</option>
+            <option value="MA">马萨诸塞 MA（暂未覆盖）</option>
+          </select></div>
+        <div class="field"><label class="flabel">申报状态</label>
+          <select class="sel" id="se-filing" onchange="calcSE()">
+            <option value="single">单身申报</option>
+            <option value="mfj">已婚联合申报</option>
+            <option value="hoh">户主申报</option>
+          </select></div>
       </div></div>
-      <div class="card"><div class="ch"><div class="ct">Schedule SE 自雇税</div><span class="badge bp">calculate_se_tax</span></div>
+      <div class="card"><div class="ch"><div class="ct">Schedule SE 自雇税</div><span class="badge bp">/calc/income-summary</span></div>
         <div class="cb" id="seResult"></div></div>
     </div>
   </div>
@@ -1469,26 +1488,53 @@ async function calcRSU(){
 }
 
 /* ════════ 自雇税 ════════ */
-function calcSE(){
+let seRequestSeq=0;
+async function calcSE(){
+  const requestId=++seRequestSeq;
   const net=+document.getElementById('se-net').value||0;
   const exp=+document.getElementById('se-exp').value||0;
   const sep=+document.getElementById('se-sep').value||0;
-  const netProfit=net-exp;
-  const seBase=netProfit*0.9235;
-  const seTax=Math.min(seBase,176100)*0.124 + seBase*0.029;
-  const halfSE=seTax/2;
-  const taxable=Math.max(0,netProfit-halfSE-sep-15000);
-  const incomeTax=bracketTax(taxable,FED.single)+caStateTax(taxable);
-  const total=seTax+incomeTax;
-  document.getElementById('seResult').innerHTML=`
-    <div class="rrow"><span class="rl">净营业利润</span><span class="rv">$${f(netProfit)}</span></div>
-    <div class="rrow"><span class="rl">SE 税基 (92.35%)</span><span class="rv">$${f(seBase)}</span></div>
-    <div class="rrow"><span class="rl">自雇税 15.3% <span class="cite" title="IRC §1401">§1401</span></span><span class="rv">$${f(seTax)}</span></div>
-    <div class="rrow"><span class="rl">− SE 税一半可抵扣 <span class="cite" title="IRC §164(f)">§164(f)</span></span><span class="rv">−$${f(halfSE)}</span></div>
-    <div class="rrow"><span class="rl">− SEP-IRA 供款 <span class="cite" title="IRC §408(k)">§408(k)</span></span><span class="rv">−$${f(sep)}</span></div>
-    <div class="rrow"><span class="rl">所得税（联邦+州）</span><span class="rv">$${f(incomeTax)}</span></div>
-    <div class="rrow tot"><span class="rl">总税额</span><span class="rv">$${f(total)}</span></div>
-    <div class="rrow"><span class="rl">每季度预缴 <span class="cite" title="IRC §6654">§6654</span></span><span class="rv">$${f(total/4)}</span></div>`;
+  const result=document.getElementById('seResult');
+  const payload={
+    net_self_employment_profit:Math.max(0, net-exp),
+    retirement_contributions:Math.max(0, sep),
+    filing_status:document.getElementById('se-filing').value,
+    state_code:document.getElementById('se-state').value,
+  };
+  result.innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
+  try{
+    const summary=await TaxGlobalApi.incomeSummary(payload);
+    if(requestId!==seRequestSeq) return;
+    const r=summary.result;
+    const state=r.state_income_tax||{};
+    const stateCovered=state.status==='ok';
+    const stateHtml=stateCovered
+      ? taxBlock('州所得税', Number(state.tax)||0, summary)
+      : taxBlock('州所得税', 0, summary, {notCovered:true, reason:state.reason});
+    let html =
+      '<div class="rrow"><span class="rl">净营业利润 '+taxCitations(summary.citations)+'</span><span class="rv">'+taxMoney(payload.net_self_employment_profit)+'</span></div>'+
+      '<div class="rrow"><span class="rl">自雇税 §1401</span><span class="rv">'+taxMoney(r.self_employment_tax)+'</span></div>';
+    if((Number(r.additional_medicare_tax)||0)>0){
+      html += '<div class="rrow"><span class="rl">附加 Medicare 税</span><span class="rv">'+taxMoney(r.additional_medicare_tax)+'</span></div>';
+    }
+    html +=
+      '<div class="rrow"><span class="rl">− 1/2 SE 税抵扣 §164(f)</span><span class="rv">-'+taxMoney(r.deductible_half_se_tax)+'</span></div>'+
+      '<div class="rrow"><span class="rl">− 退休供款</span><span class="rv">-'+taxMoney(payload.retirement_contributions)+'</span></div>'+
+      '<div class="rrow"><span class="rl">AGI</span><span class="rv">'+taxMoney(r.adjusted_gross_income)+'</span></div>'+
+      '<div class="rrow"><span class="rl">− 扣除</span><span class="rv">-'+taxMoney(r.deduction_used)+'</span></div>'+
+      '<div class="rrow"><span class="rl">− QBI 扣除 §199A</span><span class="rv">-'+taxMoney(r.qbi_deduction)+'</span></div>'+
+      '<div class="rrow"><span class="rl">应税收入</span><span class="rv">'+taxMoney(r.taxable_income)+'</span></div>'+
+      '<div class="rrow"><span class="rl">联邦所得税</span><span class="rv">'+taxMoney(r.federal_income_tax)+'</span></div>'+
+      stateHtml+
+      '<div class="rrow tot"><span class="rl">总税额</span><span class="rv">'+taxMoney(r.total_tax)+'</span></div>'+
+      '<div class="rrow"><span class="rl">每季度预缴 §6654</span><span class="rv">'+taxMoney(r.quarterly_estimate)+'</span></div>'+
+      taxAssumptions(summary.assumptions);
+    result.innerHTML=html;
+  }catch(error){
+    if(requestId!==seRequestSeq) return;
+    const message=error&&error.code==='service_unavailable'?taxText('backendDown'):(error&&error.message?error.message:taxText('backendDown'));
+    result.innerHTML='<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+escapeHtml(message)+'</div></div>';
+  }
 }
 
 /* ════════ FEIE ════════ */

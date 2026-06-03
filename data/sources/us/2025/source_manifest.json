@@ -408,6 +408,58 @@
       "local_path": "data/sources/us/2025/raw/wa_retail_sales_tax.html",
       "content_hash": "06631026E49240EDFE12B68B07F01656BA425482B0E1A65ECC6558817BAE3F2A",
       "status": "archived"
+    },
+    {
+      "source_id": "nj_dor_tax_rate_schedules_2025",
+      "title": "New Jersey Tax Rate Schedules",
+      "source_url": "https://nj.gov/treasury/taxation/pdf/current/njtaxratesch.pdf",
+      "source_type": "pdf",
+      "publisher": "New Jersey Division of Taxation",
+      "tax_year": 2025,
+      "jurisdiction": "NJ",
+      "topics": ["state_income_tax", "tax_rates"],
+      "local_path": "data/sources/us/2025/raw/nj_dor_tax_rate_schedules_2025.pdf",
+      "content_hash": "21551658D13D334CA20AF39CE3E42B1A28D443CF655DBF1E00C80602FB46C1B8",
+      "status": "archived"
+    },
+    {
+      "source_id": "nj_dor_gross_income_tax_overview_2025",
+      "title": "New Jersey Gross Income Tax Overview",
+      "source_url": "https://www.nj.gov/treasury/taxation/git_over.shtml",
+      "source_type": "html",
+      "publisher": "New Jersey Division of Taxation",
+      "tax_year": 2025,
+      "jurisdiction": "NJ",
+      "topics": ["state_income_tax", "tax_base", "exemptions"],
+      "local_path": "data/sources/us/2025/raw/nj_dor_gross_income_tax_overview_2025.html",
+      "content_hash": "C4CF869D5FBA82172A9E2B6C8CC8AAD13999C0FB525A66896C2E707EE1B5A9D6",
+      "status": "archived"
+    },
+    {
+      "source_id": "pa_dor_pit_rate",
+      "title": "Pennsylvania Personal Income Tax Rates",
+      "source_url": "https://www.pa.gov/agencies/revenue/resources/tax-rates/personal-income-tax-rates",
+      "source_type": "html",
+      "publisher": "Pennsylvania Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "PA",
+      "topics": ["state_income_tax", "tax_rates"],
+      "local_path": "data/sources/us/2025/raw/pa_dor_pit_rate.html",
+      "content_hash": "C2CBE8819EF3A416D3FA47ED281A5B4E11A33470842DD7B039757FFF3A9245C3",
+      "status": "archived"
+    },
+    {
+      "source_id": "pa_dor_pit_overview",
+      "title": "Pennsylvania Personal Income Tax Overview",
+      "source_url": "https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/personal-income-tax",
+      "source_type": "html",
+      "publisher": "Pennsylvania Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "PA",
+      "topics": ["state_income_tax", "tax_base"],
+      "local_path": "data/sources/us/2025/raw/pa_dor_pit_overview.html",
+      "content_hash": "C9EBE9E18B87FC888939305CD6E57E5C3CA89217B008BFDE6FA5496980180CF7",
+      "status": "archived"
     }
   ],
   "failed_sources": [

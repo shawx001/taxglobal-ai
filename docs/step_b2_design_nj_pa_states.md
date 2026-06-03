@@ -15,13 +15,15 @@
 现有 `_state_taxable_base` 只支持 `start_from` = `federal_agi` / `federal_taxable_income`(± 标准扣除/免税额/QBI 加回)。NJ/PA **不以联邦 AGI/应税收入为起点**:
 - **NJ**:gross income tax——按 NJ 毛收入计,**不允许联邦扣除**(含线上扣除),仅给 **$1,000 个人免税额(单/户;已婚联合 $2,000)**;资本利得并入毛收入按 NJ 累进档计(无优惠率)。
 - **PA**:flat 3.07%,**无标准扣除/免税额**,按 PA 应税收入(毛收入口径)计。
-→ 需要新 `start_from:"gross_income"`,其值 = **税前总收入** = `adjusted_gross_income + above_line_deductions`(= w2+自雇+其它+短/长期利得+海外应税)。
+→ 需要新 `start_from:"gross_income"`,其值 = **税前总收入** = W-2 + 自雇净利润 + 其它普通收入 + 短/长期利得 + 海外收入(按 FEIE 前金额,再扣州 tax_base 数据声明的免税额/扣除)。
 
 ## 1. 引擎改动(数据驱动扩展)
-1. `engine/summary.py`:计算 `gross_income = adjusted_gross_income + above_line_deductions`,在调 `_state_taxable_base(...)` 时多传 `gross_income=gross_income`。
+1. `engine/summary.py`:计算 `gross_income` 为 FEIE 前、联邦线上扣除前的收入桶合计,在调 `_state_taxable_base(...)` 时多传 `gross_income=gross_income`。
 2. `engine/state.py` `_state_taxable_base`:新增形参 `gross_income: Decimal` + 新分支:
    ```
    if start_from == "gross_income":
+       if tax_base.get("no_tax_gross_income_threshold") and gross_income <= threshold[filing]:
+           return 0
        base = gross_income
        if tax_base.get("exemption_per_person"):           # NJ：$1,000/人，无退坡
            count = 2 if filing == "married_filing_jointly" else 1
@@ -34,7 +36,7 @@
 3. 不改联邦/FICA/QBI/FEIE/其它州;`income_tax_type` 沿用现有 `progressive`(NJ)/`flat`(PA)路径。
 
 ## 2. 数据(`data/tax_years/2025/` 与 `2026/` 的 `us_states.json`,均标 `state_parameter_year:2025`)
-**NJ**(`income_tax_type:"progressive"`,`tax_base:{start_from:"gross_income", exemption_per_person:1000, capital_gains_treatment:"ordinary_income"}`):
+**NJ**(`income_tax_type:"progressive"`,`tax_base:{start_from:"gross_income", no_tax_gross_income_threshold:{single/MFS:10000, MFJ/HOH/QSS:20000}, exemption_per_person:1000, capital_gains_treatment:"ordinary_income"}`):
 - 单身/已婚分别(NJ Rate Schedule I)brackets(up_to, rate):20000@.014 / 35000@.0175 / 40000@.035 / 75000@.05525 / 500000@.0637 / 1000000@.0897 / null@.1075。**已验证(单身)。**
 - **已婚联合/户主/QSS(NJ Rate Schedule II)**:Codex 按官方 NJ Division of Taxation Rate Schedules 录入(含 2.45% 档),Claude 逐分核。
 **PA**(`income_tax_type:"flat"`,`flat_rate:0.0307`,`tax_base:{start_from:"gross_income", capital_gains_treatment:"ordinary_income"}`):全档统一 3.07%。

@@ -15,7 +15,7 @@
 | **M4 训练闭环** | 第 7–8 周 | Trace 回流 + LoRA + Eval Harness | 🔲 未开始 |
 | **M5 合规与上线** | 第 9–10 周 | 安全/合规/可观测 + Demo 联调 | 🔲 未开始 |
 
-**M1 收尾状态**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);REQ-002 前端总览已接到单次 `income_tax_summary`;Step A 已新增 2026 税年数据并把默认税年切到 2026。下一阶段进入 M2 Skills/Agent + 知识层。
+**M1 收尾状态**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);REQ-002 前端总览已接到单次 `income_tax_summary`;Step A 已新增 2026 税年数据并把默认税年切到 2026;Step B 已开始扩州,WA excise 与 NJ/PA gross-income 州所得税已接入合并计税。下一阶段进入 M2 Skills/Agent + 知识层。
 
 ## 二、18 Skills 清单与现状
 
@@ -25,7 +25,7 @@
 
 | # | Skill | 依赖的引擎函数/能力 | 引擎内核状态 |
 |---|---|---|---|
-| 1 | `calculate_income_tax` | `income_tax_summary`(W-2/自雇/资本利得/NIIT/FEIE 三块) | ✅ 已完成 |
+| 1 | `calculate_income_tax` | `income_tax_summary`(W-2/自雇/资本利得/NIIT/FEIE 三块 + WA/NJ/PA 州扩展) | ✅ 已完成 |
 | 2 | `assess_feie` | `feie_estimate` | ✅ 已完成 |
 | 3 | `analyze_rsu` | `rsu_tax_estimate` | ✅ 已完成 |
 | 4 | `track_crypto` | `crypto_gain_estimate` + `_crypto_state_tax` | ✅ 已完成 |

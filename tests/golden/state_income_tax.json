@@ -91,6 +91,37 @@
       }
     },
     {
+      "name": "nj_single_149k",
+      "input": {"state_code": "NJ", "taxable_income": 149000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 7365.05,
+        "citation_source_ids": ["nj_dor_tax_rate_schedules_2025", "nj_dor_gross_income_tax_overview_2025"],
+        "assumption_contains": "pension exclusions"
+      }
+    },
+    {
+      "name": "nj_mfj_schedule_ii_148k",
+      "input": {"state_code": "NJ", "taxable_income": 148000, "filing_status": "mfj"},
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 5402.00,
+        "citation_source_ids": ["nj_dor_tax_rate_schedules_2025"]
+      }
+    },
+    {
+      "name": "pa_flat_150k",
+      "input": {"state_code": "PA", "taxable_income": 150000},
+      "expected": {
+        "status": "ok",
+        "rate": 0.0307,
+        "tax": 4605.00,
+        "citation_source_ids": ["pa_dor_pit_rate"]
+      }
+    },
+    {
       "name": "ma_blocked",
       "input": {"state_code": "MA", "taxable_income": 100000},
       "expected": {"status": "not_covered", "reason_contains": "source_pending"}

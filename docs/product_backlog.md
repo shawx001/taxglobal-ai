@@ -19,6 +19,7 @@
 | REQ-012 | 加密资本利得接州税 | Step 2.6 后端数据+引擎；Step 5.6 前端展示 | ✅ | `/calc/crypto` 支持可选 `state_code`:CA/NY/GA/IL/CO 按普通收入增量法计算州税,WA 按 2025 DOR capital gains excise(长期、$278,000 标准扣除、7%/9.9% 分档)计算,FL/NV 为 $0,未覆盖州诚实 not_covered。前端 crypto 模块已加州选择器、按含州总税排序三法,并展示 `state` 与 `total_tax_including_state`。 |
 | REQ-013 | 2026 税年默认口径升级 | Step A 2026 tax year data | ✅ | 新增 `data/tax_years/2026/`，默认 `tax_year` 切到 2026；2025 测试/接口仍可显式 `tax_year=2025` 回归。州/Nexus 2026 暂沿用 2025 参数并标 `state_parameter_year:2025`，后续 Step B 更新州参数。 |
 | REQ-014 | WA 长期资本利得 excise 接入合并计税 | Step B1 WA capital gains excise | ✅ | `income_tax_summary` 在常规 `state_income_tax` 外，数据驱动读取州规则里的 `capital_gains_excise` 并计入总税；WA 所得税行仍为 $0，excise 单独展示。计算 helper 与 crypto WA 路径共用，避免重复公式。 |
+| REQ-015 | NJ/PA 所得税州接入合并计税 | Step B2 NJ + PA gross-income states | ✅ | 新增 `start_from:"gross_income"` 州税基，NJ 按 gross income 减 $1,000/人 exemption 后累进计税，PA 按 gross-income proxy flat 3.07%；资本利得在 NJ/PA 州侧按普通收入处理，OR 留 Step B2b。 |
 
 ---
 

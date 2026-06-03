@@ -11,7 +11,7 @@ from .money import _decimal_rule, _money
 from .responses import _citations, _not_covered, _response
 from .rules_loader import load_state_rules
 
-__all__ = ["state_income_tax", "_state_taxable_base"]
+__all__ = ["state_income_tax", "state_capital_gains_excise", "_state_taxable_base"]
 
 def state_income_tax(
     state_code: str,
@@ -104,6 +104,35 @@ def state_income_tax(
         citations=_citations(state),
         reason=f"State {code} income_tax_type {tax_type} is not implemented.",
     )
+
+def state_capital_gains_excise(
+    state_block: dict[str, Any],
+    *,
+    net_long_term_gain: Decimal,
+) -> dict[str, Any] | None:
+    capital_gains_excise = state_block.get("capital_gains_excise")
+    if not capital_gains_excise:
+        return None
+
+    long_term_gain = max(Decimal("0"), net_long_term_gain)
+    standard_deduction = _decimal_rule(capital_gains_excise["standard_deduction"])
+    taxable_capital_gains = max(Decimal("0"), long_term_gain - standard_deduction)
+    threshold = _decimal_rule(capital_gains_excise["surtax_threshold"])
+    base_rate = _decimal_rule(capital_gains_excise["rate"])
+    surtax_rate = _decimal_rule(capital_gains_excise["surtax_rate"])
+    base_tax = min(taxable_capital_gains, threshold) * base_rate
+    surtax = max(Decimal("0"), taxable_capital_gains - threshold) * (base_rate + surtax_rate)
+    tax = base_tax + surtax
+    return {
+        "tax": tax,
+        "long_term_only": bool(capital_gains_excise.get("long_term_only")),
+        "long_term_gain": long_term_gain,
+        "standard_deduction": standard_deduction,
+        "taxable_capital_gains": taxable_capital_gains,
+        "rate": base_rate,
+        "surtax_rate": surtax_rate,
+        "surtax_threshold": threshold,
+    }
 
 def _state_taxable_base(
     state_block: dict[str, Any],

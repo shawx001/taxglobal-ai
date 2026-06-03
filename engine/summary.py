@@ -19,7 +19,7 @@ from .rules_loader import (
     load_qbi_rules,
     load_state_rules,
 )
-from .state import _state_taxable_base, state_income_tax
+from .state import _state_taxable_base, state_capital_gains_excise, state_income_tax
 
 __all__ = ["_summary_rule_version", "income_tax_summary"]
 
@@ -223,6 +223,8 @@ def income_tax_summary(
     state_result = None
     state_tax = Decimal("0")
     state_income_tax_result: dict[str, Any] | None = None
+    state_capital_gains_excise_result: dict[str, Any] | None = None
+    state_capital_gains_excise_tax = Decimal("0")
     state_citations: list[dict[str, Any]] = []
     normalized_state_code = None if state_code is None else state_code.upper()
 
@@ -265,6 +267,24 @@ def income_tax_summary(
                 "tax": 0.00,
                 "reason": state_result["reason"],
             }
+        if state_block and state_block.get("status") == "effective" and state_block.get("capital_gains_excise"):
+            excise = state_capital_gains_excise(state_block, net_long_term_gain=long_term_gain)
+            if excise is not None:
+                capital_gains_excise = state_block["capital_gains_excise"]
+                state_capital_gains_excise_tax = excise["tax"]
+                state_capital_gains_excise_result = {
+                    "status": "ok",
+                    "type": "excise",
+                    "tax": _money_decimal(excise["tax"]),
+                    "long_term_only": excise["long_term_only"],
+                    "long_term_gain": _money_decimal(excise["long_term_gain"]),
+                    "standard_deduction": _money_decimal(excise["standard_deduction"]),
+                    "taxable_capital_gains": _money_decimal(excise["taxable_capital_gains"]),
+                    "rate": float(excise["rate"]),
+                    "surtax_rate": float(excise["surtax_rate"]),
+                    "surtax_threshold": _money_decimal(excise["surtax_threshold"]),
+                }
+                state_citations = _merge_citations(state_citations, _citations(capital_gains_excise))
 
     total_tax = (
         _money_quantized(federal_income_tax_amount)
@@ -272,6 +292,7 @@ def income_tax_summary(
         + _money_quantized(total_payroll_tax)
         + _money_quantized(net_investment_income_tax)
         + _money_quantized(state_tax)
+        + _money_quantized(state_capital_gains_excise_tax)
     )
     quarterly_estimate = total_tax / Decimal("4")
 
@@ -288,8 +309,6 @@ def income_tax_summary(
         "while ordinary_taxable_income is the ordinary-rate portion before long-term capital gains tax.",
         "Net capital losses, the $3,000 capital loss deduction, and capital loss carryovers are not modeled in this "
         "combined summary.",
-        "Washington long-term capital gains excise is not included in income_tax_summary; use the crypto module's "
-        "state_code='WA' path for that standalone excise estimate.",
         "State taxable bases use stored tax_base data for start point, state standard deduction or exemption "
         "allowance, and QBI conformity where available.",
         "State-specific residual adjustments are not modeled, including NY tax benefit recapture above $107,650 "
@@ -329,6 +348,17 @@ def income_tax_summary(
             "State income tax is not covered for the requested state; total tax includes federal income tax and "
             "total payroll tax (W-2 FICA + self-employment tax + Additional Medicare) only, with no state tax."
         )
+    if state_capital_gains_excise_result is not None:
+        assumptions.extend(
+            [
+                "Modeled state capital gains excise applies only to net long-term capital gains; short-term gains "
+                "are not included.",
+                "Modeled state capital gains excise assumes non-exempt assets; exempt categories such as real "
+                "estate and retirement accounts are not modeled in this summary.",
+                "Modeled state capital gains excise assumes the taxpayer is a resident and the gains are allocated "
+                "in-state, matching the crypto module's state excise treatment.",
+            ]
+        )
     if normalized_state_code == "IL":
         assumptions.append(
             "Illinois exemption allowance assumes MFJ has two exemptions and all other filing statuses have one."
@@ -365,6 +395,43 @@ def income_tax_summary(
         "total_tax": _money_decimal(total_tax),
         "quarterly_estimate": _money_decimal(quarterly_estimate),
     }
+    if state_capital_gains_excise_result is not None:
+        result["state_capital_gains_excise"] = _money_decimal(state_capital_gains_excise_tax)
+
+    breakdown = [
+        {"label": "w2_wages", "amount": _money_decimal(w2)},
+        {"label": "w2_fica_tax", "amount": _money_decimal(w2_fica_tax)},
+        {"label": "net_self_employment_profit", "amount": _money_decimal(net_profit)},
+        {"label": "foreign_earned_income", "amount": _money_decimal(foreign_income)},
+        {"label": "feie_excluded_income", "amount": _money_decimal(feie_excluded_income)},
+        {"label": "short_term_capital_gain", "amount": _money_decimal(short_term_gain)},
+        {"label": "long_term_capital_gain", "amount": _money_decimal(long_term_gain)},
+        {"label": "deductible_half_se_tax", "amount": _money_decimal(deductible_half_se_tax)},
+        {"label": "above_line_deductions", "amount": _money_decimal(above_line_deductions)},
+        {"label": "adjusted_gross_income", "amount": _money_decimal(adjusted_gross_income)},
+        {"label": "deduction_used", "amount": _money_decimal(deduction_used)},
+        {"label": "taxable_before_qbi", "amount": _money_decimal(taxable_before_qbi)},
+        {"label": "qbi_deduction", "amount": _money_decimal(qbi_deduction_amount)},
+        {"label": "taxable_income", "amount": _money_decimal(taxable_income)},
+        {"label": "ordinary_taxable_income", "amount": _money_decimal(ordinary_taxable_income)},
+        {"label": "federal_income_tax", "amount": _money_decimal(federal_income_tax_amount)},
+        {"label": "long_term_capital_gains_tax", "amount": _money_decimal(long_term_capital_gains_tax)},
+        {"label": "net_investment_income_tax", "amount": _money_decimal(net_investment_income_tax)},
+        {"label": "state_income_tax", "amount": _money_decimal(state_tax)},
+    ]
+    if state_capital_gains_excise_result is not None:
+        breakdown.append(
+            {
+                "label": "state_capital_gains_excise",
+                "amount": _money_decimal(state_capital_gains_excise_tax),
+            }
+        )
+    breakdown.extend(
+        [
+            {"label": "total_payroll_tax", "amount": _money_decimal(total_payroll_tax)},
+            {"label": "total_tax", "amount": _money_decimal(total_tax)},
+        ]
+    )
 
     return _response(
         status="ok",
@@ -386,29 +453,7 @@ def income_tax_summary(
             "deduction": _money_decimal(deduction_used),
         },
         result=result,
-        breakdown=[
-            {"label": "w2_wages", "amount": _money_decimal(w2)},
-            {"label": "w2_fica_tax", "amount": _money_decimal(w2_fica_tax)},
-            {"label": "net_self_employment_profit", "amount": _money_decimal(net_profit)},
-            {"label": "foreign_earned_income", "amount": _money_decimal(foreign_income)},
-            {"label": "feie_excluded_income", "amount": _money_decimal(feie_excluded_income)},
-            {"label": "short_term_capital_gain", "amount": _money_decimal(short_term_gain)},
-            {"label": "long_term_capital_gain", "amount": _money_decimal(long_term_gain)},
-            {"label": "deductible_half_se_tax", "amount": _money_decimal(deductible_half_se_tax)},
-            {"label": "above_line_deductions", "amount": _money_decimal(above_line_deductions)},
-            {"label": "adjusted_gross_income", "amount": _money_decimal(adjusted_gross_income)},
-            {"label": "deduction_used", "amount": _money_decimal(deduction_used)},
-            {"label": "taxable_before_qbi", "amount": _money_decimal(taxable_before_qbi)},
-            {"label": "qbi_deduction", "amount": _money_decimal(qbi_deduction_amount)},
-            {"label": "taxable_income", "amount": _money_decimal(taxable_income)},
-            {"label": "ordinary_taxable_income", "amount": _money_decimal(ordinary_taxable_income)},
-            {"label": "federal_income_tax", "amount": _money_decimal(federal_income_tax_amount)},
-            {"label": "long_term_capital_gains_tax", "amount": _money_decimal(long_term_capital_gains_tax)},
-            {"label": "net_investment_income_tax", "amount": _money_decimal(net_investment_income_tax)},
-            {"label": "state_income_tax", "amount": _money_decimal(state_tax)},
-            {"label": "total_payroll_tax", "amount": _money_decimal(total_payroll_tax)},
-            {"label": "total_tax", "amount": _money_decimal(total_tax)},
-        ],
+        breakdown=breakdown,
         rule_version=rule_version,
         citations=_merge_citations(summary_citations, state_citations),
         assumptions=assumptions,

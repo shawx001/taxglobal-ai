@@ -1,0 +1,115 @@
+{
+  "schema_version": "0.1",
+  "function": "qbi_deduction",
+  "tax_year": 2025,
+  "cases": [
+    {
+      "name": "below_simple",
+      "input": {"qbi": 50000, "taxable_income": 100000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "deduction": 10000.00,
+        "qbi_component": 10000.00,
+        "overall_limit": 20000.00,
+        "applied_limit": "below_threshold",
+        "threshold_band": "below_threshold",
+        "citation_source_ids": ["irs_rp_2024_40", "irs_qbi_deduction"]
+      }
+    },
+    {
+      "name": "below_ti_capped",
+      "input": {"qbi": 50000, "taxable_income": 40000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "deduction": 8000.00,
+        "qbi_component": 10000.00,
+        "overall_limit": 8000.00,
+        "applied_limit": "overall_income_capped",
+        "threshold_band": "below_threshold"
+      }
+    },
+    {
+      "name": "below_ncg_binds",
+      "input": {
+        "qbi": 50000,
+        "taxable_income": 100000,
+        "filing_status": "single",
+        "net_capital_gain": 90000
+      },
+      "expected": {
+        "status": "ok",
+        "deduction": 2000.00,
+        "qbi_component": 10000.00,
+        "overall_limit": 2000.00,
+        "applied_limit": "overall_income_capped",
+        "threshold_band": "below_threshold"
+      }
+    },
+    {
+      "name": "above_nonsstb_no_wages",
+      "input": {"qbi": 50000, "taxable_income": 300000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "deduction": 0.00,
+        "qbi_component": 0.00,
+        "overall_limit": 60000.00,
+        "applied_limit": "wage_ubia_limited",
+        "threshold_band": "above_upper_limit"
+      }
+    },
+    {
+      "name": "above_nonsstb_with_wages",
+      "input": {
+        "qbi": 100000,
+        "taxable_income": 300000,
+        "filing_status": "single",
+        "w2_wages": 40000
+      },
+      "expected": {
+        "status": "ok",
+        "deduction": 20000.00,
+        "qbi_component": 20000.00,
+        "overall_limit": 60000.00,
+        "applied_limit": "wage_ubia_limited",
+        "threshold_band": "above_upper_limit"
+      }
+    },
+    {
+      "name": "above_sstb",
+      "input": {"qbi": 100000, "taxable_income": 300000, "filing_status": "single", "is_sstb": true},
+      "expected": {
+        "status": "ok",
+        "deduction": 0.00,
+        "qbi_component": 0.00,
+        "overall_limit": 60000.00,
+        "applied_limit": "sstb_excluded",
+        "threshold_band": "above_upper_limit"
+      }
+    },
+    {
+      "name": "phase_in_nonsstb",
+      "input": {"qbi": 100000, "taxable_income": 222300, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "deduction": 10000.00,
+        "qbi_component": 10000.00,
+        "overall_limit": 44460.00,
+        "applied_limit": "phase_in",
+        "threshold_band": "phase_in"
+      }
+    },
+    {
+      "name": "phase_in_sstb",
+      "input": {"qbi": 100000, "taxable_income": 222300, "filing_status": "single", "is_sstb": true},
+      "expected": {
+        "status": "ok",
+        "deduction": 5000.00,
+        "qbi_component": 5000.00,
+        "overall_limit": 44460.00,
+        "applied_limit": "phase_in",
+        "threshold_band": "phase_in",
+        "assumption_contains": "SSTB and phase-in calculations are complex"
+      }
+    }
+  ]
+}

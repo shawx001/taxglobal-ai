@@ -7,6 +7,7 @@ from engine import (
     feie_estimate,
     fica_tax,
     nexus_estimate,
+    qbi_deduction,
     rsu_tax_estimate,
     self_employment_tax,
     state_income_tax,
@@ -23,6 +24,7 @@ EXPECTED_RESPONSE_KEYS = {
     "assumptions",
     "reason",
 }
+
 
 class EngineTests(unittest.TestCase):
     def test_bracket_tax_uses_marginal_rates(self):
@@ -157,6 +159,29 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["additional_medicare_tax"], 0.00)
         self.assertEqual(result["result"]["total_se_related_tax"], 28_531.78)
+
+    def test_qbi_deduction_zero_qbi_returns_zero(self):
+        result = qbi_deduction(0, 100_000)
+
+        self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["deduction"], 0.00)
+        self.assertEqual(result["result"]["qbi_component"], 0.00)
+
+    def test_qbi_deduction_negative_qbi_clamps_to_zero(self):
+        result = qbi_deduction(-5_000, 100_000)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["input"]["qbi"], 0.00)
+        self.assertEqual(result["result"]["deduction"], 0.00)
+
+    def test_qbi_deduction_threshold_equal_uses_below_threshold(self):
+        result = qbi_deduction(100_000, 197_300)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["deduction"], 20_000.00)
+        self.assertEqual(result["result"]["applied_limit"], "below_threshold")
+        self.assertEqual(result["result"]["threshold_band"], "below_threshold")
 
     def test_nexus_ca_equal_threshold_uses_strict_greater_than(self):
         result = nexus_estimate("CA", 500_000)

@@ -116,6 +116,16 @@ if (!$qbi.qbi_deduction) { throw "QBI file missing qbi_deduction" }
 if ($qbi.qbi_deduction.rate -ne 0.2) { throw "Unexpected QBI deduction rate" }
 if (!$qbi.qbi_deduction.effective_date) { throw "qbi_deduction missing effective_date" }
 if (!$qbi.qbi_deduction.citation) { throw "qbi_deduction missing citation" }
+if (!$qbi.qbi_deduction.wage_ubia_limit) { throw "qbi_deduction missing wage_ubia_limit" }
+if ($qbi.qbi_deduction.wage_ubia_limit.half_w2_wages_rate -ne 0.5) {
+  throw "Unexpected QBI half_w2_wages_rate"
+}
+if ($qbi.qbi_deduction.wage_ubia_limit.quarter_w2_wages_rate -ne 0.25) {
+  throw "Unexpected QBI quarter_w2_wages_rate"
+}
+if ($qbi.qbi_deduction.wage_ubia_limit.ubia_rate -ne 0.025) {
+  throw "Unexpected QBI ubia_rate"
+}
 if (!$qbi.source_ids -or $qbi.source_ids.Count -lt 1) {
   throw "QBI file missing source_ids"
 }

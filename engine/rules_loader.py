@@ -67,3 +67,7 @@ def load_nexus_rules(tax_year: int = 2025) -> dict[str, Any]:
 
 def load_capital_gains_rules(tax_year: int = 2025) -> dict[str, Any]:
     return load_rule_file(tax_year, "us_capital_gains.json")
+
+
+def load_qbi_rules(tax_year: int = 2025) -> dict[str, Any]:
+    return load_rule_file(tax_year, "us_qbi.json")

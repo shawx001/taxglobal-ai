@@ -25,6 +25,13 @@
       "qualifying_surviving_spouse": 50000,
       "married_filing_jointly": 100000
     },
+    "wage_ubia_limit": {
+      "half_w2_wages_rate": 0.5,
+      "quarter_w2_wages_rate": 0.25,
+      "ubia_rate": 0.025,
+      "citation": "IRS Qualified Business Income Deduction guidance describes the W-2 wage and unadjusted basis immediately after acquisition (UBIA) limitations that can apply to Section 199A deductions above the taxable-income threshold.",
+      "source_ids": ["irs_qbi_deduction"]
+    },
     "upper_limit": {
       "single": 247300,
       "head_of_household": 247300,

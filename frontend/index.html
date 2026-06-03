@@ -1821,7 +1821,10 @@ function nexusStatusMeta(label){
 }
 function nexusWeeksNote(sales,thrK,label){
   if(label==='triggered'||!Number.isFinite(sales)||!Number.isFinite(thrK)||sales<=0||sales>=thrK) return '';
-  const weekly=sales/26;
+  const now=new Date();
+  const start=new Date(now.getFullYear(),0,1);
+  const weeksElapsed=Math.max(1,(now-start)/(7*24*60*60*1000));
+  const weekly=sales/weeksElapsed;
   if(weekly<=0) return '';
   const weeksLeft=Math.max(1,Math.round((thrK-sales)/weekly));
   return ` · 约 ${weeksLeft} 周缓冲（按 YTD 平均粗略外推,非阈值判定）`;
@@ -1847,16 +1850,18 @@ async function renderNexus(){
   } else ab.style.display='none';
 
   // Nexus 列表
-  if(states.length===0||sellerLiable===0){
+  if(states.length===0){
     document.getElementById('nexusList').innerHTML=`<div class="empty-state" style="padding:20px"><div class="es-t">当前连接的平台均为 marketplace facilitator（如 Amazon/eBay/Etsy），订单销售税由平台代缴，你<strong>暂无自行注册义务</strong>。连接 Shopify 等独立站后这里会显示你的 Nexus 风险。</div></div>`;
+  } else if(sellerLiable===0){
+    document.getElementById('nexusList').innerHTML=`<div class="empty-state" style="padding:20px"><div class="es-t">已连接独立站，但当前需自行申报的销售额为 $0K，暂无可判定的 Nexus 风险。</div></div>`;
   } else {
     document.getElementById('nexusList').innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
   }
-  const results=states.length?await Promise.all(states.map(st=>{
+  const results=(states.length&&sellerLiable>0)?await Promise.all(states.map(st=>{
     const payload={state_code:stateCodeFromLabel(st),sales_amount:Math.round((sellerAgg[st]||0)*1000)};
     return TaxGlobalApi.nexus(payload)
       .then(resp=>({st:st,sales:sellerAgg[st],resp:resp}))
-      .catch(()=>({st:st,sales:sellerAgg[st],resp:null}));
+      .catch(err=>({st:st,sales:sellerAgg[st],resp:{status:'error',reason:(err&&err.code==='service_unavailable'?taxText('backendDown'):(err&&err.message?err.message:'后端请求失败')),citations:[]}}));
   })):[];
   if(requestId!==nexusRequestSeq) return;
   const rows=results.map(item=>{
@@ -1873,12 +1878,16 @@ async function renderNexus(){
   });
   if(rows.length&&sellerLiable>0){
     document.getElementById('nexusList').innerHTML=rows.map(n=>{
-      if(!n.resp||n.resp.status==='not_covered'||!n.result){
+      if(!n.resp||n.resp.status!=='ok'||!n.result){
+        const status=n.resp&&n.resp.status?n.resp.status:'error';
+        const cite=taxCitations(n.resp&&n.resp.citations);
         const reason=n.resp&&n.resp.reason?` · ${escapeHtml(n.resp.reason)}`:'';
+        const head=status==='not_covered'?'阈值未覆盖':'请求失败';
+        const body=status==='not_covered'?`该州 nexus 规则未覆盖,未做判定${reason}`:`后端计算失败，请稍后重试${reason}`;
         return `<div class="nexus-row">
         <div class="nexus-state">${escapeHtml(n.st)}</div>
         <div class="nexus-bar-wrap"><div class="nexus-bar"><div class="nexus-bar-fill" style="width:0%;background:var(--ink4)"></div></div>
-        <div class="nexus-nums" style="display:block;line-height:1.35"><div>$${f(n.sales)}K / 阈值未覆盖</div><div style="color:var(--ink4)">该州 nexus 规则未覆盖,未做判定${reason}</div></div></div>
+        <div class="nexus-nums" style="display:block;line-height:1.35"><div>$${f(n.sales)}K / ${head} ${cite}</div><div style="color:var(--ink4)">${body}</div></div></div>
         <div class="nexus-pct" style="color:var(--ink4)">--</div></div>`;
       }
       const meta=nexusStatusMeta(n.result.status_label);

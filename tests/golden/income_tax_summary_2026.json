@@ -87,6 +87,43 @@
         },
         "total_tax": 26915.51
       }
+    },
+    {
+      "name": "default_2026_wa_long_term_gain_500k_excise",
+      "input": {"long_term_capital_gain": 500000, "filing_status": "single", "state_code": "WA"},
+      "expected": {
+        "status": "ok",
+        "federal_income_tax": 0.00,
+        "long_term_capital_gains_tax": 65167.50,
+        "net_investment_income_tax": 11400.00,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "WA",
+          "tax": 0.00
+        },
+        "state_capital_gains_excise": 15540.00,
+        "total_tax": 92107.50
+      }
+    },
+    {
+      "name": "default_2026_wa_long_term_gain_200k_below_excise_deduction",
+      "input": {"long_term_capital_gain": 200000, "filing_status": "single", "state_code": "WA"},
+      "expected": {
+        "status": "ok",
+        "long_term_capital_gains_tax": 20167.50,
+        "net_investment_income_tax": 0.00,
+        "state_capital_gains_excise": 0.00,
+        "total_tax": 20167.50
+      }
+    },
+    {
+      "name": "default_2026_wa_short_term_gain_300k_no_excise",
+      "input": {"short_term_capital_gain": 300000, "filing_status": "single", "state_code": "WA"},
+      "expected": {
+        "status": "ok",
+        "long_term_capital_gains_tax": 0.00,
+        "state_capital_gains_excise": 0.00
+      }
     }
   ]
 }

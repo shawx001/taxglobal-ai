@@ -11,7 +11,7 @@ from .filing import _normalize_filing_status
 from .money import _decimal_input, _decimal_rule, _money_decimal
 from .responses import _citations, _invalid_input, _merge_citations, _response
 from .rules_loader import load_capital_gains_rules, load_federal_rules, load_state_rules
-from .state import _state_taxable_base
+from .state import _state_taxable_base, state_capital_gains_excise
 
 __all__ = [
     "SUPPORTED_CRYPTO_METHODS",
@@ -286,28 +286,26 @@ def _crypto_state_tax(
     capital_gains_excise = state.get("capital_gains_excise")
     if capital_gains_excise:
         excise_citations = _merge_citations(state_citations, _citations(capital_gains_excise))
-        long_term_gain = max(Decimal("0"), net_long_term_gain)
-        standard_deduction = _decimal_rule(capital_gains_excise["standard_deduction"])
-        taxable_washington_gain = max(Decimal("0"), long_term_gain - standard_deduction)
-        threshold = _decimal_rule(capital_gains_excise["surtax_threshold"])
-        base_rate = _decimal_rule(capital_gains_excise["rate"])
-        surtax_rate = _decimal_rule(capital_gains_excise["surtax_rate"])
-        base_tax = min(taxable_washington_gain, threshold) * base_rate
-        surtax = max(Decimal("0"), taxable_washington_gain - threshold) * (base_rate + surtax_rate)
-        tax = base_tax + surtax
+        excise = state_capital_gains_excise(state, net_long_term_gain=net_long_term_gain)
+        if excise is None:
+            return _crypto_state_not_covered(
+                code,
+                f"State {code} capital gains excise data is missing.",
+                state_citations,
+            )
         return (
             {
                 "state": code,
                 "status": "ok",
                 "type": "excise",
-                "tax": _money_decimal(tax),
-                "long_term_only": bool(capital_gains_excise.get("long_term_only")),
-                "long_term_gain": _money_decimal(long_term_gain),
-                "standard_deduction": _money_decimal(standard_deduction),
-                "taxable_washington_capital_gain": _money_decimal(taxable_washington_gain),
-                "rate": float(base_rate),
-                "surtax_rate": float(surtax_rate),
-                "surtax_threshold": _money_decimal(threshold),
+                "tax": _money_decimal(excise["tax"]),
+                "long_term_only": excise["long_term_only"],
+                "long_term_gain": _money_decimal(excise["long_term_gain"]),
+                "standard_deduction": _money_decimal(excise["standard_deduction"]),
+                "taxable_washington_capital_gain": _money_decimal(excise["taxable_capital_gains"]),
+                "rate": float(excise["rate"]),
+                "surtax_rate": float(excise["surtax_rate"]),
+                "surtax_threshold": _money_decimal(excise["surtax_threshold"]),
             },
             excise_citations,
             [

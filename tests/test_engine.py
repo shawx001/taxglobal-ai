@@ -14,6 +14,7 @@ from engine import (
     state_income_tax,
 )
 from engine.rules_loader import load_state_rules
+from engine.state import state_capital_gains_excise
 from engine.tax_engine import _state_taxable_base
 
 EXPECTED_RESPONSE_KEYS = {
@@ -254,6 +255,40 @@ class EngineTests(unittest.TestCase):
         self.assertIn(
             "total tax includes federal income tax and total payroll tax", "\n".join(result["assumptions"])
         )
+
+    def test_state_capital_gains_excise_uses_stored_thresholds(self):
+        wa = load_state_rules(2026)["states"]["WA"]
+
+        result = state_capital_gains_excise(wa, net_long_term_gain=1_500_000)
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result["tax"], 91_978)
+        self.assertEqual(result["taxable_capital_gains"], 1_222_000)
+
+    def test_income_tax_summary_wa_long_term_gain_adds_capital_gains_excise(self):
+        result = income_tax_summary(long_term_capital_gain=500_000, state_code="WA")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 0.00)
+        self.assertEqual(result["result"]["state_capital_gains_excise"], 15_540.00)
+        self.assertEqual(result["result"]["total_tax"], 92_107.50)
+        breakdown = {item["label"]: item["amount"] for item in result["breakdown"]}
+        self.assertEqual(breakdown["state_income_tax"], 0.00)
+        self.assertEqual(breakdown["state_capital_gains_excise"], 15_540.00)
+        self.assertIn("net long-term capital gains", "\n".join(result["assumptions"]))
+
+    def test_income_tax_summary_wa_short_term_gain_has_zero_capital_gains_excise(self):
+        result = income_tax_summary(short_term_capital_gain=300_000, state_code="WA")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["state_capital_gains_excise"], 0.00)
+
+    def test_income_tax_summary_non_excise_state_shape_stays_unchanged(self):
+        result = income_tax_summary(100_000, filing_status="single", state_code="FL", tax_year=2025)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertNotIn("state_capital_gains_excise", result["result"])
+        self.assertEqual(result["result"]["total_tax"], 22_760.15)
 
     def test_income_tax_summary_co_adds_back_qbi_to_state_base(self):
         result = income_tax_summary(100_000, filing_status="single", state_code="CO", tax_year=2025)

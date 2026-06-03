@@ -25,6 +25,7 @@
 | `income_tax_summary` REQ-009 Block 1（W-2 + 自雇赚取收入合并） | ✅ | 2.7 | `step2_7_design_combined_block1_earned_income.md` | `this PR` | Rev. Proc. 2024-40 / IRS FICA / §199A QBI |
 | `income_tax_summary` REQ-009 Block 2（资本利得 + NIIT 合并） | ✅ | 2.8 | `step2_8_design_combined_block2_capital_gains.md` | `this PR` | Rev. Proc. 2024-40 / IRS Topic 409/559 |
 | `income_tax_summary` REQ-009 Block 3（FEIE 税率叠加） | ✅ | 2.9 | `step2_9_design_combined_block3_feie.md` | `this PR` | IRS Form 2555 / §911 / §1411 |
+| `income_tax_summary` Step B1（WA capital gains excise 接入总税） | ✅ | Step B1 | `step_b1_design_wa_capital_gains_excise.md` | `this PR` | WA DOR capital gains |
 
 ## B. 规则数据层（"大脑只信的真相源"）
 
@@ -98,6 +99,7 @@
 | REQ-002 前端合并计税总览 | `req002_design_frontend_overview.md` | `req002_frontend_overview.md` |
 | Step A 2026 税年数据集 | `tax_year_2026_design.md` | `tax_year_2026.md` |
 | Step A.5 引擎模块化重构 | `step_a5_design_engine_modularization.md` | `step_a5_engine_modularization.md` |
+| Step B1 WA capital gains excise 合并计税 | `step_b1_design_wa_capital_gains_excise.md` | `step_b1_wa_excise.md` |
 
 流程/标准类：`engineering_process.md`、`phase1_define_us_mvp.md`、`coding_standards.md`、`code_review_checklist.md`、`feature_status.md`（本文件）。
 

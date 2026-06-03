@@ -652,6 +652,8 @@ def _state_taxable_base(
 
     if start_from != "federal_agi":
         raise ValueError(f"Unsupported state tax_base start_from: {start_from}")
+    if tax_base.get("allows_qbi"):
+        raise ValueError("federal_agi tax_base with allows_qbi=true is not modeled")
 
     if tax_base.get("uses_exemption_allowance"):
         exemption_count = Decimal("2") if filing == "married_filing_jointly" else Decimal("1")

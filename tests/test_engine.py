@@ -14,6 +14,7 @@ from engine import (
     state_income_tax,
 )
 from engine.rules_loader import load_state_rules
+from engine.tax_engine import _state_taxable_base
 
 EXPECTED_RESPONSE_KEYS = {
     "status",
@@ -219,6 +220,24 @@ class EngineTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "invalid_input")
         self.assertIn("Unsupported filing_status", result["reason"])
+
+    def test_state_taxable_base_blocks_unmodeled_agi_qbi_allowed_combo(self):
+        state_block = {
+            "tax_base": {
+                "start_from": "federal_agi",
+                "allows_qbi": True,
+                "standard_deduction": {"single": 1_000},
+            }
+        }
+
+        with self.assertRaisesRegex(ValueError, "allows_qbi=true is not modeled"):
+            _state_taxable_base(
+                state_block,
+                federal_agi=100_000,
+                federal_taxable_income=80_000,
+                federal_qbi_deduction=10_000,
+                filing="single",
+            )
 
     def test_nexus_ca_equal_threshold_uses_strict_greater_than(self):
         result = nexus_estimate("CA", 500_000)

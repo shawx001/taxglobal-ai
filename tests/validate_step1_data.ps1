@@ -219,6 +219,9 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
       throw "State $($stateProp.Name) tax_base qbi_addback must be boolean"
     }
     if ($taxBase.start_from -eq "federal_agi") {
+      if ($taxBase.allows_qbi -eq $true) {
+        throw "State $($stateProp.Name) federal_agi tax_base with allows_qbi=true is not modeled"
+      }
       $hasStandardDeduction = $taxBase.PSObject.Properties.Name -contains "standard_deduction"
       $usesExemptionAllowance = ($taxBase.PSObject.Properties.Name -contains "uses_exemption_allowance") -and $taxBase.uses_exemption_allowance
       if (!$hasStandardDeduction -and !$usesExemptionAllowance) {

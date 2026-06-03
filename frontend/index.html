@@ -1273,8 +1273,9 @@ const FED = {
   single:[[11925,.10],[48475,.12],[103350,.22],[197300,.24],[250525,.32],[626350,.35],[Infinity,.37]],
   mfj:[[23850,.10],[96950,.12],[206700,.22],[394600,.24],[501050,.32],[751600,.35],[Infinity,.37]],
   hoh:[[17000,.10],[64850,.12],[103350,.22],[197300,.24],[250500,.32],[626350,.35],[Infinity,.37]],
+  mfs:[[11925,.10],[48475,.12],[103350,.22],[197300,.24],[250525,.32],[375800,.35],[Infinity,.37]],
 };
-const STD = {single:15000, mfj:30000, hoh:22500};
+const STD = {single:15000, mfj:30000, hoh:22500, mfs:15000};
 function bracketTax(taxable, br){
   let tax=0, prev=0;
   for(const [cap,rate] of br){ if(taxable>cap){ tax+=(cap-prev)*rate; prev=cap; } else { tax+=(taxable-prev)*rate; break; } }
@@ -1523,8 +1524,8 @@ async function calcTax(){
     adv.innerHTML = taxText('apiDriven');
   }
 }
-function marginalRate(taxable,filing){ for(const [cap,rate] of FED[filing]){ if(taxable<=cap) return rate; } return .37; }
-function usTaxTotal(income,filing,k401){ const ded=STD[filing]; const taxable=Math.max(0,income-k401-ded); return bracketTax(taxable,FED[filing])+caStateTax(taxable)+fica(income).total; }
+function marginalRate(taxable,filing){ const table=FED[filing]||FED.single; for(const [cap,rate] of table){ if(taxable<=cap) return rate; } return .37; }
+function usTaxTotal(income,filing,k401){ const ded=(STD[filing]!=null?STD[filing]:STD.single); const taxable=Math.max(0,income-k401-ded); return bracketTax(taxable,FED[filing]||FED.single)+caStateTax(taxable)+fica(income).total; }
 function usEff(income,filing,k401){ return (usTaxTotal(income,filing,k401)/income*100).toFixed(1); }
 
 /* ════════ 子 Tab ════════ */

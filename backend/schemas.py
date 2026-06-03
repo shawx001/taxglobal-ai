@@ -49,6 +49,9 @@ class IncomeSummaryRequest(TaxYearModel):
     net_self_employment_profit: float = Field(default=0, ge=0)
     w2_wages: float = Field(default=0, ge=0)
     other_ordinary_income: float = Field(default=0, ge=0)
+    long_term_capital_gain: float = Field(default=0, ge=0)
+    short_term_capital_gain: float = Field(default=0, ge=0)
+    modified_agi: float | None = Field(default=None, ge=0)
     filing_status: str = "single"
     state_code: str | None = Field(default=None, min_length=2, max_length=2)
     se_health_insurance: float = Field(default=0, ge=0)

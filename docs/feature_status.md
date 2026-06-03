@@ -23,6 +23,7 @@
 | `rsu_tax_estimate`（RSU 归属税务） | ✅ | 2.3 | `step2_3_design_rsu.md` | `2e43a8e` | IRS §83, Rev. Proc. 2024-40 |
 | `income_tax_summary`（自雇总税合并计税） | ✅ | 2.5 | `step2_5_design_income_summary.md` | `97d91d1` | Rev. Proc. 2024-40 / IRS FICA / 各州 DOR / §199A QBI |
 | `income_tax_summary` REQ-009 Block 1（W-2 + 自雇赚取收入合并） | ✅ | 2.7 | `step2_7_design_combined_block1_earned_income.md` | `this PR` | Rev. Proc. 2024-40 / IRS FICA / §199A QBI |
+| `income_tax_summary` REQ-009 Block 2（资本利得 + NIIT 合并） | ✅ | 2.8 | `step2_8_design_combined_block2_capital_gains.md` | `this PR` | Rev. Proc. 2024-40 / IRS Topic 409/559 |
 
 ## B. 规则数据层（"大脑只信的真相源"）
 
@@ -82,6 +83,7 @@
 | 2.5 自雇总税 | `step2_5_design_income_summary.md` | `step2_5_income_summary.md` |
 | 2.6 加密资本利得州税 | `step2_6_design_crypto_state_tax.md` | `step2_6_crypto_state_tax.md` |
 | 2.7 REQ-009 Block 1 赚取收入合并计税 | `step2_7_design_combined_block1_earned_income.md` | `step2_7_combined_block1.md` |
+| 2.8 REQ-009 Block 2 资本利得合并计税 | `step2_8_design_combined_block2_capital_gains.md` | `step2_8_combined_block2.md` |
 | 4 FastAPI 后端 | `step4_design_fastapi.md` | `step4_fastapi_backend.md` |
 | 5 Frontend income tax API | `step5_design_frontend.md` | `step5_frontend_api.md` |
 | 5.4 自雇前端接后端总税 | `step5_4_design_se_frontend.md` | `step5_4_se_frontend.md` |

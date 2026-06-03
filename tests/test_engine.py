@@ -256,6 +256,55 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["federal_income_tax"], 8_630.60)
         self.assertEqual(result["result"]["total_tax"], 22_760.15)
 
+    def test_income_tax_summary_short_term_gain_is_ordinary_but_not_payroll_income(self):
+        result = income_tax_summary(w2_wages=100_000, short_term_capital_gain=10_000, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["ordinary_taxable_income"], 95_000.00)
+        self.assertEqual(result["result"]["federal_income_tax"], 15_814.00)
+        self.assertEqual(result["result"]["long_term_capital_gains_tax"], 0.00)
+        self.assertEqual(result["result"]["total_payroll_tax"], 7_650.00)
+
+    def test_income_tax_summary_niit_can_apply_to_full_net_investment_income(self):
+        result = income_tax_summary(w2_wages=200_000, long_term_capital_gain=50_000, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["net_investment_income_tax"], 1_900.00)
+        self.assertEqual(result["result"]["long_term_capital_gains_tax"], 7_500.00)
+        self.assertEqual(result["result"]["total_tax"], 60_465.20)
+
+    def test_income_tax_summary_niit_is_capped_by_magi_excess(self):
+        result = income_tax_summary(
+            w2_wages=150_000,
+            net_self_employment_profit=50_000,
+            long_term_capital_gain=40_000,
+            filing_status="single",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["qbi_deduction"], 4_692.55)
+        self.assertEqual(result["result"]["net_investment_income_tax"], 1_433.07)
+        self.assertEqual(result["result"]["total_tax"], 59_055.28)
+
+    def test_income_tax_summary_long_term_gain_can_land_in_zero_percent_band(self):
+        result = income_tax_summary(long_term_capital_gain=40_000, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["ordinary_taxable_income"], 0.00)
+        self.assertEqual(result["result"]["taxable_income"], 25_000.00)
+        self.assertEqual(result["result"]["long_term_capital_gains_tax"], 0.00)
+        self.assertEqual(result["result"]["total_tax"], 0.00)
+
+    def test_income_tax_summary_capital_gains_default_zero_reproduces_block1(self):
+        result = income_tax_summary(w2_wages=150_000, net_self_employment_profit=50_000, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["ordinary_taxable_income"], 173_169.81)
+        self.assertEqual(result["result"]["taxable_income"], 173_169.81)
+        self.assertEqual(result["result"]["long_term_capital_gains_tax"], 0.00)
+        self.assertEqual(result["result"]["net_investment_income_tax"], 0.00)
+        self.assertEqual(result["result"]["total_tax"], 50_458.23)
+
     def test_state_taxable_base_blocks_unmodeled_agi_qbi_allowed_combo(self):
         state_block = {
             "tax_base": {

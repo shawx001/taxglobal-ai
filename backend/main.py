@@ -91,7 +91,9 @@ def create_app() -> FastAPI:
                 code="validation_error",
                 message="Request validation failed.",
                 request_id=request_id,
-                details=exc.errors(),
+                # Keep only JSON-safe, PII-free fields: drop `input` (echoes sensitive
+                # income values) and `ctx` (may hold non-serializable exception objects).
+                details=[{k: v for k, v in err.items() if k in ("type", "loc", "msg")} for err in exc.errors()],
             ),
         )
 

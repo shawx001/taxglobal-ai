@@ -272,7 +272,7 @@
         "net_investment_income_tax": 0.00,
         "total_tax": 13200.00,
         "citation_source_ids": ["irs_feie_figuring_exclusion", "irs_i2555_2025"],
-        "assumption_contains": "FEIE rate stacking is applied"
+        "assumption_contains": "FEIE rate stacking"
       }
     },
     {
@@ -330,10 +330,10 @@
         "taxable_income": 72608.90,
         "ordinary_taxable_income": 32608.90,
         "federal_income_tax": 7759.14,
-        "long_term_capital_gains_tax": 3638.84,
+        "long_term_capital_gains_tax": 6000.00,
         "net_investment_income_tax": 0.00,
         "total_payroll_tax": 8477.73,
-        "total_tax": 19875.71
+        "total_tax": 22236.87
       }
     }
   ]

@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 from unittest.mock import patch
@@ -306,6 +307,58 @@ class CalcApiTests(unittest.TestCase):
         self.assertEqual(error["code"], "invalid_input")
         self.assertIn("exceeds", error["message"])
         self.assertEqual(error["request_id"], response.headers["X-Request-ID"])
+
+    def test_non_finite_inputs_map_to_422(self):
+        for path, payload in (
+            ("/calc/federal-income", {"gross_income": float("inf"), "filing_status": "single"}),
+            ("/calc/income-summary", {"w2_wages": float("nan"), "filing_status": "single"}),
+            (
+                "/calc/crypto",
+                {
+                    "lots": [{"asset": "BTC", "date": "2022-01-01", "quantity": 1.0, "cost_basis": float("inf")}],
+                    "disposals": [{"asset": "BTC", "date": "2024-01-01", "quantity": 1.0, "proceeds": 2.0}],
+                    "method": "FIFO",
+                },
+            ),
+        ):
+            with self.subTest(path=path):
+                # Send raw JSON with literal Infinity/NaN (Python's json server-side accepts
+                # them); the client's strict encoder rejects float('inf') via json=, so use content=.
+                response = self.client.post(
+                    path, content=json.dumps(payload), headers={"Content-Type": "application/json"}
+                )
+                self.assertEqual(response.status_code, 422)
+                self.assertEqual(response.json()["error"]["code"], "validation_error")
+
+    def test_validation_error_details_omit_input_and_ctx(self):
+        # Request fields are sensitive PII; 422 details must not echo the value or leak ctx objects.
+        response = self.client.post(
+            "/calc/income-summary",
+            json={"w2_wages": -50000, "filing_status": "single"},
+        )
+
+        self.assertEqual(response.status_code, 422)
+        details = response.json()["error"]["details"]
+        self.assertTrue(details)
+        for item in details:
+            self.assertNotIn("input", item)
+            self.assertNotIn("ctx", item)
+        self.assertNotIn("-50000", str(details))
+
+    def test_crypto_oversized_lists_map_to_422(self):
+        response = self.client.post(
+            "/calc/crypto",
+            json={
+                "lots": [
+                    {"asset": "BTC", "date": "2022-01-01", "quantity": 1.0, "cost_basis": 1.0} for _ in range(1001)
+                ],
+                "disposals": [{"asset": "BTC", "date": "2024-01-01", "quantity": 1.0, "proceeds": 2.0}],
+                "method": "FIFO",
+            },
+        )
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()["error"]["code"], "validation_error")
 
     def test_pydantic_validation_error_maps_to_422(self):
         response = self.client.post("/calc/federal-income", json={"filing_status": "single"})

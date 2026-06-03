@@ -75,10 +75,10 @@
     "taxable_income": 71728.9,
     "ordinary_taxable_income": 31728.9,
     "federal_income_tax": 7500.94,
-    "long_term_capital_gains_tax": 3341.84,
+    "long_term_capital_gains_tax": 6000.0,
     "net_investment_income_tax": 0.0,
     "total_payroll_tax": 8477.73,
-    "federal_side_total_tax": 19320.51
+    "federal_side_total_tax": 21978.67
    }
   },
   {

@@ -205,8 +205,11 @@ def income_tax_summary(
         _bracket_tax_decimal(ordinary_taxable_income + feie_excluded_income, ordinary_brackets)
         - _bracket_tax_decimal(feie_excluded_income, ordinary_brackets),
     )
+    # FEIE rate-stacking (Foreign Earned Income Tax Worksheet) places the excluded
+    # foreign earned income BELOW the long-term capital gains too — not only below
+    # ordinary income — otherwise LTCG gets too much 0%/15% room and is undertaxed.
     long_term_capital_gains_tax = _long_term_capital_gains_tax(
-        ordinary_stack=ordinary_taxable_income,
+        ordinary_stack=ordinary_taxable_income + feie_excluded_income,
         long_term_gain=long_term_gain_taxed,
         brackets=capital_gains_rules["long_term_capital_gains"]["brackets"][filing],
     )
@@ -331,12 +334,11 @@ def income_tax_summary(
         assumptions.extend(feie_assumptions)
         assumptions.extend(
             [
-                "FEIE rate stacking is applied by placing excluded foreign earned income below the non-excluded "
-                "ordinary taxable income in the federal brackets.",
+                "FEIE rate stacking (Foreign Earned Income Tax Worksheet) places the excluded foreign earned "
+                "income below BOTH the non-excluded ordinary taxable income and the long-term capital gains, so "
+                "the preferential 0%/15%/20% rates stack on top of the excluded income.",
                 "Most states do not conform to the federal FEIE; this MVP uses the stored state AGI tax_base path "
                 "and does not model state-specific foreign earned income adjustments.",
-                "When FEIE and large long-term capital gains coexist, the IRS combined Foreign Earned Income and "
-                "QDCGT worksheets may differ from this MVP stacking simplification.",
                 "Foreign earned income is assumed not to be subject to US FICA or self-employment tax in this "
                 "summary; foreign self-employment and totalization agreements are not modeled.",
                 "Foreign housing exclusion, bona fide residence testing, FTC, and passive foreign income are not "

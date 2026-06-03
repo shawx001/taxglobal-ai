@@ -35,7 +35,7 @@ OVERVIEW_SCENARIOS = [
             "days_abroad": 330,
         },
         "expected": {
-            "total_tax": 19875.71,
+            "total_tax": 22236.87,
             "qbi_deduction": 8152.23,
             "feie_excluded_income": 100000.00,
             "total_payroll_tax": 8477.73,

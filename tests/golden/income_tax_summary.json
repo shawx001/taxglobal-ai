@@ -256,6 +256,85 @@
         "net_investment_income_tax": 0.00,
         "total_tax": 10870.78
       }
+    },
+    {
+      "name": "combined_feie_200k_330_days_single",
+      "input": {"foreign_earned_income": 200000, "days_abroad": 330, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "foreign_earned_income": 200000.00,
+        "feie_excluded_income": 130000.00,
+        "foreign_tax_rate_stacking_applied": true,
+        "adjusted_gross_income": 70000.00,
+        "ordinary_taxable_income": 55000.00,
+        "federal_income_tax": 13200.00,
+        "long_term_capital_gains_tax": 0.00,
+        "net_investment_income_tax": 0.00,
+        "total_tax": 13200.00,
+        "citation_source_ids": ["irs_feie_figuring_exclusion", "irs_i2555_2025"],
+        "assumption_contains": "FEIE rate stacking is applied"
+      }
+    },
+    {
+      "name": "combined_feie_w2_long_term_gain_niit_addback_single",
+      "input": {
+        "foreign_earned_income": 200000,
+        "days_abroad": 330,
+        "w2_wages": 50000,
+        "long_term_capital_gain": 30000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "feie_excluded_income": 130000.00,
+        "adjusted_gross_income": 150000.00,
+        "ordinary_taxable_income": 105000.00,
+        "federal_income_tax": 28216.00,
+        "long_term_capital_gains_tax": 4500.00,
+        "net_investment_income_tax": 1140.00,
+        "total_payroll_tax": 3825.00,
+        "total_tax": 37681.00
+      }
+    },
+    {
+      "name": "combined_feie_default_zero_block2_regression_single",
+      "input": {
+        "foreign_earned_income": 0,
+        "w2_wages": 200000,
+        "long_term_capital_gain": 50000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "federal_income_tax": 37247.00,
+        "long_term_capital_gains_tax": 7500.00,
+        "net_investment_income_tax": 1900.00,
+        "feie_excluded_income": 0.00,
+        "foreign_tax_rate_stacking_applied": false,
+        "total_tax": 60465.20
+      }
+    },
+    {
+      "name": "combined_feie_self_employment_long_term_gain_qbi_guard_single",
+      "input": {
+        "net_self_employment_profit": 60000,
+        "long_term_capital_gain": 40000,
+        "foreign_earned_income": 100000,
+        "days_abroad": 330,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "feie_excluded_income": 100000.00,
+        "qbi_deduction": 8152.23,
+        "taxable_income": 72608.90,
+        "ordinary_taxable_income": 32608.90,
+        "federal_income_tax": 7759.14,
+        "long_term_capital_gains_tax": 3638.84,
+        "net_investment_income_tax": 0.00,
+        "total_payroll_tax": 8477.73,
+        "total_tax": 19875.71
+      }
     }
   ]
 }

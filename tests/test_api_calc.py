@@ -208,6 +208,20 @@ class CalcApiTests(unittest.TestCase):
         self.assertEqual(body["result"]["net_investment_income_tax"], 1900.00)
         self.assertEqual(body["result"]["total_tax"], 60465.20)
 
+    def test_income_summary_endpoint_combines_feie_rate_stacking(self):
+        response = self.client.post(
+            "/calc/income-summary",
+            json={"foreign_earned_income": 200000, "days_abroad": 330, "filing_status": "single"},
+        )
+
+        body = self.assert_engine_payload(response)
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["result"]["feie_excluded_income"], 130000.00)
+        self.assertTrue(body["result"]["foreign_tax_rate_stacking_applied"])
+        self.assertEqual(body["result"]["ordinary_taxable_income"], 55000.00)
+        self.assertEqual(body["result"]["federal_income_tax"], 13200.00)
+        self.assertEqual(body["result"]["total_tax"], 13200.00)
+
     def test_income_summary_endpoint_embeds_state_not_covered(self):
         response = self.client.post(
             "/calc/income-summary",

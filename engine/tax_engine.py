@@ -737,6 +737,8 @@ def income_tax_summary(
     long_term_capital_gain: float = 0.0,
     short_term_capital_gain: float = 0.0,
     modified_agi: float | None = None,
+    foreign_earned_income: float = 0.0,
+    days_abroad: int = 0,
     filing_status: str = "single",
     state_code: str | None = None,
     se_health_insurance: float = 0.0,
@@ -756,6 +758,8 @@ def income_tax_summary(
         "long_term_capital_gain": long_term_capital_gain,
         "short_term_capital_gain": short_term_capital_gain,
         "modified_agi": modified_agi,
+        "foreign_earned_income": foreign_earned_income,
+        "days_abroad": days_abroad,
         "filing_status": filing_status,
         "state_code": None if state_code is None else state_code.upper(),
         "se_health_insurance": se_health_insurance,
@@ -806,6 +810,13 @@ def income_tax_summary(
         modified_agi_value = (
             None if modified_agi is None else max(Decimal("0"), _decimal_input(modified_agi, "modified_agi"))
         )
+        foreign_income = max(Decimal("0"), _decimal_input(foreign_earned_income, "foreign_earned_income"))
+        days_abroad_decimal = _decimal_input(days_abroad, "days_abroad")
+        if days_abroad_decimal != days_abroad_decimal.to_integral_value():
+            raise ValueError("days_abroad must be a whole number of days")
+        days_abroad_value = int(days_abroad_decimal)
+        if days_abroad_value < 0 or days_abroad_value > 366:
+            raise ValueError("days_abroad must be between 0 and 366")
         health_insurance = max(Decimal("0"), _decimal_input(se_health_insurance, "se_health_insurance"))
         retirement = max(Decimal("0"), _decimal_input(retirement_contributions, "retirement_contributions"))
         qbi_w2 = max(Decimal("0"), _decimal_input(qbi_w2_wages, "qbi_w2_wages"))
@@ -815,7 +826,7 @@ def income_tax_summary(
             if deduction is None
             else max(Decimal("0"), _decimal_input(deduction, "deduction"))
         )
-    except ValueError as exc:
+    except (TypeError, ValueError) as exc:
         return _invalid_input(
             input_data=raw_input,
             rule_version=rule_version,
@@ -830,10 +841,29 @@ def income_tax_summary(
     w2_fica_tax = payroll["w2_fica_tax"]
     total_payroll_tax = payroll["total_payroll_tax"]
 
+    feie_result: dict[str, Any] | None = None
+    feie_citations: list[dict[str, Any]] = []
+    feie_assumptions: list[str] = []
+    feie_excluded_income = Decimal("0")
+    if foreign_income > 0:
+        feie_result = feie_estimate(_money_decimal(foreign_income), days_abroad_value, tax_year)
+        feie_citations = feie_result["citations"]
+        feie_assumptions = feie_result["assumptions"]
+        feie_excluded_income = _decimal_rule(feie_result["result"]["excluded_income"])
+    taxable_foreign_income = max(Decimal("0"), foreign_income - feie_excluded_income)
+    foreign_tax_rate_stacking_applied = feie_excluded_income > 0
+    summary_citations = _merge_citations(base_citations, feie_citations)
+
     above_line_deductions = deductible_half_se_tax + health_insurance + retirement
     adjusted_gross_income = max(
         Decimal("0"),
-        w2 + net_profit + other_income + short_term_gain + long_term_gain - above_line_deductions,
+        w2
+        + net_profit
+        + other_income
+        + short_term_gain
+        + long_term_gain
+        + taxable_foreign_income
+        - above_line_deductions,
     )
     taxable_before_qbi = max(Decimal("0"), adjusted_gross_income - deduction_used)
     qbi_amount = max(Decimal("0"), net_profit - above_line_deductions)
@@ -853,7 +883,7 @@ def income_tax_summary(
             input_data={**raw_input, "filing_status": filing},
             rule_version=rule_version,
             reason=f"QBI deduction failed: {qbi_result['reason']}",
-            citations=_merge_citations(base_citations, qbi_result["citations"]),
+            citations=_merge_citations(summary_citations, qbi_result["citations"]),
             assumptions=qbi_result["assumptions"],
         )
     qbi_deduction_amount = _decimal_rule(qbi_result["result"]["deduction"])
@@ -861,9 +891,11 @@ def income_tax_summary(
     taxable_income = max(Decimal("0"), taxable_before_qbi - qbi_deduction_amount)
     long_term_gain_taxed = max(Decimal("0"), min(long_term_gain, taxable_income))
     ordinary_taxable_income = max(Decimal("0"), taxable_income - long_term_gain_taxed)
-    federal_income_tax_amount = _bracket_tax_decimal(
-        ordinary_taxable_income,
-        federal_rules["ordinary_income_brackets"][filing],
+    ordinary_brackets = federal_rules["ordinary_income_brackets"][filing]
+    federal_income_tax_amount = max(
+        Decimal("0"),
+        _bracket_tax_decimal(ordinary_taxable_income + feie_excluded_income, ordinary_brackets)
+        - _bracket_tax_decimal(feie_excluded_income, ordinary_brackets),
     )
     long_term_capital_gains_tax = _long_term_capital_gains_tax(
         ordinary_stack=ordinary_taxable_income,
@@ -873,7 +905,9 @@ def income_tax_summary(
     net_investment_income = max(Decimal("0"), short_term_gain + long_term_gain)
     niit_rules = capital_gains_rules["net_investment_income_tax"]
     niit_threshold = _decimal_rule(niit_rules["magi_thresholds"][filing])
-    magi_for_niit = adjusted_gross_income if modified_agi_value is None else modified_agi_value
+    magi_for_niit = (
+        adjusted_gross_income + feie_excluded_income if modified_agi_value is None else modified_agi_value
+    )
     niit_base = min(net_investment_income, max(Decimal("0"), magi_for_niit - niit_threshold))
     net_investment_income_tax = niit_base * _decimal_rule(niit_rules["rate"])
 
@@ -905,7 +939,7 @@ def income_tax_summary(
                     input_data={**raw_input, "filing_status": filing},
                     rule_version=rule_version,
                     reason=str(exc),
-                    citations=base_citations,
+                    citations=summary_citations,
                 )
 
         state_result = state_income_tax(normalized_state_code, state_taxable_base, filing, tax_year)
@@ -963,8 +997,24 @@ def income_tax_summary(
     ]
     if modified_agi_value is None and net_investment_income > 0:
         assumptions.append(
-            "modified_agi was not provided; NIIT uses adjusted_gross_income as the MVP MAGI approximation. "
-            "Pass modified_agi when return-level MAGI differs."
+            "modified_agi was not provided; NIIT uses adjusted_gross_income plus any FEIE excluded income as the MVP "
+            "MAGI approximation. Pass modified_agi when return-level MAGI differs."
+        )
+    if foreign_income > 0:
+        assumptions.extend(feie_assumptions)
+        assumptions.extend(
+            [
+                "FEIE rate stacking is applied by placing excluded foreign earned income below the non-excluded "
+                "ordinary taxable income in the federal brackets.",
+                "Most states do not conform to the federal FEIE; this MVP uses the stored state AGI tax_base path "
+                "and does not model state-specific foreign earned income adjustments.",
+                "When FEIE and large long-term capital gains coexist, the IRS combined Foreign Earned Income and "
+                "QDCGT worksheets may differ from this MVP stacking simplification.",
+                "Foreign earned income is assumed not to be subject to US FICA or self-employment tax in this "
+                "summary; foreign self-employment and totalization agreements are not modeled.",
+                "Foreign housing exclusion, bona fide residence testing, FTC, and passive foreign income are not "
+                "modeled in this combined FEIE block.",
+            ]
         )
     if state_result is not None and state_result["status"] != "ok":
         assumptions.append(
@@ -983,6 +1033,9 @@ def income_tax_summary(
 
     result = {
         "w2_wages": _money_decimal(w2),
+        "foreign_earned_income": _money_decimal(foreign_income),
+        "feie_excluded_income": _money_decimal(feie_excluded_income),
+        "foreign_tax_rate_stacking_applied": foreign_tax_rate_stacking_applied,
         "short_term_capital_gain": _money_decimal(short_term_gain),
         "long_term_capital_gain": _money_decimal(long_term_gain),
         "w2_fica_tax": _money_decimal(w2_fica_tax),
@@ -1013,6 +1066,8 @@ def income_tax_summary(
             "w2_wages": _money_decimal(w2),
             "net_self_employment_profit": _money_decimal(net_profit),
             "other_ordinary_income": _money_decimal(other_income),
+            "foreign_earned_income": _money_decimal(foreign_income),
+            "days_abroad": days_abroad_value,
             "short_term_capital_gain": _money_decimal(short_term_gain),
             "long_term_capital_gain": _money_decimal(long_term_gain),
             "modified_agi": None if modified_agi_value is None else _money_decimal(modified_agi_value),
@@ -1027,6 +1082,8 @@ def income_tax_summary(
             {"label": "w2_wages", "amount": _money_decimal(w2)},
             {"label": "w2_fica_tax", "amount": _money_decimal(w2_fica_tax)},
             {"label": "net_self_employment_profit", "amount": _money_decimal(net_profit)},
+            {"label": "foreign_earned_income", "amount": _money_decimal(foreign_income)},
+            {"label": "feie_excluded_income", "amount": _money_decimal(feie_excluded_income)},
             {"label": "short_term_capital_gain", "amount": _money_decimal(short_term_gain)},
             {"label": "long_term_capital_gain", "amount": _money_decimal(long_term_gain)},
             {"label": "deductible_half_se_tax", "amount": _money_decimal(deductible_half_se_tax)},
@@ -1045,7 +1102,7 @@ def income_tax_summary(
             {"label": "total_tax", "amount": _money_decimal(total_tax)},
         ],
         rule_version=rule_version,
-        citations=_merge_citations(base_citations, state_citations),
+        citations=_merge_citations(summary_citations, state_citations),
         assumptions=assumptions,
     )
 

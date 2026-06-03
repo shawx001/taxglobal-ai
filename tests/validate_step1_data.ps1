@@ -105,6 +105,13 @@ $requiredQbiFilingStatuses = @(
   "head_of_household",
   "married_filing_separately"
 )
+$expectedQbiPhaseInWindows = @{
+  single = 50000
+  head_of_household = 50000
+  married_filing_separately = 50000
+  qualifying_surviving_spouse = 50000
+  married_filing_jointly = 100000
+}
 if (!$qbi.qbi_deduction) { throw "QBI file missing qbi_deduction" }
 if ($qbi.qbi_deduction.rate -ne 0.2) { throw "Unexpected QBI deduction rate" }
 if (!$qbi.qbi_deduction.effective_date) { throw "qbi_deduction missing effective_date" }
@@ -124,6 +131,9 @@ foreach ($filingStatus in $requiredQbiFilingStatuses) {
   $threshold = $qbi.qbi_deduction.taxable_income_threshold.$filingStatus
   $window = $qbi.qbi_deduction.phase_in_window.$filingStatus
   $upperLimit = $qbi.qbi_deduction.upper_limit.$filingStatus
+  if ($window -ne $expectedQbiPhaseInWindows[$filingStatus]) {
+    throw "Unexpected QBI phase_in_window for $filingStatus"
+  }
   if ($upperLimit -ne ($threshold + $window)) {
     throw "QBI upper_limit for $filingStatus must equal threshold + phase_in_window"
   }

@@ -9,13 +9,13 @@
 | 里程碑 | 周期 | 交付 | 状态 |
 |---|---|---|---|
 | **M0 原型** | — | 高保真可交互原型,全流程可点可算 | ✅ 已完成 |
-| **M1 引擎硬化** | 第 1–3 周 | tax-engine 后端服务 + 黄金测试集 + CI;前后端结果一致 | 🟡 **进行中(我们在这)** |
+| **M1 引擎硬化** | 第 1–3 周 | tax-engine 后端服务 + 黄金测试集 + CI;前后端结果一致 | ✅ **收尾完成** |
 | **M2 Agent + 知识层** | 第 3–5 周 | **18 Skills**(LangChain 编排)+ GraphRAG(MVP) | 🔲 未开始(依赖 M1 + KB) |
 | **M3 连接器 + 多模态** | 第 5–7 周 | OAuth、Shopify/Amazon 真连、Qwen-VL W-2 识别、自有 Copilot 模型 | 🔲 未开始 |
 | **M4 训练闭环** | 第 7–8 周 | Trace 回流 + LoRA + Eval Harness | 🔲 未开始 |
 | **M5 合规与上线** | 第 9–10 周 | 安全/合规/可观测 + Demo 联调 | 🔲 未开始 |
 
-**M1 收尾剩余**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);差 **REQ-002 前端总览**(档案 → 一处调 `income_tax_summary` 出总税,取代各模块孤立相加)。M1 收尾后才进 M2。
+**M1 收尾状态**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);REQ-002 前端总览已接到单次 `income_tax_summary`。下一阶段进入 M2 Skills/Agent + 知识层。
 
 ## 二、18 Skills 清单与现状
 
@@ -30,7 +30,7 @@
 | 3 | `analyze_rsu` | `rsu_tax_estimate` | ✅ 已完成 |
 | 4 | `track_crypto` | `crypto_gain_estimate` + `_crypto_state_tax` | ✅ 已完成 |
 | 5 | `detect_nexus` | `nexus_estimate`(经济联结 Wayfair) | ✅ 已完成 |
-| 6 | `parse_profile` | 档案解析/编排(= REQ-002 前端总览入口) | 🟡 下一步(M1 收尾) |
+| 6 | `parse_profile` | 档案解析/编排(= REQ-002 前端总览入口) | ✅ 可用(REQ-002 前端总览) |
 | 7 | `classify_transaction` | 交易分类(加密/电商品类),待 KB/规则 | 🔲 待 M2 |
 | 8 | `rank_nomad_cities` | 数字游民城市排名,待数据/规则 | 🔲 待 M2 |
 | 9 | `extract_w2` | Qwen-VL W-2 识别(多模态) | 🔲 待 M3 |
@@ -45,4 +45,4 @@
 2. **可见性缺口(已修)**:此前埋头引擎分块,未维护 Skills/里程碑视图;本文件 + 记忆补上,之后每步更新。
 
 ## 四、决定(2026-06-03)
-Shaw 选择**先收尾引擎 + 前端**:下一步 = **REQ-002 前端总览**(M1 收尾),之后再开 M2 的 Skills/Agent 层。
+Shaw 选择**先收尾引擎 + 前端**:REQ-002 前端总览已完成 M1 收尾，之后进入 M2 的 Skills/Agent 层。

@@ -371,15 +371,17 @@ def _combined_payroll(
     w2_wages: Decimal,
     net_self_employment_profit: Decimal,
     filing: str,
-    tax_year: int,
+    fica_rules: dict[str, Any],
 ) -> dict[str, Decimal]:
-    """Combine W-2 FICA and self-employment tax with shared Social Security base."""
+    """Combine W-2 FICA and self-employment tax with shared Social Security base.
 
-    rules = load_fica_rules(tax_year)
-    ss = rules["social_security"]
-    med = rules["medicare"]
-    addl = rules["additional_medicare"]
-    se = rules["self_employment"]
+    Reuses the caller's already-loaded fica_rules to avoid a second deepcopy on the hot path.
+    """
+
+    ss = fica_rules["social_security"]
+    med = fica_rules["medicare"]
+    addl = fica_rules["additional_medicare"]
+    se = fica_rules["self_employment"]
 
     w2 = max(Decimal("0"), w2_wages)
     net_profit = max(Decimal("0"), net_self_employment_profit)
@@ -728,6 +730,7 @@ def _state_taxable_base(
 
 def income_tax_summary(
     net_self_employment_profit: float = 0.0,
+    *,
     w2_wages: float = 0.0,
     other_ordinary_income: float = 0.0,
     filing_status: str = "single",
@@ -795,7 +798,7 @@ def income_tax_summary(
             citations=base_citations,
         )
 
-    payroll = _combined_payroll(w2, net_profit, filing, tax_year)
+    payroll = _combined_payroll(w2, net_profit, filing, fica_rules)
     se_tax = payroll["self_employment_tax"]
     additional_medicare_tax = payroll["additional_medicare_tax"]
     deductible_half_se_tax = payroll["deductible_half_se_tax"]

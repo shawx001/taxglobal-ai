@@ -390,6 +390,29 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["net_investment_income_tax"], 1_900.00)
         self.assertEqual(result["result"]["total_tax"], 60_465.20)
 
+    def test_income_tax_summary_rejects_fractional_days_abroad(self):
+        # Whole-number floats are accepted as the integer day count.
+        accepted = income_tax_summary(
+            foreign_earned_income=100_000, days_abroad=330.0, filing_status="single"
+        )
+        self.assertEqual(accepted["status"], "ok")
+        self.assertTrue(accepted["result"]["foreign_tax_rate_stacking_applied"])
+
+        # Fractional day counts are rejected, not silently floored (would change FEIE qualification).
+        rejected = income_tax_summary(
+            foreign_earned_income=100_000, days_abroad=329.9, filing_status="single"
+        )
+        self.assertEqual(rejected["status"], "invalid_input")
+        self.assertIn("days_abroad", rejected["reason"])
+
+    def test_income_tax_summary_rejects_out_of_range_days_abroad(self):
+        result = income_tax_summary(
+            foreign_earned_income=100_000, days_abroad=400, filing_status="single"
+        )
+
+        self.assertEqual(result["status"], "invalid_input")
+        self.assertIn("days_abroad", result["reason"])
+
     def test_state_taxable_base_blocks_unmodeled_agi_qbi_allowed_combo(self):
         state_block = {
             "tax_base": {

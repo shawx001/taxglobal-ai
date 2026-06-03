@@ -811,7 +811,10 @@ def income_tax_summary(
             None if modified_agi is None else max(Decimal("0"), _decimal_input(modified_agi, "modified_agi"))
         )
         foreign_income = max(Decimal("0"), _decimal_input(foreign_earned_income, "foreign_earned_income"))
-        days_abroad_value = int(days_abroad)
+        days_abroad_decimal = _decimal_input(days_abroad, "days_abroad")
+        if days_abroad_decimal != days_abroad_decimal.to_integral_value():
+            raise ValueError("days_abroad must be a whole number of days")
+        days_abroad_value = int(days_abroad_decimal)
         if days_abroad_value < 0 or days_abroad_value > 366:
             raise ValueError("days_abroad must be between 0 and 366")
         health_insurance = max(Decimal("0"), _decimal_input(se_health_insurance, "se_health_insurance"))

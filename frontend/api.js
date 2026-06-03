@@ -52,6 +52,7 @@
     fica: function (payload) { return postCalc("/calc/fica", payload); },
     stateIncome: function (payload) { return postCalc("/calc/state-income", payload); },
     incomeSummary: function (payload) { return postCalc("/calc/income-summary", payload); },
+    nexus: function (payload) { return postCalc("/calc/nexus", payload); },
     crypto: function (payload) { return postCalc("/calc/crypto", payload); },
     feie: function (payload) { return postCalc("/calc/feie", payload); },
     rsu: function (payload) {

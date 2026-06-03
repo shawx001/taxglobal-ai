@@ -186,8 +186,10 @@ $requiredStateFilingStatuses = @(
   "head_of_household",
   "married_filing_separately"
 )
+$allowedStateTaxBaseStarts = @("federal_agi", "federal_taxable_income")
 foreach ($stateProp in $states.states.PSObject.Properties) {
   $state = $stateProp.Value
+  $hasTaxBase = $state.PSObject.Properties.Name -contains "tax_base"
   if ($state.status -in @("source_pending", "pending_extraction")) {
     if ($state.PSObject.Properties.Name -contains "flat_rate") {
       throw "State $($stateProp.Name) is $($state.status) but has flat_rate"
@@ -195,9 +197,55 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
     if ($state.PSObject.Properties.Name -contains "brackets") {
       throw "State $($stateProp.Name) is $($state.status) but has brackets"
     }
+    if ($hasTaxBase) {
+      throw "State $($stateProp.Name) is $($state.status) but has tax_base"
+    }
   }
   if ($state.status -eq "effective" -and !$state.effective_date) {
     throw "State $($stateProp.Name) is effective but missing effective_date"
+  }
+  if ($state.income_tax_type -eq "none" -and $hasTaxBase) {
+    throw "State $($stateProp.Name) has no income tax but has tax_base"
+  }
+  if ($hasTaxBase) {
+    $taxBase = $state.tax_base
+    if ($taxBase.start_from -notin $allowedStateTaxBaseStarts) {
+      throw "State $($stateProp.Name) tax_base has unsupported start_from $($taxBase.start_from)"
+    }
+    if (!($taxBase.allows_qbi -is [bool])) {
+      throw "State $($stateProp.Name) tax_base allows_qbi must be boolean"
+    }
+    if (($taxBase.PSObject.Properties.Name -contains "qbi_addback") -and !($taxBase.qbi_addback -is [bool])) {
+      throw "State $($stateProp.Name) tax_base qbi_addback must be boolean"
+    }
+    if ($taxBase.start_from -eq "federal_agi") {
+      $hasStandardDeduction = $taxBase.PSObject.Properties.Name -contains "standard_deduction"
+      $usesExemptionAllowance = ($taxBase.PSObject.Properties.Name -contains "uses_exemption_allowance") -and $taxBase.uses_exemption_allowance
+      if (!$hasStandardDeduction -and !$usesExemptionAllowance) {
+        throw "State $($stateProp.Name) federal_agi tax_base must define standard_deduction or uses_exemption_allowance"
+      }
+      if ($hasStandardDeduction) {
+        foreach ($filingStatus in $requiredStateFilingStatuses) {
+          if (!($taxBase.standard_deduction.PSObject.Properties.Name -contains $filingStatus)) {
+            throw "State $($stateProp.Name) standard_deduction missing filing status $filingStatus"
+          }
+        }
+      }
+      if ($usesExemptionAllowance) {
+        if (!$taxBase.exemption_allowance_per_person) {
+          throw "State $($stateProp.Name) uses exemption allowance but missing exemption_allowance_per_person"
+        }
+        $exemptionPhaseoutAgi = $taxBase.exemption_phaseout_agi
+        if (!$exemptionPhaseoutAgi) {
+          throw "State $($stateProp.Name) uses exemption allowance but missing exemption_phaseout_agi"
+        }
+        foreach ($filingStatus in $requiredStateFilingStatuses) {
+          if (!($exemptionPhaseoutAgi.PSObject.Properties.Name -contains $filingStatus)) {
+            throw "State $($stateProp.Name) exemption_phaseout_agi missing filing status $filingStatus"
+          }
+        }
+      }
+    }
   }
   if ($state.status -eq "effective" -and $state.income_tax_type -eq "progressive") {
     if (!($state.PSObject.Properties.Name -contains "brackets")) {
@@ -215,6 +263,62 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
         throw "State $($stateProp.Name) progressive final bracket for $filingStatus must have up_to null"
       }
     }
+  }
+}
+
+if ($states.states.CO.tax_base.start_from -ne "federal_taxable_income") {
+  throw "Colorado tax_base must start from federal_taxable_income"
+}
+if ($states.states.CO.tax_base.qbi_addback -ne $true) {
+  throw "Colorado tax_base must include qbi_addback"
+}
+if ($states.states.CA.tax_base.standard_deduction.single -ne 5706) {
+  throw "Unexpected CA single standard deduction"
+}
+if ($states.states.CA.tax_base.standard_deduction.married_filing_separately -ne 5706) {
+  throw "Unexpected CA MFS standard deduction"
+}
+if ($states.states.CA.tax_base.standard_deduction.married_filing_jointly -ne 11412) {
+  throw "Unexpected CA MFJ standard deduction"
+}
+if ($states.states.CA.tax_base.standard_deduction.qualifying_surviving_spouse -ne 11412) {
+  throw "Unexpected CA QSS standard deduction"
+}
+if ($states.states.CA.tax_base.standard_deduction.head_of_household -ne 11412) {
+  throw "Unexpected CA HOH standard deduction"
+}
+if ($states.states.NY.tax_base.standard_deduction.single -ne 8000) {
+  throw "Unexpected NY single standard deduction"
+}
+if ($states.states.NY.tax_base.standard_deduction.married_filing_separately -ne 8000) {
+  throw "Unexpected NY MFS standard deduction"
+}
+if ($states.states.NY.tax_base.standard_deduction.married_filing_jointly -ne 16050) {
+  throw "Unexpected NY MFJ standard deduction"
+}
+if ($states.states.NY.tax_base.standard_deduction.qualifying_surviving_spouse -ne 16050) {
+  throw "Unexpected NY QSS standard deduction"
+}
+if ($states.states.NY.tax_base.standard_deduction.head_of_household -ne 11200) {
+  throw "Unexpected NY HOH standard deduction"
+}
+if ($states.states.GA.tax_base.standard_deduction.married_filing_jointly -ne 24000) {
+  throw "Unexpected GA MFJ standard deduction"
+}
+foreach ($filingStatus in @("single", "married_filing_separately", "qualifying_surviving_spouse", "head_of_household")) {
+  if ($states.states.GA.tax_base.standard_deduction.$filingStatus -ne 12000) {
+    throw "Unexpected GA standard deduction for $filingStatus"
+  }
+}
+if ($states.states.IL.tax_base.exemption_allowance_per_person -ne 2850) {
+  throw "Unexpected IL exemption allowance per person"
+}
+if ($states.states.IL.tax_base.exemption_phaseout_agi.married_filing_jointly -ne 500000) {
+  throw "Unexpected IL MFJ exemption phaseout AGI"
+}
+foreach ($filingStatus in @("single", "head_of_household", "married_filing_separately", "qualifying_surviving_spouse")) {
+  if ($states.states.IL.tax_base.exemption_phaseout_agi.$filingStatus -ne 250000) {
+    throw "Unexpected IL exemption phaseout AGI for $filingStatus"
   }
 }
 

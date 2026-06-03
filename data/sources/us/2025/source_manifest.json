@@ -146,6 +146,34 @@
       "status": "archived"
     },
     {
+      "source_id": "ca_2025_540_instructions",
+      "title": "2025 Instructions for Form 540",
+      "source_url": "https://www.ftb.ca.gov/forms/2025/2025-540-instructions.html",
+      "source_type": "html",
+      "publisher": "California Franchise Tax Board",
+      "tax_year": 2025,
+      "jurisdiction": "CA",
+      "topics": ["state_income_tax", "standard_deduction"],
+      "local_path": "data/sources/us/2025/raw/ca_2025_540_instructions.html",
+      "content_hash": "491A0DAF3D4ECBC611500939AADA6039A0E4D50289A6F35F6DE89DDCC2BEDE32",
+      "status": "archived_redacted",
+      "notes": "Page snapshot redacts Akamai mPulse/BOOMR analytics and opaque vendor-loader scripts embedded in the official HTML template. Tax content is otherwise retained."
+    },
+    {
+      "source_id": "ca_summary_federal_income_tax_changes",
+      "title": "California Summary of Federal Income Tax Changes",
+      "source_url": "https://www.ftb.ca.gov/about-ftb/data-reports-plans/Summary-of-Federal-Income-Tax-Changes/index.html",
+      "source_type": "html",
+      "publisher": "California Franchise Tax Board",
+      "tax_year": 2025,
+      "jurisdiction": "CA",
+      "topics": ["state_income_tax", "conformity", "qbi"],
+      "local_path": "data/sources/us/2025/raw/ca_summary_federal_income_tax_changes.html",
+      "content_hash": "5C694BE3A517A9AE94E3AB026C0CFD5716C8F24FA075BCBC0C7F13195AD7E1EC",
+      "status": "archived_redacted",
+      "notes": "Page snapshot redacts Akamai mPulse/BOOMR analytics and opaque vendor-loader scripts embedded in the official HTML template. Tax content is otherwise retained."
+    },
+    {
       "source_id": "ny_2025_it201_instructions",
       "title": "2025 Instructions for Form IT-201",
       "source_url": "https://www.tax.ny.gov/forms/current-forms/it/it201i.htm",
@@ -184,6 +212,20 @@
       "content_hash": "6C435D20C12AA4857CD1AE4EE7D6B199A479B57F031969AF9151CE6FAF96FD20",
       "status": "archived_redacted",
       "notes": "Page snapshot redacts a Mapbox public token embedded in the official HTML template. Tax content is otherwise retained."
+    },
+    {
+      "source_id": "il_2025_il1040_step4_exemptions",
+      "title": "Illinois 2025 IL-1040 Instructions: Step 4 Exemptions",
+      "source_url": "https://tax.illinois.gov/forms/incometax/currentyear/individual/il-1040-instr/step-4---exemptions.html",
+      "source_type": "html",
+      "publisher": "Illinois Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "IL",
+      "topics": ["state_income_tax", "exemption_allowance"],
+      "local_path": "data/sources/us/2025/raw/il_2025_il1040_step4_exemptions.html",
+      "content_hash": "1A56FDB9A30F50C3BB4E334EDA88651E012BB59AC9627260E725BCCD2F4304BB",
+      "status": "archived_redacted",
+      "notes": "Page snapshot redacts Mapbox, Weglot, and Elastic search public tokens embedded in the official HTML template. Tax content is otherwise retained."
     },
     {
       "source_id": "co_individual_income_tax_guide",

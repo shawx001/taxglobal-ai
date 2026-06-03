@@ -1184,7 +1184,7 @@ function taxText(key){
 }
 function taxMoney(value){ return '$'+f(Number(value)||0); }
 function taxMoneyExact(value, digits){
-  return '$'+(Number(value)||0).toLocaleString(undefined,{minimumFractionDigits:digits,maximumFractionDigits:digits});
+  return '$'+(Number(value)||0).toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits});
 }
 function escapeHtml(value){
   return String(value==null?'':value).replace(/[&<>"']/g, function(ch){
@@ -1443,6 +1443,10 @@ async function calcRSU(){
   const result=document.getElementById('rsuResult');
   const saleEnabled=document.getElementById('rsu-sale-enabled').checked;
   document.getElementById('rsu-sale-fields').style.display=saleEnabled?'block':'none';
+  if(document.getElementById('tx-country').value!=='us'){
+    result.innerHTML='<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+taxText('usOnly')+'</div></div>';
+    return;
+  }
   result.innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
   const payload={
     shares_vested:+document.getElementById('rsu-shares').value||0,

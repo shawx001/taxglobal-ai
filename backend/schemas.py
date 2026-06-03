@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import math
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 FilingStatus = Literal[
     "single",
@@ -21,6 +22,25 @@ class TaxYearModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     tax_year: int = Field(default=2026, ge=2025)
+
+    @model_validator(mode="after")
+    def _reject_non_finite_floats(self) -> "TaxYearModel":
+        # NaN/Infinity pass JSON + numeric `ge` checks but break Decimal math → reject as 422.
+        def check(value: object, path: str) -> None:
+            if isinstance(value, bool):
+                return
+            if isinstance(value, float) and not math.isfinite(value):
+                raise ValueError(f"{path} must be a finite number")
+            if isinstance(value, BaseModel):
+                for sub_name, sub_value in value:
+                    check(sub_value, f"{path}.{sub_name}")
+            elif isinstance(value, (list, tuple)):
+                for index, item in enumerate(value):
+                    check(item, f"{path}[{index}]")
+
+        for name, field_value in self:
+            check(field_value, name)
+        return self
 
 
 class FederalIncomeRequest(TaxYearModel):
@@ -88,8 +108,10 @@ class CryptoDisposal(BaseModel):
 
 
 class CryptoRequest(TaxYearModel):
-    lots: list[CryptoLot] = Field(min_length=1)
-    disposals: list[CryptoDisposal] = Field(min_length=1)
+    # Cap list sizes: lot matching is O(lots x disposals) per asset; unbounded input
+    # is a single-request CPU DoS on a stateless calc API. 1000 covers real filers.
+    lots: list[CryptoLot] = Field(min_length=1, max_length=1000)
+    disposals: list[CryptoDisposal] = Field(min_length=1, max_length=1000)
     method: Literal["FIFO", "LIFO", "HIFO", "fifo", "lifo", "hifo"] = "FIFO"
     filing_status: FilingStatus = "single"
     other_taxable_income: float = Field(default=0, ge=0)

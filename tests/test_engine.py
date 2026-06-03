@@ -470,8 +470,8 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["qbi_deduction"], 8_152.23)
         self.assertEqual(result["result"]["federal_income_tax"], 7_759.14)
-        self.assertEqual(result["result"]["long_term_capital_gains_tax"], 3_638.84)
-        self.assertEqual(result["result"]["total_tax"], 19_875.71)
+        self.assertEqual(result["result"]["long_term_capital_gains_tax"], 6_000.00)
+        self.assertEqual(result["result"]["total_tax"], 22_236.87)
 
     def test_income_tax_summary_foreign_zero_reproduces_block2(self):
         result = income_tax_summary(

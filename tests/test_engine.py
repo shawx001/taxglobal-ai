@@ -6,6 +6,7 @@ from engine import (
     federal_income_tax,
     feie_estimate,
     fica_tax,
+    income_tax_summary,
     nexus_estimate,
     qbi_deduction,
     rsu_tax_estimate,
@@ -182,6 +183,41 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["deduction"], 20_000.00)
         self.assertEqual(result["result"]["applied_limit"], "below_threshold")
         self.assertEqual(result["result"]["threshold_band"], "below_threshold")
+
+    def test_income_tax_summary_low_income_still_owes_se_tax(self):
+        result = income_tax_summary(10_000, filing_status="single", state_code="FL")
+
+        self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["self_employment_tax"], 1_412.96)
+        self.assertEqual(result["result"]["federal_income_tax"], 0.00)
+        self.assertEqual(result["result"]["taxable_income"], 0.00)
+        self.assertEqual(result["result"]["total_tax"], 1_412.96)
+
+    def test_income_tax_summary_unknown_state_is_not_covered_inside_summary(self):
+        result = income_tax_summary(100_000, filing_status="single", state_code="ZZ")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["state_income_tax"]["status"], "not_covered")
+        self.assertTrue(result["result"]["state_income_tax"]["not_covered"])
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 0.00)
+        self.assertEqual(result["result"]["total_tax"], 22_760.15)
+        self.assertIn("federal and SE tax only", "\n".join(result["assumptions"]))
+
+    def test_income_tax_summary_co_adds_back_qbi_to_state_base(self):
+        result = income_tax_summary(100_000, filing_status="single", state_code="CO")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["taxable_income"], 62_348.18)
+        self.assertEqual(result["result"]["qbi_deduction"], 15_587.04)
+        self.assertEqual(result["result"]["state_taxable_base"], 77_935.22)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 3_429.15)
+
+    def test_income_tax_summary_invalid_filing_status(self):
+        result = income_tax_summary(100_000, filing_status="unsupported", state_code="FL")
+
+        self.assertEqual(result["status"], "invalid_input")
+        self.assertIn("Unsupported filing_status", result["reason"])
 
     def test_nexus_ca_equal_threshold_uses_strict_greater_than(self):
         result = nexus_estimate("CA", 500_000)

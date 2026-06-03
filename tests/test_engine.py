@@ -306,6 +306,68 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "invalid_input")
         self.assertIn("quantity", result["reason"])
 
+    def test_crypto_state_code_none_preserves_federal_only_shape(self):
+        result = crypto_gain_estimate(
+            lots=[{"asset": "BTC", "date": "2023-01-10", "quantity": 1, "cost_basis": 20000}],
+            disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 50000}],
+            method="FIFO",
+            other_taxable_income=100_000,
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertNotIn("state", result["result"])
+        self.assertNotIn("total_tax_including_state", result["result"])
+
+    def test_crypto_state_tax_flat_state_equals_gain_times_rate(self):
+        result = crypto_gain_estimate(
+            lots=[{"asset": "BTC", "date": "2023-01-10", "quantity": 1, "cost_basis": 20000}],
+            disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 55000}],
+            method="FIFO",
+            other_taxable_income=100_000,
+            state_code="GA",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["state"]["tax"], 1816.50)
+        self.assertEqual(result["result"]["state"]["type"], "ordinary_income")
+
+    def test_crypto_state_tax_unknown_state_is_not_covered_inside_result(self):
+        result = crypto_gain_estimate(
+            lots=[{"asset": "BTC", "date": "2023-01-10", "quantity": 1, "cost_basis": 20000}],
+            disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 55000}],
+            method="FIFO",
+            other_taxable_income=100_000,
+            state_code="ZZ",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["state"]["status"], "not_covered")
+        self.assertEqual(result["result"]["state"]["tax"], 0.00)
+
+    def test_crypto_wa_short_term_gain_has_zero_excise(self):
+        result = crypto_gain_estimate(
+            lots=[{"asset": "BTC", "date": "2024-06-01", "quantity": 1, "cost_basis": 0}],
+            disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 500000}],
+            method="FIFO",
+            state_code="WA",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["realized"]["short_term_gain"], 500000.00)
+        self.assertEqual(result["result"]["state"]["tax"], 0.00)
+
+    def test_crypto_wa_excise_applies_tier_above_one_million(self):
+        result = crypto_gain_estimate(
+            lots=[{"asset": "BTC", "date": "2023-01-10", "quantity": 1, "cost_basis": 0}],
+            disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 1500000}],
+            method="FIFO",
+            state_code="WA",
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["state"]["tax"], 91978.00)
+        self.assertEqual(result["result"]["state"]["taxable_washington_capital_gain"], 1222000.00)
+
     def test_rsu_sale_exactly_one_year_after_vest_is_short_term(self):
         result = rsu_tax_estimate(
             shares_vested=100,

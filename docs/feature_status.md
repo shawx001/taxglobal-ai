@@ -19,6 +19,7 @@
 | `self_employment_tax`（自雇税） | ✅ | 2.1 | `step2_1_design_se_nexus.md` | `e31deea` | IRS Pub 15-A, Topic 560 |
 | `nexus_estimate`（电商经济联结预警） | ✅ | 2.1 | `step2_1_design_se_nexus.md` | `e31deea` | CDTFA / NY / TX / FL DOR |
 | `crypto_gain_estimate`（加密成本基+资本利得税） | ✅ | 2.2 | `step2_2_design_crypto.md` | `1f98a60` | IRS Topic 409/559, Rev. Proc. 2024-40 |
+| `crypto_gain_estimate` 州税扩展（5州普通收入+WA excise） | ✅ | 2.6 | `step2_6_design_crypto_state_tax.md` | `this PR` | CA/NY/GA/IL/CO DOR, WA DOR capital gains |
 | `rsu_tax_estimate`（RSU 归属税务） | ✅ | 2.3 | `step2_3_design_rsu.md` | `2e43a8e` | IRS §83, Rev. Proc. 2024-40 |
 | `income_tax_summary`（自雇总税合并计税） | ✅ | 2.5 | `step2_5_design_income_summary.md` | `97d91d1` | Rev. Proc. 2024-40 / IRS FICA / 各州 DOR / §199A QBI |
 
@@ -30,6 +31,7 @@
 | `us_fica.json`（FICA/附加医保/自雇基数） | ✅ | 1 | IRS Topic 751/560, Pub 15/15-A | |
 | `us_feie.json`（FEIE 上限/330天） | ✅ | 1 | IRS FEIE / Form 2555 | |
 | `us_states.json`（10 州） | ✅ | 1 / 1.2 | 各州 DOR | CA/NY=累进可算，MA/TX=待来源 |
+| `us_states.json` crypto 州资本利得扩展 | ✅ | 2.6 | WA DOR capital gains, 各州 DOR | CA/NY/GA/IL/CO=ordinary income; WA=capital gains excise |
 | `us_nexus.json`（经济联结阈值+`comparison`） | ✅ | 1 / 2.1 | CDTFA/NY/TX/FL | WA=待来源 |
 | `us_capital_gains.json`（LTCG/STCG/NIIT） | ✅ | 1.1 | Rev. Proc. 2024-40, IRS Topic 409/559 | |
 | `knowledge/us_core_knowledge.json`（知识候选） | ✅ | 1 | 同上 | 入库待 Step 6 |
@@ -76,6 +78,7 @@
 | 2.3 RSU | `step2_3_design_rsu.md` | `step2_3_rsu_engine.md` |
 | 2.4 QBI | `step2_4_design_qbi_engine.md` | `step2_4_qbi_engine.md` |
 | 2.5 自雇总税 | `step2_5_design_income_summary.md` | `step2_5_income_summary.md` |
+| 2.6 加密资本利得州税 | `step2_6_design_crypto_state_tax.md` | `step2_6_crypto_state_tax.md` |
 | 4 FastAPI 后端 | `step4_design_fastapi.md` | `step4_fastapi_backend.md` |
 | 5 Frontend income tax API | `step5_design_frontend.md` | `step5_frontend_api.md` |
 | 5.4 自雇前端接后端总税 | `step5_4_design_se_frontend.md` | `step5_4_se_frontend.md` |

@@ -218,6 +218,11 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
     if (($taxBase.PSObject.Properties.Name -contains "qbi_addback") -and !($taxBase.qbi_addback -is [bool])) {
       throw "State $($stateProp.Name) tax_base qbi_addback must be boolean"
     }
+    if ($taxBase.PSObject.Properties.Name -contains "capital_gains_treatment") {
+      if ($taxBase.capital_gains_treatment -notin @("ordinary_income")) {
+        throw "State $($stateProp.Name) tax_base has unsupported capital_gains_treatment $($taxBase.capital_gains_treatment)"
+      }
+    }
     if ($taxBase.start_from -eq "federal_agi") {
       if ($taxBase.allows_qbi -eq $true) {
         throw "State $($stateProp.Name) federal_agi tax_base with allows_qbi=true is not modeled"
@@ -250,6 +255,26 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
       }
     }
   }
+  if ($state.PSObject.Properties.Name -contains "capital_gains_excise") {
+    $capitalGainsExcise = $state.capital_gains_excise
+    if (!$capitalGainsExcise.rate) {
+      throw "State $($stateProp.Name) capital_gains_excise missing rate"
+    }
+    if (!$capitalGainsExcise.standard_deduction) {
+      throw "State $($stateProp.Name) capital_gains_excise missing standard_deduction"
+    }
+    if (!($capitalGainsExcise.long_term_only -is [bool])) {
+      throw "State $($stateProp.Name) capital_gains_excise long_term_only must be boolean"
+    }
+    if (!$capitalGainsExcise.source_ids) {
+      throw "State $($stateProp.Name) capital_gains_excise missing source_ids"
+    }
+    foreach ($sourceId in $capitalGainsExcise.source_ids) {
+      if (!$sourceIds.ContainsKey($sourceId)) {
+        throw "State $($stateProp.Name) capital_gains_excise references unknown source_id $sourceId"
+      }
+    }
+  }
   if ($state.status -eq "effective" -and $state.income_tax_type -eq "progressive") {
     if (!($state.PSObject.Properties.Name -contains "brackets")) {
       throw "State $($stateProp.Name) is progressive but missing brackets"
@@ -274,6 +299,26 @@ if ($states.states.CO.tax_base.start_from -ne "federal_taxable_income") {
 }
 if ($states.states.CO.tax_base.qbi_addback -ne $true) {
   throw "Colorado tax_base must include qbi_addback"
+}
+foreach ($stateCode in @("CA", "NY", "GA", "IL", "CO")) {
+  if ($states.states.$stateCode.tax_base.capital_gains_treatment -ne "ordinary_income") {
+    throw "State $stateCode must treat capital gains as ordinary income for crypto state-tax modeling"
+  }
+}
+if ($states.states.WA.capital_gains_excise.standard_deduction -ne 278000) {
+  throw "Unexpected WA 2025 capital gains standard deduction"
+}
+if ($states.states.WA.capital_gains_excise.rate -ne 0.07) {
+  throw "Unexpected WA capital gains excise base rate"
+}
+if ($states.states.WA.capital_gains_excise.surtax_rate -ne 0.029) {
+  throw "Unexpected WA capital gains excise surtax rate"
+}
+if ($states.states.WA.capital_gains_excise.surtax_threshold -ne 1000000) {
+  throw "Unexpected WA capital gains excise surtax threshold"
+}
+if ($states.states.WA.capital_gains_excise.long_term_only -ne $true) {
+  throw "WA capital gains excise must be long-term only"
 }
 if ($states.states.CA.tax_base.standard_deduction.single -ne 5706) {
   throw "Unexpected CA single standard deduction"

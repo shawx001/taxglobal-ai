@@ -225,7 +225,7 @@ def federal_income_tax(
     gross_income: float,
     filing_status: str = "single",
     deduction: float | None = None,
-    tax_year: int = 2025,
+    tax_year: int = 2026,
 ) -> dict[str, Any]:
     """Calculate U.S. federal ordinary income tax from stored rule JSON."""
 
@@ -263,7 +263,7 @@ def federal_income_tax(
     )
 
 
-def fica_tax(wages: float, filing_status: str = "single", tax_year: int = 2025) -> dict[str, Any]:
+def fica_tax(wages: float, filing_status: str = "single", tax_year: int = 2026) -> dict[str, Any]:
     """Calculate employee-side FICA tax from stored rules."""
 
     filing = _normalize_filing_status(filing_status)
@@ -308,7 +308,7 @@ def fica_tax(wages: float, filing_status: str = "single", tax_year: int = 2025) 
 def self_employment_tax(
     net_self_employment_profit: float,
     filing_status: str = "single",
-    tax_year: int = 2025,
+    tax_year: int = 2026,
 ) -> dict[str, Any]:
     """Calculate self-employment tax using stored FICA rules."""
 
@@ -361,7 +361,7 @@ def self_employment_tax(
         rule_version=rules["rule_version"],
         citations=_citations(ss, med, addl, se),
         assumptions=[
-            "Self-employment calculation uses stored 2025 FICA rules and Decimal arithmetic.",
+            "Self-employment calculation uses stored FICA rules and Decimal arithmetic.",
             "MVP assumes no other W-2 Medicare wages reduce the Additional Medicare threshold.",
             "Deductible half of self-employment tax excludes Additional Medicare Tax.",
         ],
@@ -433,7 +433,7 @@ def qbi_deduction(
     w2_wages: float = 0.0,
     ubia: float = 0.0,
     is_sstb: bool = False,
-    tax_year: int = 2025,
+    tax_year: int = 2026,
 ) -> dict[str, Any]:
     """Calculate the Section 199A QBI deduction from stored rule data."""
 
@@ -563,7 +563,7 @@ def qbi_deduction(
     )
 
 
-def feie_estimate(foreign_earned_income: float, days_abroad: int, tax_year: int = 2025) -> dict[str, Any]:
+def feie_estimate(foreign_earned_income: float, days_abroad: int, tax_year: int = 2026) -> dict[str, Any]:
     """Estimate FEIE exclusion eligibility and excluded income."""
 
     rules = load_feie_rules(tax_year)
@@ -604,7 +604,7 @@ def state_income_tax(
     state_code: str,
     taxable_income: float,
     filing_status: str = "single",
-    tax_year: int = 2025,
+    tax_year: int = 2026,
 ) -> dict[str, Any]:
     """Calculate supported state income tax, or explicitly decline unsupported states."""
 
@@ -621,7 +621,7 @@ def state_income_tax(
         return _not_covered(
             input_data=input_data,
             rule_version=rules["rule_version"],
-            reason=f"State {code} is not present in stored 2025 state rules.",
+            reason=f"State {code} is not present in stored tax-year {tax_year} state rules.",
         )
 
     status = state["status"]
@@ -747,7 +747,7 @@ def income_tax_summary(
     qbi_ubia: float = 0.0,
     is_sstb: bool = False,
     deduction: float | None = None,
-    tax_year: int = 2025,
+    tax_year: int = 2026,
 ) -> dict[str, Any]:
     """Combine W-2, self-employment, capital gains, QBI, federal, payroll, NIIT, and state tax into one summary."""
 
@@ -1538,7 +1538,7 @@ def crypto_gain_estimate(
     other_taxable_income: float = 0.0,
     modified_agi: float | None = None,
     state_code: str | None = None,
-    tax_year: int = 2025,
+    tax_year: int = 2026,
 ) -> dict[str, Any]:
     """Estimate crypto capital gains from deterministic lot matching and stored tax rules."""
 
@@ -1686,7 +1686,7 @@ def rsu_tax_estimate(
     filing_status: str = "single",
     other_taxable_income: float = 0.0,
     sale_scenario: dict[str, Any] | None = None,
-    tax_year: int = 2025,
+    tax_year: int = 2026,
 ) -> dict[str, Any]:
     """Estimate RSU vesting ordinary income tax and optional sale capital gains tax."""
 
@@ -1820,7 +1820,7 @@ def nexus_estimate(
     state_code: str,
     sales_amount: float,
     transaction_count: int | None = None,
-    tax_year: int = 2025,
+    tax_year: int = 2026,
 ) -> dict[str, Any]:
     """Estimate sales-tax economic nexus from stored state threshold rules."""
 
@@ -1838,7 +1838,7 @@ def nexus_estimate(
         return _not_covered(
             input_data=input_data,
             rule_version=rules["rule_version"],
-            reason=f"State {code} is not present in stored 2025 nexus rules.",
+            reason=f"State {code} is not present in stored tax-year {tax_year} nexus rules.",
         )
     if threshold.get("status") == "source_pending":
         return _not_covered(

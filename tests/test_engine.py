@@ -39,7 +39,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(bracket_tax(25_000, brackets), 4_500.00)
 
     def test_federal_income_tax_single_uses_2025_rules(self):
-        result = federal_income_tax(120_000, "single")
+        result = federal_income_tax(120_000, "single", tax_year=2025)
 
         self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
         self.assertEqual(result["status"], "ok")
@@ -50,7 +50,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["citations"][0]["source_id"], "irs_rp_2024_40")
 
     def test_federal_income_tax_accepts_prototype_filing_alias_without_using_prototype_rules(self):
-        result = federal_income_tax(120_000, "mfj")
+        result = federal_income_tax(120_000, "mfj", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["input"]["filing_status"], "married_filing_jointly")
@@ -58,7 +58,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["tax"], 10_323.00)
 
     def test_fica_caps_social_security_and_applies_additional_medicare(self):
-        result = fica_tax(250_000, "single")
+        result = fica_tax(250_000, "single", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertIn("annual taxpayer filing-status thresholds", result["assumptions"][1])
@@ -68,12 +68,12 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total"], 14_993.20)
 
     def test_fica_uses_mfj_additional_medicare_threshold(self):
-        result = fica_tax(250_000, "married_filing_jointly")
+        result = fica_tax(250_000, "married_filing_jointly", tax_year=2025)
 
         self.assertEqual(result["result"]["additional_medicare_tax"], 0.00)
 
     def test_feie_estimate_physical_presence_passes_at_330_days(self):
-        result = feie_estimate(140_000, 330)
+        result = feie_estimate(140_000, 330, tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertTrue(result["result"]["qualifies_physical_presence_test"])
@@ -81,28 +81,28 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["remaining_income"], 10_000.00)
 
     def test_feie_estimate_physical_presence_fails_below_330_days(self):
-        result = feie_estimate(140_000, 329)
+        result = feie_estimate(140_000, 329, tax_year=2025)
 
         self.assertFalse(result["result"]["qualifies_physical_presence_test"])
         self.assertEqual(result["result"]["excluded_income"], 0.00)
         self.assertEqual(result["result"]["remaining_income"], 140_000.00)
 
     def test_state_income_tax_effective_zero_tax_state(self):
-        result = state_income_tax("FL", 100_000)
+        result = state_income_tax("FL", 100_000, tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["tax"], 0.00)
         self.assertEqual(result["citations"][0]["source_id"], "fl_personal_income_tax_faq")
 
     def test_state_income_tax_effective_flat_tax_state(self):
-        result = state_income_tax("IL", 100_000)
+        result = state_income_tax("IL", 100_000, tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["tax"], 4_950.00)
         self.assertEqual(result["result"]["rate"], 0.0495)
 
     def test_state_income_tax_effective_progressive_state(self):
-        result = state_income_tax("CA", 200_000, "single")
+        result = state_income_tax("CA", 200_000, "single", tax_year=2025)
 
         self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
         self.assertEqual(result["status"], "ok")
@@ -113,57 +113,57 @@ class EngineTests(unittest.TestCase):
         self.assertIn("Mental Health Services Tax", "\n".join(result["assumptions"]))
 
     def test_state_income_tax_progressive_zero_income(self):
-        result = state_income_tax("CA", 0, "single")
+        result = state_income_tax("CA", 0, "single", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["tax"], 0.00)
 
     def test_state_income_tax_progressive_defaults_to_single(self):
-        explicit = state_income_tax("CA", 200_000, "single")
-        default = state_income_tax("CA", 200_000)
+        explicit = state_income_tax("CA", 200_000, "single", tax_year=2025)
+        default = state_income_tax("CA", 200_000, tax_year=2025)
 
         self.assertEqual(default["status"], "ok")
         self.assertEqual(default["result"]["tax"], explicit["result"]["tax"])
         self.assertEqual(default["input"]["filing_status"], "single")
 
     def test_state_income_tax_blocks_source_pending_states(self):
-        result = state_income_tax("TX", 100_000)
+        result = state_income_tax("TX", 100_000, tax_year=2025)
 
         self.assertEqual(result["status"], "not_covered")
         self.assertIn("source_pending", result["reason"])
         self.assertIsNone(result["result"])
 
     def test_state_income_tax_blocks_unknown_states(self):
-        result = state_income_tax("ZZ", 100_000)
+        result = state_income_tax("ZZ", 100_000, tax_year=2025)
 
         self.assertEqual(result["status"], "not_covered")
         self.assertIn("not present", result["reason"])
 
     def test_rule_loader_returns_isolated_copies(self):
-        rules = load_state_rules()
+        rules = load_state_rules(2025)
         rules["states"]["FL"]["flat_rate"] = 0.99
 
-        result = state_income_tax("FL", 100_000)
+        result = state_income_tax("FL", 100_000, tax_year=2025)
 
         self.assertEqual(result["result"]["tax"], 0.00)
         self.assertEqual(result["result"]["rate"], 0.0)
 
     def test_self_employment_tax_negative_profit_clamps_to_zero(self):
-        result = self_employment_tax(-5_000, "single")
+        result = self_employment_tax(-5_000, "single", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["net_earnings_from_self_employment"], 0.00)
         self.assertEqual(result["result"]["total_se_related_tax"], 0.00)
 
     def test_self_employment_tax_uses_mfj_additional_medicare_threshold(self):
-        result = self_employment_tax(250_000, "mfj")
+        result = self_employment_tax(250_000, "mfj", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["additional_medicare_tax"], 0.00)
         self.assertEqual(result["result"]["total_se_related_tax"], 28_531.78)
 
     def test_qbi_deduction_zero_qbi_returns_zero(self):
-        result = qbi_deduction(0, 100_000)
+        result = qbi_deduction(0, 100_000, tax_year=2025)
 
         self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
         self.assertEqual(result["status"], "ok")
@@ -171,22 +171,41 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["qbi_component"], 0.00)
 
     def test_qbi_deduction_negative_qbi_clamps_to_zero(self):
-        result = qbi_deduction(-5_000, 100_000)
+        result = qbi_deduction(-5_000, 100_000, tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["input"]["qbi"], 0.00)
         self.assertEqual(result["result"]["deduction"], 0.00)
 
     def test_qbi_deduction_threshold_equal_uses_below_threshold(self):
-        result = qbi_deduction(100_000, 197_300)
+        result = qbi_deduction(100_000, 197_300, tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["deduction"], 20_000.00)
         self.assertEqual(result["result"]["applied_limit"], "below_threshold")
         self.assertEqual(result["result"]["threshold_band"], "below_threshold")
 
+    def test_qbi_deduction_default_2026_uses_expanded_phase_in_window(self):
+        result = qbi_deduction(100_000, 225_000, w2_wages=20_000)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["input"]["tax_year"], 2026)
+        self.assertEqual(result["rule_version"], "us-2026-qbi-v0.1")
+        self.assertEqual(result["result"]["deduction"], 16_900.00)
+        self.assertEqual(result["result"]["applied_limit"], "phase_in")
+        self.assertEqual(result["result"]["threshold_band"], "phase_in")
+
+    def test_income_tax_summary_default_2026_w2_anchor(self):
+        result = income_tax_summary(w2_wages=200_000, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["input"]["tax_year"], 2026)
+        self.assertEqual(result["result"]["federal_income_tax"], 36_734.00)
+        self.assertEqual(result["result"]["total_payroll_tax"], 14_339.00)
+        self.assertEqual(result["result"]["total_tax"], 51_073.00)
+
     def test_income_tax_summary_low_income_still_owes_se_tax(self):
-        result = income_tax_summary(10_000, filing_status="single", state_code="FL")
+        result = income_tax_summary(10_000, filing_status="single", state_code="FL", tax_year=2025)
 
         self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
         self.assertEqual(result["status"], "ok")
@@ -196,7 +215,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total_tax"], 1_412.96)
 
     def test_income_tax_summary_unknown_state_is_not_covered_inside_summary(self):
-        result = income_tax_summary(100_000, filing_status="single", state_code="ZZ")
+        result = income_tax_summary(100_000, filing_status="single", state_code="ZZ", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["state_income_tax"]["status"], "not_covered")
@@ -208,7 +227,7 @@ class EngineTests(unittest.TestCase):
         )
 
     def test_income_tax_summary_co_adds_back_qbi_to_state_base(self):
-        result = income_tax_summary(100_000, filing_status="single", state_code="CO")
+        result = income_tax_summary(100_000, filing_status="single", state_code="CO", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["taxable_income"], 62_348.18)
@@ -218,13 +237,13 @@ class EngineTests(unittest.TestCase):
         self.assertIn("Colorado QBI addback", "\n".join(result["assumptions"]))
 
     def test_income_tax_summary_invalid_filing_status(self):
-        result = income_tax_summary(100_000, filing_status="unsupported", state_code="FL")
+        result = income_tax_summary(100_000, filing_status="unsupported", state_code="FL", tax_year=2025)
 
         self.assertEqual(result["status"], "invalid_input")
         self.assertIn("Unsupported filing_status", result["reason"])
 
     def test_income_tax_summary_w2_wages_share_social_security_base_with_se_income(self):
-        result = income_tax_summary(60_000, w2_wages=250_000, filing_status="single")
+        result = income_tax_summary(60_000, w2_wages=250_000, filing_status="single", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["w2_fica_tax"], 14_543.20)
@@ -232,19 +251,19 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total_payroll_tax"], 17_098.78)
 
     def test_income_tax_summary_combines_w2_and_se_for_additional_medicare(self):
-        result = income_tax_summary(60_000, w2_wages=250_000, filing_status="single")
+        result = income_tax_summary(60_000, w2_wages=250_000, filing_status="single", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["additional_medicare_tax"], 948.69)
 
     def test_income_tax_summary_high_income_qbi_phases_out_without_qbi_wages(self):
-        result = income_tax_summary(60_000, w2_wages=250_000, filing_status="single")
+        result = income_tax_summary(60_000, w2_wages=250_000, filing_status="single", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["qbi_deduction"], 0.00)
 
     def test_income_tax_summary_w2_default_zero_reproduces_self_employment_only(self):
-        result = income_tax_summary(100_000, filing_status="single", state_code="FL")
+        result = income_tax_summary(100_000, filing_status="single", state_code="FL", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["w2_fica_tax"], 0.00)
@@ -257,7 +276,9 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total_tax"], 22_760.15)
 
     def test_income_tax_summary_short_term_gain_is_ordinary_but_not_payroll_income(self):
-        result = income_tax_summary(w2_wages=100_000, short_term_capital_gain=10_000, filing_status="single")
+        result = income_tax_summary(
+            w2_wages=100_000, short_term_capital_gain=10_000, filing_status="single", tax_year=2025
+        )
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["ordinary_taxable_income"], 95_000.00)
@@ -266,7 +287,9 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total_payroll_tax"], 7_650.00)
 
     def test_income_tax_summary_niit_can_apply_to_full_net_investment_income(self):
-        result = income_tax_summary(w2_wages=200_000, long_term_capital_gain=50_000, filing_status="single")
+        result = income_tax_summary(
+            w2_wages=200_000, long_term_capital_gain=50_000, filing_status="single", tax_year=2025
+        )
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["net_investment_income_tax"], 1_900.00)
@@ -279,6 +302,7 @@ class EngineTests(unittest.TestCase):
             net_self_employment_profit=50_000,
             long_term_capital_gain=40_000,
             filing_status="single",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -287,7 +311,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total_tax"], 59_055.28)
 
     def test_income_tax_summary_long_term_gain_can_land_in_zero_percent_band(self):
-        result = income_tax_summary(long_term_capital_gain=40_000, filing_status="single")
+        result = income_tax_summary(long_term_capital_gain=40_000, filing_status="single", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["ordinary_taxable_income"], 0.00)
@@ -296,7 +320,9 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total_tax"], 0.00)
 
     def test_income_tax_summary_capital_gains_default_zero_reproduces_block1(self):
-        result = income_tax_summary(w2_wages=150_000, net_self_employment_profit=50_000, filing_status="single")
+        result = income_tax_summary(
+            w2_wages=150_000, net_self_employment_profit=50_000, filing_status="single", tax_year=2025
+        )
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["ordinary_taxable_income"], 173_169.81)
@@ -306,7 +332,9 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total_tax"], 50_458.23)
 
     def test_income_tax_summary_feie_applies_rate_stacking(self):
-        result = income_tax_summary(foreign_earned_income=200_000, days_abroad=330, filing_status="single")
+        result = income_tax_summary(
+            foreign_earned_income=200_000, days_abroad=330, filing_status="single", tax_year=2025
+        )
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["feie_excluded_income"], 130_000.00)
@@ -316,7 +344,9 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total_tax"], 13_200.00)
 
     def test_income_tax_summary_feie_below_330_days_does_not_exclude_income(self):
-        result = income_tax_summary(foreign_earned_income=100_000, days_abroad=329, filing_status="single")
+        result = income_tax_summary(
+            foreign_earned_income=100_000, days_abroad=329, filing_status="single", tax_year=2025
+        )
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["feie_excluded_income"], 0.00)
@@ -325,7 +355,9 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["federal_income_tax"], 13_614.00)
 
     def test_income_tax_summary_feie_under_limit_can_exclude_full_foreign_income(self):
-        result = income_tax_summary(foreign_earned_income=50_000, days_abroad=330, filing_status="single")
+        result = income_tax_summary(
+            foreign_earned_income=50_000, days_abroad=330, filing_status="single", tax_year=2025
+        )
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["feie_excluded_income"], 50_000.00)
@@ -340,6 +372,7 @@ class EngineTests(unittest.TestCase):
             w2_wages=50_000,
             long_term_capital_gain=30_000,
             filing_status="single",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -354,6 +387,7 @@ class EngineTests(unittest.TestCase):
             long_term_capital_gain=30_000,
             modified_agi=150_000,
             filing_status="single",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -366,6 +400,7 @@ class EngineTests(unittest.TestCase):
             foreign_earned_income=100_000,
             days_abroad=330,
             filing_status="single",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -380,6 +415,7 @@ class EngineTests(unittest.TestCase):
             w2_wages=200_000,
             long_term_capital_gain=50_000,
             filing_status="single",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -393,21 +429,21 @@ class EngineTests(unittest.TestCase):
     def test_income_tax_summary_rejects_fractional_days_abroad(self):
         # Whole-number floats are accepted as the integer day count.
         accepted = income_tax_summary(
-            foreign_earned_income=100_000, days_abroad=330.0, filing_status="single"
+            foreign_earned_income=100_000, days_abroad=330.0, filing_status="single", tax_year=2025
         )
         self.assertEqual(accepted["status"], "ok")
         self.assertTrue(accepted["result"]["foreign_tax_rate_stacking_applied"])
 
         # Fractional day counts are rejected, not silently floored (would change FEIE qualification).
         rejected = income_tax_summary(
-            foreign_earned_income=100_000, days_abroad=329.9, filing_status="single"
+            foreign_earned_income=100_000, days_abroad=329.9, filing_status="single", tax_year=2025
         )
         self.assertEqual(rejected["status"], "invalid_input")
         self.assertIn("days_abroad", rejected["reason"])
 
     def test_income_tax_summary_rejects_out_of_range_days_abroad(self):
         result = income_tax_summary(
-            foreign_earned_income=100_000, days_abroad=400, filing_status="single"
+            foreign_earned_income=100_000, days_abroad=400, filing_status="single", tax_year=2025
         )
 
         self.assertEqual(result["status"], "invalid_input")
@@ -432,7 +468,7 @@ class EngineTests(unittest.TestCase):
             )
 
     def test_nexus_ca_equal_threshold_uses_strict_greater_than(self):
-        result = nexus_estimate("CA", 500_000)
+        result = nexus_estimate("CA", 500_000, tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertFalse(result["result"]["exceeded"])
@@ -440,7 +476,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["status_label"], "approaching")
 
     def test_nexus_tx_equal_threshold_uses_greater_than_or_equal(self):
-        result = nexus_estimate("TX", 500_000)
+        result = nexus_estimate("TX", 500_000, tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertTrue(result["result"]["exceeded"])
@@ -448,7 +484,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["status_label"], "triggered")
 
     def test_nexus_ny_equal_transaction_threshold_uses_strict_greater_than(self):
-        result = nexus_estimate("NY", 600_000, 100)
+        result = nexus_estimate("NY", 600_000, 100, tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertFalse(result["result"]["exceeded"])
@@ -456,7 +492,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["status_label"], "approaching")
 
     def test_nexus_ny_missing_transaction_count_does_not_trigger(self):
-        result = nexus_estimate("NY", 600_000)
+        result = nexus_estimate("NY", 600_000, tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertFalse(result["result"]["exceeded"])
@@ -471,6 +507,7 @@ class EngineTests(unittest.TestCase):
                 {"asset": "ETH", "date": "2025-01-03", "quantity": 0.75, "proceeds": 1500},
             ],
             method="FIFO",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -483,6 +520,7 @@ class EngineTests(unittest.TestCase):
             lots=[{"asset": "BTC", "date": "2024-02-29", "quantity": 1, "cost_basis": 10000}],
             disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 12000}],
             method="FIFO",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -493,6 +531,7 @@ class EngineTests(unittest.TestCase):
             lots=[{"asset": "BTC", "date": "2024-01-01", "quantity": 0, "cost_basis": 10000}],
             disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 12000}],
             method="FIFO",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "invalid_input")
@@ -504,6 +543,7 @@ class EngineTests(unittest.TestCase):
             disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 50000}],
             method="FIFO",
             other_taxable_income=100_000,
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -517,6 +557,7 @@ class EngineTests(unittest.TestCase):
             method="FIFO",
             other_taxable_income=100_000,
             state_code="GA",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -530,6 +571,7 @@ class EngineTests(unittest.TestCase):
             method="FIFO",
             other_taxable_income=100_000,
             state_code="ZZ",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -542,6 +584,7 @@ class EngineTests(unittest.TestCase):
             disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 500000}],
             method="FIFO",
             state_code="WA",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -554,6 +597,7 @@ class EngineTests(unittest.TestCase):
             disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 1500000}],
             method="FIFO",
             state_code="WA",
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -567,6 +611,7 @@ class EngineTests(unittest.TestCase):
             vest_date="2024-03-01",
             other_taxable_income=100_000,
             sale_scenario={"sale_date": "2025-03-01", "sale_price_per_share": 80},
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")
@@ -579,6 +624,7 @@ class EngineTests(unittest.TestCase):
             vest_date="2024-03-01",
             other_taxable_income=100_000,
             sale_scenario={"sale_date": "2025-06-01", "sale_price_per_share": 40},
+            tax_year=2025,
         )
 
         self.assertEqual(result["status"], "ok")

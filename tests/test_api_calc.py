@@ -102,11 +102,14 @@ class CalcApiTests(unittest.TestCase):
 
     def test_calc_routes_return_engine_payloads(self):
         cases = [
-            ("/calc/federal-income", {"gross_income": 120000, "filing_status": "single"}),
-            ("/calc/fica", {"wages": 100000, "filing_status": "single"}),
-            ("/calc/state-income", {"state_code": "FL", "taxable_income": 100000}),
-            ("/calc/self-employment", {"net_self_employment_profit": 100000, "filing_status": "single"}),
-            ("/calc/feie", {"foreign_earned_income": 140000, "days_abroad": 330}),
+            ("/calc/federal-income", {"gross_income": 120000, "filing_status": "single", "tax_year": 2025}),
+            ("/calc/fica", {"wages": 100000, "filing_status": "single", "tax_year": 2025}),
+            ("/calc/state-income", {"state_code": "FL", "taxable_income": 100000, "tax_year": 2025}),
+            (
+                "/calc/self-employment",
+                {"net_self_employment_profit": 100000, "filing_status": "single", "tax_year": 2025},
+            ),
+            ("/calc/feie", {"foreign_earned_income": 140000, "days_abroad": 330, "tax_year": 2025}),
             (
                 "/calc/crypto",
                 {
@@ -114,6 +117,7 @@ class CalcApiTests(unittest.TestCase):
                     "disposals": [{"asset": "BTC", "date": "2025-03-01", "quantity": 1.0, "proceeds": 50000}],
                     "method": "FIFO",
                     "filing_status": "single",
+                    "tax_year": 2025,
                 },
             ),
             (
@@ -124,13 +128,14 @@ class CalcApiTests(unittest.TestCase):
                     "vest_date": "2024-03-01",
                     "filing_status": "single",
                     "other_taxable_income": 150000,
+                    "tax_year": 2025,
                 },
             ),
             (
                 "/calc/income-summary",
-                {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "CA"},
+                {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "CA", "tax_year": 2025},
             ),
-            ("/calc/nexus", {"state_code": "CA", "sales_amount": 600000}),
+            ("/calc/nexus", {"state_code": "CA", "sales_amount": 600000, "tax_year": 2025}),
         ]
 
         for path, payload in cases:
@@ -140,7 +145,9 @@ class CalcApiTests(unittest.TestCase):
                 self.assertIn(body["status"], {"ok", "not_covered"})
 
     def test_not_covered_state_income_is_http_200(self):
-        response = self.client.post("/calc/state-income", json={"state_code": "MA", "taxable_income": 100000})
+        response = self.client.post(
+            "/calc/state-income", json={"state_code": "MA", "taxable_income": 100000, "tax_year": 2025}
+        )
 
         body = self.assert_engine_payload(response)
         self.assertEqual(body["status"], "not_covered")
@@ -149,7 +156,7 @@ class CalcApiTests(unittest.TestCase):
     def test_state_income_accepts_filing_status_for_progressive_states(self):
         response = self.client.post(
             "/calc/state-income",
-            json={"state_code": "CA", "taxable_income": 125000, "filing_status": "mfj"},
+            json={"state_code": "CA", "taxable_income": 125000, "filing_status": "mfj", "tax_year": 2025},
         )
 
         body = self.assert_engine_payload(response)
@@ -160,7 +167,12 @@ class CalcApiTests(unittest.TestCase):
     def test_income_summary_endpoint_calculates_ca_total(self):
         response = self.client.post(
             "/calc/income-summary",
-            json={"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "CA"},
+            json={
+                "net_self_employment_profit": 100000,
+                "filing_status": "single",
+                "state_code": "CA",
+                "tax_year": 2025,
+            },
         )
 
         body = self.assert_engine_payload(response)
@@ -172,7 +184,12 @@ class CalcApiTests(unittest.TestCase):
     def test_income_summary_endpoint_calculates_zero_tax_state(self):
         response = self.client.post(
             "/calc/income-summary",
-            json={"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "FL"},
+            json={
+                "net_self_employment_profit": 100000,
+                "filing_status": "single",
+                "state_code": "FL",
+                "tax_year": 2025,
+            },
         )
 
         body = self.assert_engine_payload(response)
@@ -183,7 +200,7 @@ class CalcApiTests(unittest.TestCase):
     def test_income_summary_endpoint_combines_w2_and_self_employment_payroll(self):
         response = self.client.post(
             "/calc/income-summary",
-            json={"w2_wages": 150000, "net_self_employment_profit": 50000, "filing_status": "single"},
+            json={"w2_wages": 150000, "net_self_employment_profit": 50000, "filing_status": "single", "tax_year": 2025},
         )
 
         body = self.assert_engine_payload(response)
@@ -197,7 +214,7 @@ class CalcApiTests(unittest.TestCase):
     def test_income_summary_endpoint_combines_capital_gains(self):
         response = self.client.post(
             "/calc/income-summary",
-            json={"w2_wages": 200000, "long_term_capital_gain": 50000, "filing_status": "single"},
+            json={"w2_wages": 200000, "long_term_capital_gain": 50000, "filing_status": "single", "tax_year": 2025},
         )
 
         body = self.assert_engine_payload(response)
@@ -211,7 +228,7 @@ class CalcApiTests(unittest.TestCase):
     def test_income_summary_endpoint_combines_feie_rate_stacking(self):
         response = self.client.post(
             "/calc/income-summary",
-            json={"foreign_earned_income": 200000, "days_abroad": 330, "filing_status": "single"},
+            json={"foreign_earned_income": 200000, "days_abroad": 330, "filing_status": "single", "tax_year": 2025},
         )
 
         body = self.assert_engine_payload(response)
@@ -225,7 +242,12 @@ class CalcApiTests(unittest.TestCase):
     def test_income_summary_endpoint_embeds_state_not_covered(self):
         response = self.client.post(
             "/calc/income-summary",
-            json={"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "MA"},
+            json={
+                "net_self_employment_profit": 100000,
+                "filing_status": "single",
+                "state_code": "MA",
+                "tax_year": 2025,
+            },
         )
 
         body = self.assert_engine_payload(response)
@@ -246,6 +268,7 @@ class CalcApiTests(unittest.TestCase):
                 "filing_status": "single",
                 "other_taxable_income": 100000,
                 "state_code": "CA",
+                "tax_year": 2025,
             },
         )
 
@@ -257,7 +280,7 @@ class CalcApiTests(unittest.TestCase):
     def test_income_summary_invalid_filing_maps_to_422(self):
         response = self.client.post(
             "/calc/income-summary",
-            json={"net_self_employment_profit": 100000, "filing_status": "bad", "state_code": "CA"},
+            json={"net_self_employment_profit": 100000, "filing_status": "bad", "state_code": "CA", "tax_year": 2025},
         )
 
         self.assertEqual(response.status_code, 422)
@@ -273,6 +296,7 @@ class CalcApiTests(unittest.TestCase):
                 "lots": [{"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000}],
                 "disposals": [{"asset": "BTC", "date": "2025-03-01", "quantity": 2.0, "proceeds": 100000}],
                 "method": "FIFO",
+                "tax_year": 2025,
             },
         )
 
@@ -293,17 +317,27 @@ class CalcApiTests(unittest.TestCase):
         self.assertEqual(error["request_id"], response.headers["X-Request-ID"])
         self.assertTrue(error["details"])
 
+    def test_default_tax_year_uses_2026_rules(self):
+        response = self.client.post(
+            "/calc/federal-income",
+            json={"gross_income": 120000, "filing_status": "single"},
+        )
+
+        body = self.assert_engine_payload(response)
+        self.assertEqual(body["input"]["tax_year"], 2026)
+        self.assertEqual(body["rule_version"], "us-2026-federal-v0.1")
+
     def test_unsupported_tax_year_maps_to_422_without_500(self):
         response = self.client.post(
             "/calc/federal-income",
-            json={"gross_income": 120000, "filing_status": "single", "tax_year": 2026},
+            json={"gross_income": 120000, "filing_status": "single", "tax_year": 2027},
         )
 
         self.assertEqual(response.status_code, 422)
         self.assert_response_has_trace_id(response)
         error = response.json()["error"]
         self.assertEqual(error["code"], "unsupported_tax_year")
-        self.assertIn("2026", error["message"])
+        self.assertIn("2027", error["message"])
         self.assertEqual(error["request_id"], response.headers["X-Request-ID"])
 
     def test_past_tax_year_still_uses_schema_validation_error(self):

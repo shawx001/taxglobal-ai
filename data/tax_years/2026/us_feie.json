@@ -1,0 +1,22 @@
+{
+  "schema_version": "0.1",
+  "rule_version": "us-2026-feie-v0.1",
+  "tax_year": 2026,
+  "jurisdiction": "US",
+  "status": "effective",
+  "effective_date": "2026-01-01",
+  "source_ids": [
+    "irs_rp_2025_32"
+  ],
+  "foreign_earned_income_exclusion": {
+    "maximum_exclusion": 132900,
+    "physical_presence_days": 330,
+    "physical_presence_period_months": 12,
+    "housing_expense_general_limit": 39870,
+    "citation": "Rev. Proc. 2025-32 sets the 2026 foreign earned income exclusion maximum at $132,900; the physical presence test remains 330 full days.",
+    "effective_date": "2026-01-01",
+    "source_ids": [
+      "irs_rp_2025_32"
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 # TaxGlobal AI 功能状态总表（实时打勾 + 可溯源）
 
-最后更新：2026-06-02（main @ `a32454e`）
+最后更新：2026-06-03（feature/tax-year-2026）
 维护规则：每个 step 的 PR 经 Claude review 通过 / 合并后，更新本表"状态"列。每行可追溯到 **设计文档 + 实现 commit + 官方来源**。
 
 图例：✅ 已实现并测试 ｜ 🟡 已设计待实现 ｜ ⬜ 未开始
@@ -37,6 +37,7 @@
 | `us_states.json` crypto 州资本利得扩展 | ✅ | 2.6 | WA DOR capital gains, 各州 DOR | CA/NY/GA/IL/CO=ordinary income; WA=capital gains excise |
 | `us_nexus.json`（经济联结阈值+`comparison`） | ✅ | 1 / 2.1 | CDTFA/NY/TX/FL | WA=待来源 |
 | `us_capital_gains.json`（LTCG/STCG/NIIT） | ✅ | 1.1 | Rev. Proc. 2024-40, IRS Topic 409/559 | |
+| `data/tax_years/2026/*.json`（2026 联邦/FICA/资本利得/QBI/FEIE + 州/Nexus 2025 参数标注） | ✅ | Step A | Rev. Proc. 2025-32 / SSA 2026 | 默认税年切到 2026；州/Nexus 暂标 `state_parameter_year:2025` |
 | `knowledge/us_core_knowledge.json`（知识候选） | ✅ | 1 | 同上 | 入库待 Step 6 |
 
 ## C. 工程基建
@@ -94,6 +95,7 @@
 | 5.6 加密前端显示州税 | `step5_6_design_crypto_state_frontend.md` | `step5_6_crypto_state_frontend.md` |
 | 5.7 Nexus 前端接后端 | `step5_7_design_nexus_frontend.md` | `step5_7_nexus_frontend.md` |
 | REQ-002 前端合并计税总览 | `req002_design_frontend_overview.md` | `req002_frontend_overview.md` |
+| Step A 2026 税年数据集 | `tax_year_2026_design.md` | `tax_year_2026.md` |
 
 流程/标准类：`engineering_process.md`、`phase1_define_us_mvp.md`、`coding_standards.md`、`code_review_checklist.md`、`feature_status.md`（本文件）。
 

@@ -1,0 +1,92 @@
+{
+  "schema_version": "0.1",
+  "function": "income_tax_summary",
+  "cases": [
+    {
+      "name": "default_2026_w2_200k_single_anchor",
+      "input": {"w2_wages": 200000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "w2_wages": 200000.00,
+        "deduction_used": 16100.00,
+        "taxable_income": 183900.00,
+        "federal_income_tax": 36734.00,
+        "total_payroll_tax": 14339.00,
+        "total_tax": 51073.00,
+        "citation_source_ids": ["irs_rp_2025_32", "ssa_press_2026"]
+      }
+    },
+    {
+      "name": "default_2026_w2_200k_long_term_gain_50k_single",
+      "input": {"w2_wages": 200000, "long_term_capital_gain": 50000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "w2_wages": 200000.00,
+        "long_term_capital_gain": 50000.00,
+        "adjusted_gross_income": 250000.00,
+        "deduction_used": 16100.00,
+        "taxable_income": 233900.00,
+        "ordinary_taxable_income": 183900.00,
+        "federal_income_tax": 36734.00,
+        "long_term_capital_gains_tax": 7500.00,
+        "net_investment_income_tax": 1900.00,
+        "total_payroll_tax": 14339.00,
+        "total_tax": 60473.00
+      }
+    },
+    {
+      "name": "default_2026_feie_200k_330_days_single",
+      "input": {"foreign_earned_income": 200000, "days_abroad": 330, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "foreign_earned_income": 200000.00,
+        "feie_excluded_income": 132900.00,
+        "adjusted_gross_income": 67100.00,
+        "ordinary_taxable_income": 51000.00,
+        "federal_income_tax": 12240.00,
+        "total_tax": 12240.00
+      }
+    },
+    {
+      "name": "default_2026_self_employment_60k_long_term_gain_40k_feie_100k_single",
+      "input": {
+        "net_self_employment_profit": 60000,
+        "long_term_capital_gain": 40000,
+        "foreign_earned_income": 100000,
+        "days_abroad": 330,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "feie_excluded_income": 100000.00,
+        "qbi_deduction": 7932.23,
+        "taxable_income": 71728.90,
+        "ordinary_taxable_income": 31728.90,
+        "federal_income_tax": 7500.94,
+        "long_term_capital_gains_tax": 3341.84,
+        "net_investment_income_tax": 0.00,
+        "total_payroll_tax": 8477.73,
+        "total_tax": 19320.51
+      }
+    },
+    {
+      "name": "default_2026_self_employment_100k_ca_single",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "CA"},
+      "expected": {
+        "status": "ok",
+        "deduction_used": 16100.00,
+        "qbi_deduction": 15367.04,
+        "taxable_income": 61468.18,
+        "federal_income_tax": 8235.00,
+        "state_taxable_base": 87229.22,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "CA",
+          "tax": 4550.96,
+          "income_tax_type": "progressive"
+        },
+        "total_tax": 26915.51
+      }
+    }
+  ]
+}

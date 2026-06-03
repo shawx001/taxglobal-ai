@@ -7,25 +7,44 @@ function Read-Json($Path) {
   return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
 }
 
-$manifest = Read-Json "data/sources/us/2025/source_manifest.json"
-if (!$manifest.sources -or $manifest.sources.Count -lt 1) {
-  throw "source_manifest.json must contain at least one source"
+$sourceIds = @{}
+
+function Add-ManifestSources($ManifestPath) {
+  $manifest = Read-Json $ManifestPath
+  if (!$manifest.sources -or $manifest.sources.Count -lt 1) {
+    throw "$ManifestPath must contain at least one source"
+  }
+
+  foreach ($source in $manifest.sources) {
+    if (!$source.source_id) { throw "Source missing source_id in $ManifestPath" }
+    $status = if ($source.status) { $source.status } else { "archived" }
+    if ($status -in @("archived", "archived_redacted")) {
+      if (!$source.local_path) { throw "Source $($source.source_id) missing local_path" }
+      if (!$source.content_hash) { throw "Source $($source.source_id) missing content_hash" }
+      if (!(Test-Path -LiteralPath $source.local_path)) {
+        throw "Archived source file missing: $($source.local_path)"
+      }
+      $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $source.local_path).Hash
+      if ($actualHash -ne $source.content_hash) {
+        throw "Hash mismatch for $($source.source_id): expected $($source.content_hash), got $actualHash"
+      }
+    } else {
+      if (($source.PSObject.Properties.Name -contains "local_path") -and $source.local_path) {
+        throw "Non-archived source $($source.source_id) must not claim local_path"
+      }
+      if (($source.PSObject.Properties.Name -contains "content_hash") -and $source.content_hash) {
+        throw "Non-archived source $($source.source_id) must not claim content_hash"
+      }
+      if (!$source.notes) {
+        throw "Non-archived source $($source.source_id) must include notes"
+      }
+    }
+    $sourceIds[$source.source_id] = $true
+  }
 }
 
-$sourceIds = @{}
-foreach ($source in $manifest.sources) {
-  if (!$source.source_id) { throw "Source missing source_id" }
-  if (!$source.local_path) { throw "Source $($source.source_id) missing local_path" }
-  if (!$source.content_hash) { throw "Source $($source.source_id) missing content_hash" }
-  if (!(Test-Path -LiteralPath $source.local_path)) {
-    throw "Archived source file missing: $($source.local_path)"
-  }
-  $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $source.local_path).Hash
-  if ($actualHash -ne $source.content_hash) {
-    throw "Hash mismatch for $($source.source_id): expected $($source.content_hash), got $actualHash"
-  }
-  $sourceIds[$source.source_id] = $true
-}
+Add-ManifestSources "data/sources/us/2025/source_manifest.json"
+Add-ManifestSources "data/sources/us/2026/source_manifest.json"
 
 $ruleFiles = @(
   "data/tax_years/2025/us_federal.json",
@@ -41,6 +60,25 @@ foreach ($file in $ruleFiles) {
   $doc = Read-Json $file
   if (!$doc.schema_version) { throw "$file missing schema_version" }
   if ($doc.tax_year -ne 2025) { throw "$file tax_year must be 2025" }
+  if ($doc.status -eq "effective" -and !$doc.effective_date) {
+    throw "$file effective rule file missing effective_date"
+  }
+}
+
+$ruleFiles2026 = @(
+  "data/tax_years/2026/us_federal.json",
+  "data/tax_years/2026/us_fica.json",
+  "data/tax_years/2026/us_feie.json",
+  "data/tax_years/2026/us_states.json",
+  "data/tax_years/2026/us_nexus.json",
+  "data/tax_years/2026/us_capital_gains.json",
+  "data/tax_years/2026/us_qbi.json"
+)
+
+foreach ($file in $ruleFiles2026) {
+  $doc = Read-Json $file
+  if (!$doc.schema_version) { throw "$file missing schema_version" }
+  if ($doc.tax_year -ne 2026) { throw "$file tax_year must be 2026" }
   if ($doc.status -eq "effective" -and !$doc.effective_date) {
     throw "$file effective rule file missing effective_date"
   }
@@ -72,6 +110,11 @@ function Assert-SourceIdsExist($Node, $Path) {
 }
 
 foreach ($file in $ruleFiles) {
+  $doc = Read-Json $file
+  Assert-SourceIdsExist $doc $file
+}
+
+foreach ($file in $ruleFiles2026) {
   $doc = Read-Json $file
   Assert-SourceIdsExist $doc $file
 }
@@ -466,5 +509,128 @@ if ($niit.magi_thresholds.head_of_household -ne 200000) { throw "Unexpected NIIT
 if ($niit.magi_thresholds.married_filing_jointly -ne 250000) { throw "Unexpected NIIT MFJ threshold" }
 if ($niit.magi_thresholds.qualifying_surviving_spouse -ne 250000) { throw "Unexpected NIIT QSS threshold" }
 if ($niit.magi_thresholds.married_filing_separately -ne 125000) { throw "Unexpected NIIT MFS threshold" }
+
+$federal2026 = Read-Json "data/tax_years/2026/us_federal.json"
+if ($federal2026.rule_version -ne "us-2026-federal-v0.1") {
+  throw "Unexpected 2026 federal rule_version"
+}
+if ($federal2026.standard_deduction.single -ne 16100) {
+  throw "Unexpected 2026 single standard deduction"
+}
+if ($federal2026.standard_deduction.married_filing_jointly -ne 32200) {
+  throw "Unexpected 2026 MFJ standard deduction"
+}
+if ($federal2026.standard_deduction.married_filing_separately -ne 16100) {
+  throw "Unexpected 2026 MFS standard deduction"
+}
+if ($federal2026.standard_deduction.head_of_household -ne 24150) {
+  throw "Unexpected 2026 HOH standard deduction"
+}
+if ($federal2026.ordinary_income_brackets.single[0].up_to -ne 12400) {
+  throw "Unexpected first 2026 single federal bracket cap"
+}
+if ($federal2026.ordinary_income_brackets.married_filing_separately[5].up_to -ne 384350) {
+  throw "Unexpected 2026 MFS 35-percent federal bracket cap"
+}
+if ($null -ne $federal2026.ordinary_income_brackets.head_of_household[6].up_to) {
+  throw "2026 HOH final federal bracket must have up_to null"
+}
+
+$fica2026 = Read-Json "data/tax_years/2026/us_fica.json"
+if ($fica2026.social_security.wage_base -ne 184500) {
+  throw "Unexpected 2026 Social Security wage base"
+}
+if ($fica2026.social_security.employee_rate -ne 0.062) {
+  throw "Unexpected 2026 employee Social Security rate"
+}
+if ($fica2026.additional_medicare.employee_rate -ne 0.009) {
+  throw "Unexpected 2026 Additional Medicare rate"
+}
+if ($fica2026.self_employment.net_earnings_multiplier -ne 0.9235) {
+  throw "Unexpected 2026 self-employment net earnings multiplier"
+}
+
+$feie2026 = Read-Json "data/tax_years/2026/us_feie.json"
+if ($feie2026.foreign_earned_income_exclusion.maximum_exclusion -ne 132900) {
+  throw "Unexpected 2026 FEIE maximum exclusion"
+}
+if ($feie2026.foreign_earned_income_exclusion.physical_presence_days -ne 330) {
+  throw "Unexpected 2026 FEIE physical presence days"
+}
+
+$qbi2026 = Read-Json "data/tax_years/2026/us_qbi.json"
+$expectedQbi2026Thresholds = @{
+  single = 201750
+  head_of_household = 201750
+  married_filing_separately = 201775
+  qualifying_surviving_spouse = 201750
+  married_filing_jointly = 403500
+}
+$expectedQbi2026Windows = @{
+  single = 75000
+  head_of_household = 75000
+  married_filing_separately = 75000
+  qualifying_surviving_spouse = 75000
+  married_filing_jointly = 150000
+}
+if ($qbi2026.qbi_deduction.rate -ne 0.2) { throw "Unexpected 2026 QBI deduction rate" }
+if ($qbi2026.qbi_deduction.wage_ubia_limit.half_w2_wages_rate -ne 0.5) {
+  throw "Unexpected 2026 QBI half_w2_wages_rate"
+}
+if ($qbi2026.qbi_deduction.wage_ubia_limit.quarter_w2_wages_rate -ne 0.25) {
+  throw "Unexpected 2026 QBI quarter_w2_wages_rate"
+}
+if ($qbi2026.qbi_deduction.wage_ubia_limit.ubia_rate -ne 0.025) {
+  throw "Unexpected 2026 QBI ubia_rate"
+}
+foreach ($filingStatus in $requiredQbiFilingStatuses) {
+  $threshold = $qbi2026.qbi_deduction.taxable_income_threshold.$filingStatus
+  $window = $qbi2026.qbi_deduction.phase_in_window.$filingStatus
+  $upperLimit = $qbi2026.qbi_deduction.upper_limit.$filingStatus
+  if ($threshold -ne $expectedQbi2026Thresholds[$filingStatus]) {
+    throw "Unexpected 2026 QBI threshold for $filingStatus"
+  }
+  if ($window -ne $expectedQbi2026Windows[$filingStatus]) {
+    throw "Unexpected 2026 QBI phase-in window for $filingStatus"
+  }
+  if ($upperLimit -ne ($threshold + $window)) {
+    throw "2026 QBI upper_limit for $filingStatus must equal threshold + phase_in_window"
+  }
+}
+
+$capitalGains2026 = Read-Json "data/tax_years/2026/us_capital_gains.json"
+$ltcg2026 = $capitalGains2026.long_term_capital_gains
+if ($ltcg2026.brackets.single[0].up_to -ne 49450) {
+  throw "Unexpected 2026 single LTCG zero-rate threshold"
+}
+if ($ltcg2026.brackets.single[1].up_to -ne 545500) {
+  throw "Unexpected 2026 single LTCG 15-percent threshold"
+}
+if ($ltcg2026.brackets.married_filing_jointly[0].up_to -ne 98900) {
+  throw "Unexpected 2026 MFJ LTCG zero-rate threshold"
+}
+if ($ltcg2026.brackets.married_filing_jointly[1].up_to -ne 613700) {
+  throw "Unexpected 2026 MFJ LTCG 15-percent threshold"
+}
+if ($ltcg2026.brackets.married_filing_separately[1].up_to -ne 306850) {
+  throw "Unexpected 2026 MFS LTCG 15-percent threshold"
+}
+if ($capitalGains2026.net_investment_income_tax.rate -ne 0.038) {
+  throw "Unexpected 2026 NIIT rate"
+}
+
+$states2026 = Read-Json "data/tax_years/2026/us_states.json"
+foreach ($stateProp in $states2026.states.PSObject.Properties) {
+  if ($stateProp.Value.state_parameter_year -ne 2025) {
+    throw "2026 state $($stateProp.Name) must declare state_parameter_year 2025"
+  }
+}
+
+$nexus2026 = Read-Json "data/tax_years/2026/us_nexus.json"
+foreach ($thresholdProp in $nexus2026.thresholds.PSObject.Properties) {
+  if ($thresholdProp.Value.state_parameter_year -ne 2025) {
+    throw "2026 nexus threshold $($thresholdProp.Name) must declare state_parameter_year 2025"
+  }
+}
 
 Write-Output "Step 1 data validation passed."

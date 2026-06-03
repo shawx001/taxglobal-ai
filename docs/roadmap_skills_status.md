@@ -15,7 +15,7 @@
 | **M4 训练闭环** | 第 7–8 周 | Trace 回流 + LoRA + Eval Harness | 🔲 未开始 |
 | **M5 合规与上线** | 第 9–10 周 | 安全/合规/可观测 + Demo 联调 | 🔲 未开始 |
 
-**M1 收尾状态**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);REQ-002 前端总览已接到单次 `income_tax_summary`。下一阶段进入 M2 Skills/Agent + 知识层。
+**M1 收尾状态**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);REQ-002 前端总览已接到单次 `income_tax_summary`;Step A 已新增 2026 税年数据并把默认税年切到 2026。下一阶段进入 M2 Skills/Agent + 知识层。
 
 ## 二、18 Skills 清单与现状
 

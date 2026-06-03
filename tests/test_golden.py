@@ -42,10 +42,14 @@ class GoldenFixtureTests(unittest.TestCase):
         for file_name, fixture in load_golden_files():
             function_name = fixture["function"]
             target = getattr(engine, function_name)
+            fixture_tax_year = fixture.get("tax_year")
 
             for case in fixture["cases"]:
                 with self.subTest(file=file_name, function=function_name, name=case["name"]):
-                    result = target(**case["input"])
+                    input_data = dict(case["input"])
+                    if fixture_tax_year is not None and "tax_year" not in input_data:
+                        input_data["tax_year"] = fixture_tax_year
+                    result = target(**input_data)
                     self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
                     self.assert_golden_result(case["expected"], result)
 

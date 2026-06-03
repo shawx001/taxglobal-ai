@@ -203,7 +203,9 @@ class EngineTests(unittest.TestCase):
         self.assertTrue(result["result"]["state_income_tax"]["not_covered"])
         self.assertEqual(result["result"]["state_income_tax"]["tax"], 0.00)
         self.assertEqual(result["result"]["total_tax"], 22_760.15)
-        self.assertIn("federal and SE tax only", "\n".join(result["assumptions"]))
+        self.assertIn(
+            "total tax includes federal income tax and total payroll tax", "\n".join(result["assumptions"])
+        )
 
     def test_income_tax_summary_co_adds_back_qbi_to_state_base(self):
         result = income_tax_summary(100_000, filing_status="single", state_code="CO")
@@ -220,6 +222,39 @@ class EngineTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "invalid_input")
         self.assertIn("Unsupported filing_status", result["reason"])
+
+    def test_income_tax_summary_w2_wages_share_social_security_base_with_se_income(self):
+        result = income_tax_summary(60_000, w2_wages=250_000, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["w2_fica_tax"], 14_543.20)
+        self.assertEqual(result["result"]["self_employment_tax"], 1_606.89)
+        self.assertEqual(result["result"]["total_payroll_tax"], 17_098.78)
+
+    def test_income_tax_summary_combines_w2_and_se_for_additional_medicare(self):
+        result = income_tax_summary(60_000, w2_wages=250_000, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["additional_medicare_tax"], 948.69)
+
+    def test_income_tax_summary_high_income_qbi_phases_out_without_qbi_wages(self):
+        result = income_tax_summary(60_000, w2_wages=250_000, filing_status="single")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["qbi_deduction"], 0.00)
+
+    def test_income_tax_summary_w2_default_zero_reproduces_self_employment_only(self):
+        result = income_tax_summary(100_000, filing_status="single", state_code="FL")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["w2_fica_tax"], 0.00)
+        self.assertEqual(result["result"]["total_payroll_tax"], 14_129.55)
+        self.assertEqual(result["result"]["self_employment_tax"], 14_129.55)
+        self.assertEqual(result["result"]["adjusted_gross_income"], 92_935.22)
+        self.assertEqual(result["result"]["qbi_deduction"], 15_587.04)
+        self.assertEqual(result["result"]["taxable_income"], 62_348.18)
+        self.assertEqual(result["result"]["federal_income_tax"], 8_630.60)
+        self.assertEqual(result["result"]["total_tax"], 22_760.15)
 
     def test_state_taxable_base_blocks_unmodeled_agi_qbi_allowed_combo(self):
         state_block = {

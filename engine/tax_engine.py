@@ -101,6 +101,10 @@ def _money_decimal(value: Decimal) -> float:
     return float(value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
+def _money_quantized(value: Decimal) -> Decimal:
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
 def _decimal_rule(value: Any) -> Decimal:
     return Decimal(str(value))
 
@@ -361,6 +365,63 @@ def self_employment_tax(
             "Deductible half of self-employment tax excludes Additional Medicare Tax.",
         ],
     )
+
+
+def _combined_payroll(
+    w2_wages: Decimal,
+    net_self_employment_profit: Decimal,
+    filing: str,
+    fica_rules: dict[str, Any],
+) -> dict[str, Decimal]:
+    """Combine W-2 FICA and self-employment tax with shared Social Security base.
+
+    Reuses the caller's already-loaded fica_rules to avoid a second deepcopy on the hot path.
+    """
+
+    ss = fica_rules["social_security"]
+    med = fica_rules["medicare"]
+    addl = fica_rules["additional_medicare"]
+    se = fica_rules["self_employment"]
+
+    w2 = max(Decimal("0"), w2_wages)
+    net_profit = max(Decimal("0"), net_self_employment_profit)
+    se_net_earnings = net_profit * _decimal_rule(se["net_earnings_multiplier"])
+
+    ss_wage_base = _decimal_rule(ss["wage_base"])
+    w2_ss_wages = min(w2, ss_wage_base)
+    w2_ss = w2_ss_wages * _decimal_rule(ss["employee_rate"])
+    remaining_ss_base = max(Decimal("0"), ss_wage_base - w2_ss_wages)
+    se_ss_base = min(se_net_earnings, remaining_ss_base)
+    se_ss = se_ss_base * _decimal_rule(ss["self_employment_combined_rate"])
+
+    w2_medicare = w2 * _decimal_rule(med["employee_rate"])
+    se_medicare = se_net_earnings * _decimal_rule(med["self_employment_combined_rate"])
+    self_employment_tax_amount = se_ss + se_medicare
+
+    threshold = _decimal_rule(addl["taxpayer_thresholds"][filing])
+    additional_medicare_tax = max(Decimal("0"), (w2 + se_net_earnings) - threshold) * _decimal_rule(
+        addl["employee_rate"]
+    )
+    deductible_half_se_tax = _money_quantized(self_employment_tax_amount / Decimal("2"))
+    w2_fica_tax = w2_ss + w2_medicare
+    total_payroll_tax = w2_fica_tax + self_employment_tax_amount + additional_medicare_tax
+
+    return {
+        "w2_wages": w2,
+        "net_self_employment_profit": net_profit,
+        "net_earnings_from_self_employment": se_net_earnings,
+        "w2_social_security_wages": w2_ss_wages,
+        "w2_social_security_tax": w2_ss,
+        "w2_medicare_tax": w2_medicare,
+        "w2_fica_tax": w2_fica_tax,
+        "se_social_security_base": se_ss_base,
+        "se_social_security_tax": se_ss,
+        "se_medicare_tax": se_medicare,
+        "self_employment_tax": self_employment_tax_amount,
+        "additional_medicare_tax": additional_medicare_tax,
+        "deductible_half_se_tax": deductible_half_se_tax,
+        "total_payroll_tax": total_payroll_tax,
+    }
 
 
 def qbi_deduction(
@@ -669,6 +730,8 @@ def _state_taxable_base(
 
 def income_tax_summary(
     net_self_employment_profit: float = 0.0,
+    *,
+    w2_wages: float = 0.0,
     other_ordinary_income: float = 0.0,
     filing_status: str = "single",
     state_code: str | None = None,
@@ -680,9 +743,10 @@ def income_tax_summary(
     deduction: float | None = None,
     tax_year: int = 2025,
 ) -> dict[str, Any]:
-    """Combine self-employment, QBI, federal, and state income tax for self-employment income."""
+    """Combine W-2 wages, self-employment income, QBI, federal, payroll, and state income tax into one summary."""
 
     raw_input = {
+        "w2_wages": w2_wages,
         "net_self_employment_profit": net_self_employment_profit,
         "other_ordinary_income": other_ordinary_income,
         "filing_status": filing_status,
@@ -714,11 +778,12 @@ def income_tax_summary(
 
     try:
         filing = _normalize_filing_status(filing_status)
+        w2 = max(Decimal("0"), _decimal_input(w2_wages, "w2_wages"))
         net_profit = max(Decimal("0"), _decimal_input(net_self_employment_profit, "net_self_employment_profit"))
         other_income = max(Decimal("0"), _decimal_input(other_ordinary_income, "other_ordinary_income"))
         health_insurance = max(Decimal("0"), _decimal_input(se_health_insurance, "se_health_insurance"))
         retirement = max(Decimal("0"), _decimal_input(retirement_contributions, "retirement_contributions"))
-        w2_wages = max(Decimal("0"), _decimal_input(qbi_w2_wages, "qbi_w2_wages"))
+        qbi_w2 = max(Decimal("0"), _decimal_input(qbi_w2_wages, "qbi_w2_wages"))
         ubia = max(Decimal("0"), _decimal_input(qbi_ubia, "qbi_ubia"))
         deduction_used = (
             _decimal_rule(federal_rules["standard_deduction"][filing])
@@ -733,21 +798,23 @@ def income_tax_summary(
             citations=base_citations,
         )
 
-    se_result = self_employment_tax(net_profit, filing, tax_year)
-    se_tax = _decimal_rule(se_result["result"]["self_employment_tax"])
-    additional_medicare_tax = _decimal_rule(se_result["result"]["additional_medicare_tax"])
-    deductible_half_se_tax = _decimal_rule(se_result["result"]["deductible_half_se_tax"])
+    payroll = _combined_payroll(w2, net_profit, filing, fica_rules)
+    se_tax = payroll["self_employment_tax"]
+    additional_medicare_tax = payroll["additional_medicare_tax"]
+    deductible_half_se_tax = payroll["deductible_half_se_tax"]
+    w2_fica_tax = payroll["w2_fica_tax"]
+    total_payroll_tax = payroll["total_payroll_tax"]
 
     above_line_deductions = deductible_half_se_tax + health_insurance + retirement
-    adjusted_gross_income = max(Decimal("0"), net_profit + other_income - above_line_deductions)
+    adjusted_gross_income = max(Decimal("0"), w2 + net_profit + other_income - above_line_deductions)
     taxable_before_qbi = max(Decimal("0"), adjusted_gross_income - deduction_used)
-    qbi_amount = max(Decimal("0"), adjusted_gross_income - other_income)
+    qbi_amount = max(Decimal("0"), net_profit - above_line_deductions)
 
     qbi_result = qbi_deduction(
         qbi=qbi_amount,
         taxable_income=taxable_before_qbi,
         filing_status=filing,
-        w2_wages=w2_wages,
+        w2_wages=qbi_w2,
         ubia=ubia,
         is_sstb=is_sstb,
         tax_year=tax_year,
@@ -815,11 +882,16 @@ def income_tax_summary(
                 "reason": state_result["reason"],
             }
 
-    total_tax = se_tax + additional_medicare_tax + federal_income_tax_amount + state_tax
+    total_tax = federal_income_tax_amount + total_payroll_tax + state_tax
     quarterly_estimate = total_tax / Decimal("4")
 
     assumptions = [
-        "Self-employment summary combines stored SE tax, QBI, federal ordinary income, and state income tax rules.",
+        "Income summary combines W-2 wages, self-employment income, QBI, federal ordinary income, payroll tax, "
+        "and state income tax rules.",
+        "W-2 wages are assumed to include W-2-reported RSU vesting and other wage income already subject to "
+        "employee-side FICA.",
+        "other_ordinary_income is treated as ordinary taxable income for income-tax stacking, but not as W-2 wages "
+        "or self-employment earnings for payroll tax.",
         "State taxable bases use stored tax_base data for start point, state standard deduction or exemption "
         "allowance, and QBI conformity where available.",
         "State-specific residual adjustments are not modeled, including NY tax benefit recapture above $107,650 "
@@ -827,10 +899,16 @@ def income_tax_summary(
         "state credits, and dependent-specific IL exemption counts.",
         "NIIT is not applied to active self-employment income in this summary.",
         "Self-employment health insurance and retirement contributions are caller-provided above-line deductions.",
+        "w2_wages is used as both the income-tax wage base and the FICA (Social Security/Medicare) wage base; "
+        "the MVP assumes W-2 Box 1 equals Box 5 (no pre-tax deductions splitting them), with Social Security "
+        "capped at the wage base.",
+        "AMT, equity-option timing, passive foreign income, foreign tax credits, and credits are not modeled in this "
+        "combined earned-income block.",
     ]
     if state_result is not None and state_result["status"] != "ok":
         assumptions.append(
-            "State income tax is not covered for the requested state; total tax includes federal and SE tax only."
+            "State income tax is not covered for the requested state; total tax includes federal income tax and "
+            "total payroll tax (W-2 FICA + self-employment tax + Additional Medicare) only, with no state tax."
         )
     if normalized_state_code == "IL":
         assumptions.append(
@@ -843,9 +921,12 @@ def income_tax_summary(
         )
 
     result = {
+        "w2_wages": _money_decimal(w2),
+        "w2_fica_tax": _money_decimal(w2_fica_tax),
         "self_employment_tax": _money_decimal(se_tax),
         "additional_medicare_tax": _money_decimal(additional_medicare_tax),
         "deductible_half_se_tax": _money_decimal(deductible_half_se_tax),
+        "total_payroll_tax": _money_decimal(total_payroll_tax),
         "adjusted_gross_income": _money_decimal(adjusted_gross_income),
         "deduction_used": _money_decimal(deduction_used),
         "taxable_before_qbi": _money_decimal(taxable_before_qbi),
@@ -863,16 +944,19 @@ def income_tax_summary(
         input_data={
             **raw_input,
             "filing_status": filing,
+            "w2_wages": _money_decimal(w2),
             "net_self_employment_profit": _money_decimal(net_profit),
             "other_ordinary_income": _money_decimal(other_income),
             "se_health_insurance": _money_decimal(health_insurance),
             "retirement_contributions": _money_decimal(retirement),
-            "qbi_w2_wages": _money_decimal(w2_wages),
+            "qbi_w2_wages": _money_decimal(qbi_w2),
             "qbi_ubia": _money_decimal(ubia),
             "deduction": _money_decimal(deduction_used),
         },
         result=result,
         breakdown=[
+            {"label": "w2_wages", "amount": _money_decimal(w2)},
+            {"label": "w2_fica_tax", "amount": _money_decimal(w2_fica_tax)},
             {"label": "net_self_employment_profit", "amount": _money_decimal(net_profit)},
             {"label": "deductible_half_se_tax", "amount": _money_decimal(deductible_half_se_tax)},
             {"label": "above_line_deductions", "amount": _money_decimal(above_line_deductions)},
@@ -883,6 +967,7 @@ def income_tax_summary(
             {"label": "taxable_income", "amount": _money_decimal(taxable_income)},
             {"label": "federal_income_tax", "amount": _money_decimal(federal_income_tax_amount)},
             {"label": "state_income_tax", "amount": _money_decimal(state_tax)},
+            {"label": "total_payroll_tax", "amount": _money_decimal(total_payroll_tax)},
             {"label": "total_tax", "amount": _money_decimal(total_tax)},
         ],
         rule_version=rule_version,

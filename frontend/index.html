@@ -1208,7 +1208,8 @@ function enterApp(opts){
 }
 function syncProfileInputs(options={}){
   const resetSelfDeductions=options.resetSelfDeductions===true;
-  const setVal=(id,v)=>{const e=document.getElementById(id); if(e && v!==undefined && v!==null) e.value=v;};
+  // 不用 0 覆盖被用户清空的字段（守住"空=省略, 显式0=传0"契约）。
+  const setVal=(id,v)=>{const e=document.getElementById(id); if(!e||v===undefined||v===null) return; if(v===0 && String(e.value||'').trim()==='') return; e.value=v;};
   ['tx-country','pf-country'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.country;});
   // 税务总览：profile 是单一真相源，所有收入桶无条件带入（不再按身份清零，避免"看不见/对不上"）。
   setVal('tx-income', profile.wages);
@@ -1515,7 +1516,9 @@ async function calcTax(){
     adv.innerHTML = taxText('apiDriven')+'<br>本页只采集档案输入；工资、自雇、QBI、资本利得、NIIT、FEIE 与州税叠加均由 /calc/income-summary 一次返回。';
   }catch(error){
     if(requestId!==taxRequestSeq) return;
-    const message=error&&error.code==='service_unavailable'?taxText('backendDown'):(error&&error.message?error.message:taxText('backendDown'));
+    const messageBase=error&&error.code==='service_unavailable'?taxText('backendDown'):(error&&error.message?error.message:taxText('backendDown'));
+    const detailMsg=(error&&Array.isArray(error.details)&&error.details.length)?('：'+error.details.map(d=>d&&d.msg?d.msg:'').filter(Boolean).join('；')):'';
+    const message=messageBase+detailMsg;
     res.innerHTML = '<div class="alert"><div class="alert-dot"></div><div class="alert-text">'+escapeHtml(message)+'</div></div>';
     adv.innerHTML = taxText('apiDriven');
   }

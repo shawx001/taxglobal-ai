@@ -1105,13 +1105,14 @@ function enterApp(){
   document.getElementById('floatRing').style.display='block';
   buildNav();
   buildTaxSubtabs();
-  syncProfileInputs();
+  syncProfileInputs({resetSelfDeductions:true});
   renderDash();
   calcTax();
   if((selectedTypes.includes('self')||selectedTypes.includes('ecom')) && typeof calcSE==='function') calcSE();
   initCopilot();
 }
-function syncProfileInputs(){
+function syncProfileInputs(options={}){
+  const resetSelfDeductions=options.resetSelfDeductions===true;
   ['tx-country','pf-country'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.country;});
   const txIncome=document.getElementById('tx-income');
   if(txIncome) txIncome.value=selectedTypes.includes('tech')?profile.wages:0;
@@ -1120,9 +1121,9 @@ function syncProfileInputs(){
   const seNet=document.getElementById('se-net');
   if(seNet) seNet.value=(selectedTypes.includes('self')||selectedTypes.includes('ecom'))?profile.seInc:0;
   const seExp=document.getElementById('se-exp');
-  if(seExp && (selectedTypes.includes('self')||selectedTypes.includes('ecom'))) seExp.value=0;
+  if(seExp && resetSelfDeductions && (selectedTypes.includes('self')||selectedTypes.includes('ecom'))) seExp.value=0;
   const seSep=document.getElementById('se-sep');
-  if(seSep && (selectedTypes.includes('self')||selectedTypes.includes('ecom'))) seSep.value=0;
+  if(seSep && resetSelfDeductions && (selectedTypes.includes('self')||selectedTypes.includes('ecom'))) seSep.value=0;
   ['tx-filing','pf-filing','se-filing'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=profile.filing;});
   const loc=document.getElementById('pf-location'); if(loc)loc.value=profile.location;
   if(typeof onTaxCountry==='function') onTaxCountry();

@@ -155,9 +155,9 @@
       "jurisdiction": "CA",
       "topics": ["state_income_tax", "standard_deduction"],
       "local_path": "data/sources/us/2025/raw/ca_2025_540_instructions.html",
-      "content_hash": "E1399775068AF194433185C7886379AD015082AE34D508BC62D01F451DD8A705",
+      "content_hash": "491A0DAF3D4ECBC611500939AADA6039A0E4D50289A6F35F6DE89DDCC2BEDE32",
       "status": "archived_redacted",
-      "notes": "Page snapshot redacts an Akamai mPulse/BOOMR analytics script embedded in the official HTML template. Tax content is otherwise retained."
+      "notes": "Page snapshot redacts Akamai mPulse/BOOMR analytics and opaque vendor-loader scripts embedded in the official HTML template. Tax content is otherwise retained."
     },
     {
       "source_id": "ca_summary_federal_income_tax_changes",
@@ -169,9 +169,9 @@
       "jurisdiction": "CA",
       "topics": ["state_income_tax", "conformity", "qbi"],
       "local_path": "data/sources/us/2025/raw/ca_summary_federal_income_tax_changes.html",
-      "content_hash": "FA9F8288BCDFAA490675E84A6EB491AEDED1BEDDF9DF2D6B31D1FE4614E27C43",
+      "content_hash": "5C694BE3A517A9AE94E3AB026C0CFD5716C8F24FA075BCBC0C7F13195AD7E1EC",
       "status": "archived_redacted",
-      "notes": "Page snapshot redacts an Akamai mPulse/BOOMR analytics script embedded in the official HTML template. Tax content is otherwise retained."
+      "notes": "Page snapshot redacts Akamai mPulse/BOOMR analytics and opaque vendor-loader scripts embedded in the official HTML template. Tax content is otherwise retained."
     },
     {
       "source_id": "ny_2025_it201_instructions",

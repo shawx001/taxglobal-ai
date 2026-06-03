@@ -65,5 +65,5 @@
 - `python -m unittest discover -s tests -v`：84 tests OK
 - `ruff check engine backend tests`：通过
 - `powershell -ExecutionPolicy Bypass -File tests\validate_step1_data.ps1`：通过
-- `git diff --check`：待最终提交前复跑
+- `git diff --check`：通过
 - 根 `index.html` 与 `frontend/index.html`：本步不改

@@ -47,7 +47,8 @@ maximum_exclusion **132,900**；physical_presence_days 330（法定不变）。
 
 ### QBI（§199A）
 rate 20%；threshold（应税收入起点 → phase-in 终点）：
-- single / hoh / mfs：201,775 → 276,775
+- single / head_of_household / qualifying_surviving_spouse：201,750 → 276,750
+- married_filing_separately：201,775 → 276,775（Rev. Proc. 2025-32 / IRB 2025-45 §4.26 将 MFS 单列一行,与 All Other Returns 不同）
 - married_filing_jointly：403,500 → 553,500
 - **结构变化(OBBBA)**：phase-in 区间由 $50k/$100k **扩大到 $75k/$150k**（单/联）。`us_qbi.json` 的 phase-in 范围字段需相应更新。
 

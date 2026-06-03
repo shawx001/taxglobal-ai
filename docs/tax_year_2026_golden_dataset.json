@@ -1,0 +1,123 @@
+{
+ "tax_year": 2026,
+ "filing_status": "single",
+ "qbi_threshold_used": 201750,
+ "method": "independent reference; Rev. Proc. 2025-32 / SSA 2026; ROUND_HALF_UP; federal side only",
+ "scenarios": [
+  {
+   "name": "anchor_w2_200k",
+   "input": {
+    "w2_wages": 200000
+   },
+   "expected_2026": {
+    "feie_excluded_income": 0.0,
+    "adjusted_gross_income": 200000.0,
+    "qbi_deduction": 0.0,
+    "taxable_income": 183900.0,
+    "ordinary_taxable_income": 183900.0,
+    "federal_income_tax": 36734.0,
+    "long_term_capital_gains_tax": 0.0,
+    "net_investment_income_tax": 0.0,
+    "total_payroll_tax": 14339.0,
+    "federal_side_total_tax": 51073.0
+   }
+  },
+  {
+   "name": "A_w2_200k_ltcg_50k",
+   "input": {
+    "w2_wages": 200000,
+    "long_term_capital_gain": 50000
+   },
+   "expected_2026": {
+    "feie_excluded_income": 0.0,
+    "adjusted_gross_income": 250000.0,
+    "qbi_deduction": 0.0,
+    "taxable_income": 233900.0,
+    "ordinary_taxable_income": 183900.0,
+    "federal_income_tax": 36734.0,
+    "long_term_capital_gains_tax": 7500.0,
+    "net_investment_income_tax": 1900.0,
+    "total_payroll_tax": 14339.0,
+    "federal_side_total_tax": 60473.0
+   }
+  },
+  {
+   "name": "B_feie_200k_330",
+   "input": {
+    "foreign_earned_income": 200000,
+    "days_abroad": 330
+   },
+   "expected_2026": {
+    "feie_excluded_income": 132900.0,
+    "adjusted_gross_income": 67100.0,
+    "qbi_deduction": 0.0,
+    "taxable_income": 51000.0,
+    "ordinary_taxable_income": 51000.0,
+    "federal_income_tax": 12240.0,
+    "long_term_capital_gains_tax": 0.0,
+    "net_investment_income_tax": 0.0,
+    "total_payroll_tax": 0.0,
+    "federal_side_total_tax": 12240.0
+   }
+  },
+  {
+   "name": "C_se60k_ltcg40k_feie100k_330",
+   "input": {
+    "net_self_employment_profit": 60000,
+    "long_term_capital_gain": 40000,
+    "foreign_earned_income": 100000,
+    "days_abroad": 330
+   },
+   "expected_2026": {
+    "feie_excluded_income": 100000.0,
+    "adjusted_gross_income": 95761.13,
+    "qbi_deduction": 7932.23,
+    "taxable_income": 71728.9,
+    "ordinary_taxable_income": 31728.9,
+    "federal_income_tax": 7500.94,
+    "long_term_capital_gains_tax": 3341.84,
+    "net_investment_income_tax": 0.0,
+    "total_payroll_tax": 8477.73,
+    "federal_side_total_tax": 19320.51
+   }
+  },
+  {
+   "name": "D_se100k_FEDERAL_SIDE",
+   "input": {
+    "net_self_employment_profit": 100000
+   },
+   "expected_2026": {
+    "feie_excluded_income": 0.0,
+    "adjusted_gross_income": 92935.22,
+    "qbi_deduction": 15367.04,
+    "taxable_income": 61468.18,
+    "ordinary_taxable_income": 61468.18,
+    "federal_income_tax": 8235.0,
+    "long_term_capital_gains_tax": 0.0,
+    "net_investment_income_tax": 0.0,
+    "total_payroll_tax": 14129.55,
+    "federal_side_total_tax": 22364.55
+   }
+  },
+  {
+   "name": "E_qbi_phasein_w2150k_se100k",
+   "input": {
+    "w2_wages": 150000,
+    "net_self_employment_profit": 100000,
+    "qbi_w2": 0
+   },
+   "expected_2026": {
+    "feie_excluded_income": 0.0,
+    "adjusted_gross_income": 246521.92,
+    "qbi_deduction": 11924.47,
+    "taxable_income": 218497.45,
+    "ordinary_taxable_income": 218497.45,
+    "federal_income_tax": 46375.18,
+    "long_term_capital_gains_tax": 0.0,
+    "net_investment_income_tax": 0.0,
+    "total_payroll_tax": 18812.3,
+    "federal_side_total_tax": 65187.48
+   }
+  }
+ ]
+}

@@ -38,6 +38,35 @@ class EngineTests(unittest.TestCase):
 
         self.assertEqual(bracket_tax(25_000, brackets), 4_500.00)
 
+    def test_tax_engine_compat_shim_exports_legacy_names(self):
+        from engine.tax_engine import (  # noqa: PLC0415
+            ROUND_HALF_UP,
+            Any,
+            Decimal,
+            _state_taxable_base,
+            date,
+            load_capital_gains_rules,
+            load_federal_rules,
+            load_feie_rules,
+            load_fica_rules,
+            load_nexus_rules,
+            load_qbi_rules,
+            load_state_rules,
+        )
+
+        self.assertTrue(Any)
+        self.assertTrue(Decimal)
+        self.assertTrue(ROUND_HALF_UP)
+        self.assertTrue(date)
+        self.assertTrue(_state_taxable_base)
+        self.assertTrue(load_capital_gains_rules)
+        self.assertTrue(load_federal_rules)
+        self.assertTrue(load_feie_rules)
+        self.assertTrue(load_fica_rules)
+        self.assertTrue(load_nexus_rules)
+        self.assertTrue(load_qbi_rules)
+        self.assertTrue(load_state_rules)
+
     def test_federal_income_tax_single_uses_2025_rules(self):
         result = federal_income_tax(120_000, "single", tax_year=2025)
 

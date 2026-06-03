@@ -192,7 +192,7 @@
         "exemption_per_person": 1000,
         "citation": "New Jersey gross income tax overview says filers at or below the annual filing-status income thresholds pay no tax, and lists a $1,000 taxpayer exemption plus a $1,000 spouse/civil union partner exemption when not filing separately.",
         "source_ids": ["nj_dor_gross_income_tax_overview_2025"],
-        "notes": "The MVP uses federal above-line-deduction-before gross income as a proxy for New Jersey gross income. New Jersey-specific income categories, pension exclusions, medical deductions, property tax deduction, dependent exemptions, age/blind exemptions, credits, and residency allocation are not modeled."
+        "notes": "The MVP uses federal above-line-deduction-before gross income as a proxy for New Jersey gross income. New Jersey-specific income categories, pension exclusions, medical deductions, property tax deduction, dependent exemptions, age/blind exemptions, credits, and residency allocation are not modeled. Qualifying surviving spouse is modeled as MFJ-equivalent (Rate Schedule II plus two $1,000 exemptions) consistent with its surviving-spouse continuation purpose; the exact NJ QSS personal-exemption count is not authoritatively confirmed."
       },
       "brackets": {
         "single": [

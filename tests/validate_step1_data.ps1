@@ -296,6 +296,7 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
           }
         }
       }
+      }
       if ($taxBase.start_from -eq "gross_income") {
         if ($taxBase.allows_qbi -eq $true) {
           throw "State $($stateProp.Name) gross_income tax_base with allows_qbi=true is not modeled"
@@ -324,7 +325,6 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
           }
         }
       }
-    }
   }
   if ($state.PSObject.Properties.Name -contains "capital_gains_excise") {
     $capitalGainsExcise = $state.capital_gains_excise

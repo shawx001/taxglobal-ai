@@ -432,7 +432,7 @@
       "jurisdiction": "NJ",
       "topics": ["state_income_tax", "tax_base", "exemptions"],
       "local_path": "data/sources/us/2025/raw/nj_dor_gross_income_tax_overview_2025.html",
-      "content_hash": "C4CF869D5FBA82172A9E2B6C8CC8AAD13999C0FB525A66896C2E707EE1B5A9D6",
+      "content_hash": "13C774409E48E0D9AA6A92CABB2E3BCB1E966BB6B77C502372CFAC2883C95DBF",
       "status": "archived"
     },
     {

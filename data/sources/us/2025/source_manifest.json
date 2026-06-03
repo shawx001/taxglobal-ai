@@ -10,9 +10,22 @@
       "publisher": "Internal Revenue Service",
       "tax_year": 2025,
       "jurisdiction": "US",
-      "topics": ["federal_income_tax", "standard_deduction", "capital_gains"],
+      "topics": ["federal_income_tax", "standard_deduction", "capital_gains", "qbi"],
       "local_path": "data/sources/us/2025/raw/irs_rp_2024_40_2025_inflation_adjustments.pdf",
       "content_hash": "4DE9DB6B6662B5C305A59100A027051628823B42FD5817EA4E383AD4C302AF1F",
+      "status": "archived"
+    },
+    {
+      "source_id": "irs_qbi_deduction",
+      "title": "Qualified Business Income Deduction",
+      "source_url": "https://www.irs.gov/newsroom/qualified-business-income-deduction",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2025,
+      "jurisdiction": "US",
+      "topics": ["qbi", "section_199a", "qualified_business_income_deduction"],
+      "local_path": "data/sources/us/2025/raw/irs_qbi_deduction.html",
+      "content_hash": "2D5401B6C170F22C889DA02319AF2587174CFD5EFD9E1BD3DA5893F835657F7C",
       "status": "archived"
     },
     {

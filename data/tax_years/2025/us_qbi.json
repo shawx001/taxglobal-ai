@@ -1,0 +1,38 @@
+{
+  "schema_version": "0.1",
+  "rule_version": "us-2025-qbi-v0.1",
+  "tax_year": 2025,
+  "jurisdiction": "US",
+  "status": "effective",
+  "effective_date": "2025-01-01",
+  "source_ids": ["irs_rp_2024_40", "irs_qbi_deduction"],
+  "qbi_deduction": {
+    "rate": 0.2,
+    "citation": "IRS Qualified Business Income Deduction page describes the Section 199A deduction as up to 20% of QBI and subject to taxable-income, W-2 wage, UBIA, and business-type limitations. Rev. Proc. 2024-40 sets 2025 taxable-income thresholds and upper phase-in range amounts for Section 199A.",
+    "effective_date": "2025-01-01",
+    "source_ids": ["irs_rp_2024_40", "irs_qbi_deduction"],
+    "taxable_income_threshold": {
+      "single": 197300,
+      "head_of_household": 197300,
+      "married_filing_separately": 197300,
+      "qualifying_surviving_spouse": 197300,
+      "married_filing_jointly": 394600
+    },
+    "phase_in_window": {
+      "single": 50000,
+      "head_of_household": 50000,
+      "married_filing_separately": 50000,
+      "qualifying_surviving_spouse": 50000,
+      "married_filing_jointly": 100000
+    },
+    "upper_limit": {
+      "single": 247300,
+      "head_of_household": 247300,
+      "married_filing_separately": 247300,
+      "qualifying_surviving_spouse": 247300,
+      "married_filing_jointly": 494600
+    },
+    "notes": "Below the taxable-income threshold, the core QBI deduction can be modeled as the lesser of 20% of qualified business income or 20% of taxable income minus net capital gain. Above the threshold and through the upper limit, W-2 wage, UBIA, and SSTB phase-in rules require business-specific inputs. Above the upper limit, those limitations fully apply. This data file stores thresholds only; high-income phase-out logic must be modeled in a later engine step and must not be presented as precise without W-2 wage, UBIA, and SSTB inputs.",
+    "rev_proc_2024_40_filing_status_mapping_note": "Rev. Proc. 2024-40 lists Section 199A rows for Married Filing Jointly, Married Filing Separately, and All Other Returns. single, head_of_household, and qualifying_surviving_spouse are mapped to All Other Returns."
+  }
+}

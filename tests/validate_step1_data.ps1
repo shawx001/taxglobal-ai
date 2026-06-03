@@ -33,7 +33,8 @@ $ruleFiles = @(
   "data/tax_years/2025/us_feie.json",
   "data/tax_years/2025/us_states.json",
   "data/tax_years/2025/us_nexus.json",
-  "data/tax_years/2025/us_capital_gains.json"
+  "data/tax_years/2025/us_capital_gains.json",
+  "data/tax_years/2025/us_qbi.json"
 )
 
 foreach ($file in $ruleFiles) {
@@ -94,6 +95,63 @@ if ($fica.additional_medicare.taxpayer_thresholds.married_filing_jointly -ne 250
 $feie = Read-Json "data/tax_years/2025/us_feie.json"
 if ($feie.foreign_earned_income_exclusion.maximum_exclusion -ne 130000) {
   throw "Unexpected 2025 FEIE maximum exclusion"
+}
+
+$qbi = Read-Json "data/tax_years/2025/us_qbi.json"
+$requiredQbiFilingStatuses = @(
+  "single",
+  "married_filing_jointly",
+  "qualifying_surviving_spouse",
+  "head_of_household",
+  "married_filing_separately"
+)
+$expectedQbiPhaseInWindows = @{
+  single = 50000
+  head_of_household = 50000
+  married_filing_separately = 50000
+  qualifying_surviving_spouse = 50000
+  married_filing_jointly = 100000
+}
+if (!$qbi.qbi_deduction) { throw "QBI file missing qbi_deduction" }
+if ($qbi.qbi_deduction.rate -ne 0.2) { throw "Unexpected QBI deduction rate" }
+if (!$qbi.qbi_deduction.effective_date) { throw "qbi_deduction missing effective_date" }
+if (!$qbi.qbi_deduction.citation) { throw "qbi_deduction missing citation" }
+if (!$qbi.source_ids -or $qbi.source_ids.Count -lt 1) {
+  throw "QBI file missing source_ids"
+}
+if (!$qbi.qbi_deduction.source_ids -or $qbi.qbi_deduction.source_ids.Count -lt 1) {
+  throw "qbi_deduction missing source_ids"
+}
+foreach ($filingStatus in $requiredQbiFilingStatuses) {
+  foreach ($nodeName in @("taxable_income_threshold", "phase_in_window", "upper_limit")) {
+    if (!($qbi.qbi_deduction.$nodeName.PSObject.Properties.Name -contains $filingStatus)) {
+      throw "QBI $nodeName missing filing status $filingStatus"
+    }
+  }
+  $threshold = $qbi.qbi_deduction.taxable_income_threshold.$filingStatus
+  $window = $qbi.qbi_deduction.phase_in_window.$filingStatus
+  $upperLimit = $qbi.qbi_deduction.upper_limit.$filingStatus
+  if ($window -ne $expectedQbiPhaseInWindows[$filingStatus]) {
+    throw "Unexpected QBI phase_in_window for $filingStatus"
+  }
+  if ($upperLimit -ne ($threshold + $window)) {
+    throw "QBI upper_limit for $filingStatus must equal threshold + phase_in_window"
+  }
+}
+if ($qbi.qbi_deduction.taxable_income_threshold.single -ne 197300) {
+  throw "Unexpected QBI single threshold"
+}
+if ($qbi.qbi_deduction.taxable_income_threshold.married_filing_jointly -ne 394600) {
+  throw "Unexpected QBI MFJ threshold"
+}
+if ($qbi.qbi_deduction.taxable_income_threshold.married_filing_separately -ne 197300) {
+  throw "Unexpected QBI MFS threshold"
+}
+if ($qbi.qbi_deduction.taxable_income_threshold.head_of_household -ne 197300) {
+  throw "Unexpected QBI HOH threshold"
+}
+if ($qbi.qbi_deduction.taxable_income_threshold.qualifying_surviving_spouse -ne 197300) {
+  throw "Unexpected QBI QSS threshold"
 }
 
 $knowledge = Read-Json "data/knowledge/us/2025/us_core_knowledge.json"

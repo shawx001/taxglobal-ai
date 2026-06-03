@@ -56,7 +56,11 @@
           "income_tax_type": "progressive"
         },
         "total_tax": 27311.11,
-        "citation_source_ids": ["ca_2025_540_tax_rate_schedules"]
+        "citation_source_ids": [
+          "ca_2025_540_tax_rate_schedules",
+          "ca_2025_540_instructions",
+          "ca_summary_federal_income_tax_changes"
+        ]
       }
     },
     {

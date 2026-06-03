@@ -775,6 +775,7 @@ def income_tax_summary(
 
     if normalized_state_code:
         state_block = state_rules["states"].get(normalized_state_code)
+        state_tax_base_citations = _citations(state_block.get("tax_base", {})) if state_block else []
         if (
             state_block
             and state_block.get("status") == "effective"
@@ -797,7 +798,7 @@ def income_tax_summary(
                 )
 
         state_result = state_income_tax(normalized_state_code, state_taxable_base, filing, tax_year)
-        state_citations = state_result["citations"]
+        state_citations = _merge_citations(state_result["citations"], state_tax_base_citations)
         if state_result["status"] == "ok":
             state_tax = _decimal_rule(state_result["result"]["tax"])
             state_income_tax_result = {

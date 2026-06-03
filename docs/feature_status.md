@@ -20,7 +20,7 @@
 | `nexus_estimate`（电商经济联结预警） | ✅ | 2.1 | `step2_1_design_se_nexus.md` | `e31deea` | CDTFA / NY / TX / FL DOR |
 | `crypto_gain_estimate`（加密成本基+资本利得税） | ✅ | 2.2 | `step2_2_design_crypto.md` | `1f98a60` | IRS Topic 409/559, Rev. Proc. 2024-40 |
 | `rsu_tax_estimate`（RSU 归属税务） | ✅ | 2.3 | `step2_3_design_rsu.md` | `2e43a8e` | IRS §83, Rev. Proc. 2024-40 |
-| `income_tax_summary`（自雇总税合并计税） | ✅ | 2.5 | `step2_5_design_income_summary.md` | `this PR` | Rev. Proc. 2024-40 / IRS FICA / 各州 DOR / §199A QBI |
+| `income_tax_summary`（自雇总税合并计税） | ✅ | 2.5 | `step2_5_design_income_summary.md` | `97d91d1` | Rev. Proc. 2024-40 / IRS FICA / 各州 DOR / §199A QBI |
 
 ## B. 规则数据层（"大脑只信的真相源"）
 

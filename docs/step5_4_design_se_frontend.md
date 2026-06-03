@@ -19,12 +19,12 @@
 - **不动**:根 `index.html`(冻结)、引擎、数据、其它前端模块。
 
 ## 1. 后端端点 + schema
-`backend/schemas.py` 新增(字段对齐 `income_tax_summary` 入参;数值 `ge=0`;`filing_status` 用现有 `FilingStatus`):
+`backend/schemas.py` 新增(字段对齐 `income_tax_summary` 入参;数值 `ge=0`;`filing_status` 保持 `str`,让非法 filing 进入引擎并沿用 `invalid_input` 错误语义):
 ```python
 class IncomeSummaryRequest(TaxYearModel):
     net_self_employment_profit: float = Field(default=0, ge=0)
     other_ordinary_income: float = Field(default=0, ge=0)
-    filing_status: FilingStatus = "single"
+    filing_status: str = "single"
     state_code: str | None = Field(default=None, min_length=2, max_length=2)
     se_health_insurance: float = Field(default=0, ge=0)
     retirement_contributions: float = Field(default=0, ge=0)
@@ -49,7 +49,7 @@ def calc_income_summary(payload: IncomeSummaryRequest, request: Request):
     <option value="CA">加州 CA</option><option value="NY">纽约 NY</option>
     <option value="GA">乔治亚 GA</option><option value="IL">伊利诺伊 IL</option>
     <option value="CO">科罗拉多 CO</option>
-    <option value="TX">德州 TX（无所得税）</option><option value="FL">佛州 FL（无所得税）</option>
+    <option value="TX">德州 TX（暂未覆盖）</option><option value="FL">佛州 FL（无所得税）</option>
     <option value="WA">华盛顿 WA（无所得税）</option><option value="NV">内华达 NV（无所得税）</option>
     <option value="MA">马萨诸塞 MA（暂未覆盖）</option>
   </select></div>

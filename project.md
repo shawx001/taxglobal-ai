@@ -7,7 +7,7 @@
 US-first 报税计算/合规 MVP,真实上线导向(高并发、极敏 PII、数据不出境、税季尖峰)。**#1 原则:数值精确到分 + 税率只来自版本化数据 + 可溯官方源。**
 
 ## 1. 里程碑(详见 `docs/roadmap_skills_status.md`)
-- **M0 原型** ✅ · **M1 引擎硬化** ✅(收尾完成)· **M2 Agent+知识层** 🔲 下一阶段 · M3 连接器/多模态 · M4 训练闭环 · M5 合规上线。
+- **M0 原型** ✅ · **M1 引擎硬化** ✅ **已完成并正式关闭（2026-06-07）** · **M2 Agent+知识层** 🔲 下一阶段 · M3 连接器/多模态 · M4 训练闭环 · M5 合规上线。
 
 ## 2. 引擎现状(M1 成果)
 - **模块化包** `engine/`:`money / responses / filing / brackets / dates / federal / payroll / qbi / feie / state / crypto / rsu / nexus / summary` + `__init__`(公共门面)+ `tax_engine.py`(legacy shim)+ `rules_loader`。
@@ -18,11 +18,10 @@ US-first 报税计算/合规 MVP,真实上线导向(高并发、极敏 PII、数
 - **前端**:`frontend/index.html`(vanilla SPA)——profile 单一真相源(localStorage)+ 合并总览一次调 `/calc/income-summary`;根 `index.html` 冻结。
 
 ## 3. 当前进度 / 下一步
-- **刚完成**:Step C4(complex AL/CT/DC/MN/WI)。46→51 effective。**50 州 + DC 全覆盖达成!** 🎉
+- **M1 正式关闭（2026-06-07）**:PR #40 deepcopy→freeze 优化已合并；PR #41 前端 51 州动态下拉已合并；PR-C 文档更新。
 - **州覆盖**:51 effective = 28 progressive + 14 flat + 9 none。全部 50 州 + DC 完成。
 - **50 州计划**:`docs/step_c_all_states_plan.md` 所有批次 C1–C4 完成。
-- **deferred**:deepcopy 规则数据性能优化(per"先把 function 搞出来再调优")。
-- **下一步**:deepcopy 优化 → **M1 正式关闭** → **M2(LangChain Agent + 18 Skills + GraphRAG 知识库)**。
+- **下一步**:→ **M2（LangChain Agent + 18 Skills + GraphRAG 知识库）**。
 
 ## 4. 协作 & 规则(详见 `/AGENTS.md`)
 - 分工:**Shaw** 拍板;**Codex** 主实现+开 PR;**Claude** 规划/设计文档/逐行 review + **独立逐分重算** + 官方源交叉核 + 多智能体审查矩阵 + **review 通过无问题直接 merge**。

@@ -263,6 +263,109 @@
         "notes": "The MVP approximates Pennsylvania taxable income as federal above-line-deduction-before gross income. Pennsylvania class-of-income loss rules, deductions, exclusions, credits, and local income taxes are not modeled."
       }
     },
+    "OR": {
+      "name": "Oregon",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": ["or_dor_or40_instructions_2025", "or_dor_pub_or17_2025", "or_dor_estimated_income_tax_2025"],
+      "citation": "Oregon Department of Revenue 2025 Form OR-40 instructions, Publication OR-17, and estimated tax instructions list Oregon tax rate charts, standard deductions, and the federal tax liability subtraction AGI phaseout table.",
+      "notes": "Full-year resident state income tax approximation only; Oregon additions/subtractions, itemized deductions, exemption credits, kicker, other credits, local taxes, and resident/source allocation are not modeled.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "capital_gains_treatment": "ordinary_income",
+        "standard_deduction": {
+          "single": "2835",
+          "married_filing_separately": "2835",
+          "married_filing_jointly": "5670",
+          "head_of_household": "4560",
+          "qualifying_surviving_spouse": "5670"
+        },
+        "federal_tax_subtraction": {
+          "phaseout_table": {
+            "single": [
+              {"agi_up_to": "124999.99", "limit": "8500"},
+              {"agi_up_to": "129999.99", "limit": "6800"},
+              {"agi_up_to": "134999.99", "limit": "5100"},
+              {"agi_up_to": "139999.99", "limit": "3400"},
+              {"agi_up_to": "144999.99", "limit": "1700"},
+              {"agi_up_to": null, "limit": "0"}
+            ],
+            "married_filing_separately": [
+              {"agi_up_to": "124999.99", "limit": "4250"},
+              {"agi_up_to": "129999.99", "limit": "3400"},
+              {"agi_up_to": "134999.99", "limit": "2550"},
+              {"agi_up_to": "139999.99", "limit": "1700"},
+              {"agi_up_to": "144999.99", "limit": "850"},
+              {"agi_up_to": null, "limit": "0"}
+            ],
+            "married_filing_jointly": [
+              {"agi_up_to": "249999.99", "limit": "8500"},
+              {"agi_up_to": "259999.99", "limit": "6800"},
+              {"agi_up_to": "269999.99", "limit": "5100"},
+              {"agi_up_to": "279999.99", "limit": "3400"},
+              {"agi_up_to": "289999.99", "limit": "1700"},
+              {"agi_up_to": null, "limit": "0"}
+            ],
+            "head_of_household": [
+              {"agi_up_to": "249999.99", "limit": "8500"},
+              {"agi_up_to": "259999.99", "limit": "6800"},
+              {"agi_up_to": "269999.99", "limit": "5100"},
+              {"agi_up_to": "279999.99", "limit": "3400"},
+              {"agi_up_to": "289999.99", "limit": "1700"},
+              {"agi_up_to": null, "limit": "0"}
+            ],
+            "qualifying_surviving_spouse": [
+              {"agi_up_to": "249999.99", "limit": "8500"},
+              {"agi_up_to": "259999.99", "limit": "6800"},
+              {"agi_up_to": "269999.99", "limit": "5100"},
+              {"agi_up_to": "279999.99", "limit": "3400"},
+              {"agi_up_to": "289999.99", "limit": "1700"},
+              {"agi_up_to": null, "limit": "0"}
+            ]
+          },
+          "citation": "Oregon 2025 Form OR-40 instructions Table 4 lists maximum federal tax liability subtraction limits by filing status and federal AGI range.",
+          "source_ids": ["or_dor_or40_instructions_2025"],
+          "notes": "The MVP applies the table to federal AGI at cent precision; official instructions round return entries to whole dollars and define each phaseout range as at least the lower bound but less than the upper bound."
+        },
+        "citation": "Oregon Publication OR-17 lists 2025 standard deductions by filing status, and Form OR-40 instructions line 10 lists the federal tax liability subtraction and AGI phaseout table.",
+        "source_ids": ["or_dor_or40_instructions_2025", "or_dor_pub_or17_2025"],
+        "notes": "Uses federal AGI minus Oregon standard deduction and modeled federal tax liability subtraction. Oregon-specific additions/subtractions, itemized deductions, and credits are not modeled."
+      },
+      "brackets": {
+        "single": [
+          {"up_to": "4400", "rate": "0.0475"},
+          {"up_to": "11050", "rate": "0.0675"},
+          {"up_to": "125000", "rate": "0.0875"},
+          {"up_to": null, "rate": "0.099"}
+        ],
+        "married_filing_separately": [
+          {"up_to": "4400", "rate": "0.0475"},
+          {"up_to": "11050", "rate": "0.0675"},
+          {"up_to": "125000", "rate": "0.0875"},
+          {"up_to": null, "rate": "0.099"}
+        ],
+        "married_filing_jointly": [
+          {"up_to": "8800", "rate": "0.0475"},
+          {"up_to": "22100", "rate": "0.0675"},
+          {"up_to": "250000", "rate": "0.0875"},
+          {"up_to": null, "rate": "0.099"}
+        ],
+        "head_of_household": [
+          {"up_to": "8800", "rate": "0.0475"},
+          {"up_to": "22100", "rate": "0.0675"},
+          {"up_to": "250000", "rate": "0.0875"},
+          {"up_to": null, "rate": "0.099"}
+        ],
+        "qualifying_surviving_spouse": [
+          {"up_to": "8800", "rate": "0.0475"},
+          {"up_to": "22100", "rate": "0.0675"},
+          {"up_to": "250000", "rate": "0.0875"},
+          {"up_to": null, "rate": "0.099"}
+        ]
+      }
+    },
     "IL": {
       "name": "Illinois",
       "income_tax_type": "flat",

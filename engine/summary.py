@@ -214,6 +214,7 @@ def income_tax_summary(
         long_term_gain=long_term_gain_taxed,
         brackets=capital_gains_rules["long_term_capital_gains"]["brackets"][filing],
     )
+    federal_income_tax_liability = federal_income_tax_amount + long_term_capital_gains_tax
     net_investment_income = max(Decimal("0"), short_term_gain + long_term_gain)
     niit_rules = capital_gains_rules["net_investment_income_tax"]
     niit_threshold = _decimal_rule(niit_rules["magi_thresholds"][filing])
@@ -249,6 +250,7 @@ def income_tax_summary(
                     federal_taxable_income=taxable_income,
                     federal_qbi_deduction=qbi_deduction_amount,
                     filing=filing,
+                    federal_income_tax=federal_income_tax_liability,
                 )
             except ValueError as exc:
                 return _invalid_input(
@@ -370,6 +372,16 @@ def income_tax_summary(
             "state-specific income categories, pension exclusions, classified-loss rules, deductions, credits, and "
             "resident/source allocation are not modeled."
         )
+    if state_block and state_block.get("tax_base", {}).get("federal_tax_subtraction"):
+        assumptions.append(
+            "State federal-tax subtraction uses federal ordinary income tax plus long-term capital gains tax as the "
+            "MVP federal income tax liability proxy; federal credits, Oregon-specific additions/subtractions, kicker, "
+            "credits, and resident/source allocation are not modeled."
+        )
+        assumptions.append(
+            "State standard deductions with filing-status-specific spouse/itemization exceptions are approximated from "
+            "the stored filing status because this MVP does not collect spouse itemization inputs."
+        )
     if normalized_state_code == "IL":
         assumptions.append(
             "Illinois exemption allowance assumes MFJ has two exemptions and all other filing statuses have one."
@@ -403,6 +415,7 @@ def income_tax_summary(
         "state_income_tax": state_income_tax_result,
         "federal_income_tax": _money_decimal(federal_income_tax_amount),
         "long_term_capital_gains_tax": _money_decimal(long_term_capital_gains_tax),
+        "federal_income_tax_liability": _money_decimal(federal_income_tax_liability),
         "net_investment_income_tax": _money_decimal(net_investment_income_tax),
         "total_tax": _money_decimal(total_tax),
         "quarterly_estimate": _money_decimal(quarterly_estimate),
@@ -429,6 +442,7 @@ def income_tax_summary(
         {"label": "ordinary_taxable_income", "amount": _money_decimal(ordinary_taxable_income)},
         {"label": "federal_income_tax", "amount": _money_decimal(federal_income_tax_amount)},
         {"label": "long_term_capital_gains_tax", "amount": _money_decimal(long_term_capital_gains_tax)},
+        {"label": "federal_income_tax_liability", "amount": _money_decimal(federal_income_tax_liability)},
         {"label": "net_investment_income_tax", "amount": _money_decimal(net_investment_income_tax)},
         {"label": "state_income_tax", "amount": _money_decimal(state_tax)},
     ]

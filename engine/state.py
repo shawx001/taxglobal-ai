@@ -142,6 +142,7 @@ def _state_taxable_base(
     federal_taxable_income: Decimal,
     federal_qbi_deduction: Decimal,
     filing: str,
+    federal_income_tax: Decimal = Decimal("0"),
 ) -> Decimal:
     """Calculate state taxable base from stored state tax_base data."""
 
@@ -185,4 +186,14 @@ def _state_taxable_base(
         return max(Decimal("0"), federal_agi - allowance)
 
     standard_deduction = _decimal_rule(tax_base["standard_deduction"][filing])
-    return max(Decimal("0"), federal_agi - standard_deduction)
+    base = federal_agi - standard_deduction
+    federal_tax_subtraction = tax_base.get("federal_tax_subtraction")
+    if federal_tax_subtraction:
+        steps = federal_tax_subtraction["phaseout_table"][filing]
+        limit = next(
+            _decimal_rule(step["limit"])
+            for step in steps
+            if step["agi_up_to"] is None or federal_agi <= _decimal_rule(step["agi_up_to"])
+        )
+        base -= min(federal_income_tax, limit)
+    return max(Decimal("0"), base)

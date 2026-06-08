@@ -27,6 +27,7 @@
 | `income_tax_summary` REQ-009 Block 3（FEIE 税率叠加） | ✅ | 2.9 | `step2_9_design_combined_block3_feie.md` | `this PR` | IRS Form 2555 / §911 / §1411 |
 | `income_tax_summary` Step B1（WA capital gains excise 接入总税） | ✅ | Step B1 | `step_b1_design_wa_capital_gains_excise.md` | `this PR` | WA DOR capital gains |
 | `income_tax_summary` Step B2（NJ/PA gross-income 州所得税） | ✅ | Step B2 | `step_b2_design_nj_pa_states.md` | `this PR` | NJ Division of Taxation / PA DOR |
+| `income_tax_summary` Step B2b (OR federal-tax subtraction state income tax) | done | Step B2b | `step_b2b_design_or_state.md` | `this PR` | Oregon DOR OR-40 / Pub OR-17 |
 
 ## B. 规则数据层（"大脑只信的真相源"）
 
@@ -37,6 +38,7 @@
 | `us_feie.json`（FEIE 上限/330天） | ✅ | 1 | IRS FEIE / Form 2555 | |
 | `us_states.json`（10 州） | ✅ | 1 / 1.2 | 各州 DOR | CA/NY=累进可算，MA/TX=待来源 |
 | `us_states.json` crypto 州资本利得扩展 | ✅ | 2.6 | WA DOR capital gains, 各州 DOR | CA/NY/GA/IL/CO=ordinary income; WA=capital gains excise |
+| `us_states.json` OR federal-tax subtraction state income tax | done | Step B2b | Oregon DOR OR-40 / Pub OR-17 / estimated tax instructions | OR progressive tax with standard deduction and AGI-stepped federal tax liability subtraction |
 | `us_nexus.json`（经济联结阈值+`comparison`） | ✅ | 1 / 2.1 | CDTFA/NY/TX/FL | WA=待来源 |
 | `us_capital_gains.json`（LTCG/STCG/NIIT） | ✅ | 1.1 | Rev. Proc. 2024-40, IRS Topic 409/559 | |
 | `data/tax_years/2026/*.json`（2026 联邦/FICA/资本利得/QBI/FEIE + 州/Nexus 2025 参数标注） | ✅ | Step A | Rev. Proc. 2025-32 / SSA 2026 | 默认税年切到 2026；州/Nexus 暂标 `state_parameter_year:2025` |
@@ -102,6 +104,7 @@
 | Step A.5 引擎模块化重构 | `step_a5_design_engine_modularization.md` | `step_a5_engine_modularization.md` |
 | Step B1 WA capital gains excise 合并计税 | `step_b1_design_wa_capital_gains_excise.md` | `step_b1_wa_excise.md` |
 | Step B2 NJ + PA gross-income 州所得税 | `step_b2_design_nj_pa_states.md` | `step_b2_nj_pa.md` |
+| Step B2b OR federal-tax subtraction state income tax | `step_b2b_design_or_state.md` | `step_b2b_or.md` |
 
 流程/标准类：`engineering_process.md`、`phase1_define_us_mvp.md`、`coding_standards.md`、`code_review_checklist.md`、`feature_status.md`（本文件）。
 

@@ -183,6 +183,46 @@
         },
         "total_tax": 35685.05
       }
+    },
+    {
+      "name": "default_2026_or_w2_100k_single_federal_tax_subtraction_full",
+      "input": {"w2_wages": 100000, "filing_status": "single", "state_code": "OR"},
+      "expected": {
+        "status": "ok",
+        "federal_income_tax": 13170.00,
+        "long_term_capital_gains_tax": 0.00,
+        "federal_income_tax_liability": 13170.00,
+        "total_payroll_tax": 7650.00,
+        "adjusted_gross_income": 100000.00,
+        "state_taxable_base": 88665.00,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "OR",
+          "tax": 7449.19,
+          "income_tax_type": "progressive"
+        },
+        "total_tax": 28269.19,
+        "citation_source_ids": ["or_dor_or40_instructions_2025", "or_dor_pub_or17_2025", "or_dor_estimated_income_tax_2025"],
+        "assumption_contains": "State federal-tax subtraction"
+      }
+    },
+    {
+      "name": "default_2026_or_w2_129k_single_federal_tax_subtraction_phaseout",
+      "input": {"w2_wages": 129000, "filing_status": "single", "state_code": "OR"},
+      "expected": {
+        "status": "ok",
+        "federal_income_tax": 19694.00,
+        "federal_income_tax_liability": 19694.00,
+        "total_payroll_tax": 9868.50,
+        "adjusted_gross_income": 129000.00,
+        "state_taxable_base": 119365.00,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "OR",
+          "tax": 10135.44
+        },
+        "total_tax": 39697.94
+      }
     }
   ]
 }

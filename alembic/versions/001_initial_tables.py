@@ -42,8 +42,8 @@ def upgrade() -> None:
         sa.Column("request_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("action", sa.String(length=50), nullable=False),
-        sa.Column("input", postgresql.JSONB(), nullable=True),
-        sa.Column("output", postgresql.JSONB(), nullable=True),
+        sa.Column("request_payload", postgresql.JSONB(), nullable=True),
+        sa.Column("response_payload", postgresql.JSONB(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
     )
     op.create_index("idx_audit_request", "audit_log", ["request_id"])

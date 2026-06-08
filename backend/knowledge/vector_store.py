@@ -17,6 +17,8 @@ def init_chroma() -> None:
     """Initialize Chroma persistent client and collection."""
 
     global _client, _collection
+    if _collection is not None:
+        return  # already initialized; call close_chroma() first to reinitialize
     if not config.ENABLE_CHROMA:
         logger.warning("Chroma disabled via ENABLE_CHROMA=false")
         return

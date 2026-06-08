@@ -62,8 +62,8 @@ try:
         request_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
         user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
         action: Mapped[str] = mapped_column(String(50), nullable=False)
-        input: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
-        output: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+        request_payload: Mapped[dict[str, Any] | None] = mapped_column("request_payload", JSONB, nullable=True)
+        response_payload: Mapped[dict[str, Any] | None] = mapped_column("response_payload", JSONB, nullable=True)
         created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 except ModuleNotFoundError:

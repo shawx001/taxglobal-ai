@@ -42,6 +42,8 @@ async def init_db() -> None:
     """Create async engine and session factory. Safe to call at app startup."""
 
     global _engine, _session_factory
+    if _engine is not None:
+        return  # already initialized; call close_db() first to reinitialize
     engine: Any | None = None
     if not config.ENABLE_POSTGRES:
         logger.warning("PostgreSQL disabled via ENABLE_POSTGRES=false")

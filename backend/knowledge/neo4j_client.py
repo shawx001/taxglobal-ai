@@ -23,6 +23,8 @@ def init_neo4j() -> None:
     """Initialize the Neo4j driver. Safe to call at app startup."""
 
     global _driver
+    if _driver is not None:
+        return  # already initialized; call close_neo4j() first to reinitialize
     driver: Any | None = None
     if not config.ENABLE_NEO4J:
         logger.warning("Neo4j disabled via ENABLE_NEO4J=false")

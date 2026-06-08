@@ -16,6 +16,8 @@ def init_embedder() -> None:
     """Load the local embedding model once."""
 
     global _model
+    if _model is not None:
+        return  # already initialized; call close_embedder() first to reinitialize
     if not config.ENABLE_CHROMA:
         logger.warning("Chroma/Embedder disabled via ENABLE_CHROMA=false")
         return

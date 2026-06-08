@@ -16,7 +16,7 @@
    - 其他（int/float/str/None/bool）→ 原样
 2. `_load_rule_file_cached()` 返回前调用 `_freeze(data)` 冻结整棵树
 3. `load_rule_file()` 直接返回缓存引用（不再 deepcopy）——因为冻结后不可变，多线程安全
-4. 新增 `load_rule_file_mutable(tax_year, filename)` 函数保留 deepcopy 行为，供极少数需要修改数据的场景（如测试 fixture）
+4. 新增 `load_rule_file_mutable(tax_year, filename)` 函数保留可变深拷贝语义（递归解冻，非 deepcopy），供极少数需要修改数据的场景（如测试 fixture）
 
 ### 注意
 - `MappingProxyType` 支持 `[]` 读、`.get()`、`.keys()`、`.values()`、`.items()` ——引擎纯读取无问题

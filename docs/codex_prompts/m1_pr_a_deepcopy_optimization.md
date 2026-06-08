@@ -38,12 +38,20 @@ def load_rule_file(tax_year: int, filename: str) -> ...:
 
 ### 4. 新增 `load_rule_file_mutable()`
 
-保留 deepcopy 行为供测试/极少数场景：
+保留可变副本行为供测试/极少数场景。因为缓存数据已是 `MappingProxyType`/`tuple`（`deepcopy()` 对 `MappingProxyType` 会 TypeError），需递归解冻：
 
 ```python
+def _mutable_copy(obj: Any) -> Any:
+    """Recursively thaw frozen data back into mutable dict/list."""
+    if isinstance(obj, Mapping):
+        return {key: _mutable_copy(value) for key, value in obj.items()}
+    if isinstance(obj, tuple):
+        return [_mutable_copy(item) for item in obj]
+    return obj
+
 def load_rule_file_mutable(tax_year: int, filename: str) -> dict[str, Any]:
     """Load a JSON rule file and return a mutable deep copy."""
-    return deepcopy(_load_rule_file_cached(tax_year, filename))
+    return _mutable_copy(_load_rule_file_cached(tax_year, filename))
 ```
 
 ### 5. 新增测试 `tests/test_rules_loader_freeze.py`

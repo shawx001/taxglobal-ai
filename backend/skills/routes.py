@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from backend.errors import error_response
+from backend.guardrail.middleware import GuardrailViolation, guardrail_check
 from backend.skills.registry import get_all_skills, get_skill
 from engine.rules_loader import RuleLoadError
 
@@ -70,7 +71,7 @@ def invoke_skill(skill_name: str, request: Request, body: dict[str, Any]) -> dic
                     request_id=request_id,
                 ),
             )
-        return result
+        return guardrail_check(result, request_id)
     except RuleLoadError:
         tax_year = body.get("tax_year", "requested")
         return JSONResponse(
@@ -79,6 +80,16 @@ def invoke_skill(skill_name: str, request: Request, body: dict[str, Any]) -> dic
             content=error_response(
                 code="unsupported_tax_year",
                 message=f"Tax year {tax_year} is not supported yet.",
+                request_id=request_id,
+            ),
+        )
+    except GuardrailViolation as exc:
+        return JSONResponse(
+            status_code=422,
+            headers={"X-Request-ID": request_id},
+            content=error_response(
+                code="guardrail_blocked",
+                message=exc.escalation.get("reason", "Output blocked by guardrail."),
                 request_id=request_id,
             ),
         )

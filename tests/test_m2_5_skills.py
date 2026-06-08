@@ -216,9 +216,19 @@ class TestSkillRoutes(unittest.TestCase):
             self.assertIn("input_schema", skill)
 
     def test_invoke_skill_returns_200(self) -> None:
+        engine_result = {
+            "status": "ok",
+            "input": {"tax_year": 2026},
+            "result": {"total_tax": 123.45},
+            "breakdown": [],
+            "rule_version": "test",
+            "citations": [],
+            "assumptions": [],
+            "reason": None,
+        }
         with patch(
             "backend.skills.calculate_income_tax.income_tax_summary",
-            return_value={"status": "ok", "total_tax": "123.45"},
+            return_value=engine_result,
         ):
             response = self.client.post(
                 "/api/skills/calculate_income_tax",
@@ -228,7 +238,7 @@ class TestSkillRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.json()
         self.assertEqual(body["status"], "ok")
-        self.assertEqual(body["result"]["total_tax"], "123.45")
+        self.assertEqual(body["result"]["result"]["total_tax"], 123.45)
         self.assertEqual(body["engine_function"], "income_tax_summary")
 
     def test_invoke_skill_not_found_returns_404(self) -> None:

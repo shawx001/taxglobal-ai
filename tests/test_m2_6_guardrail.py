@@ -280,6 +280,35 @@ class TestGuardrailMiddleware(unittest.TestCase):
 
         self.assertTrue(output["_guardrail"]["needs_review"])
 
+    def test_guardrail_check_rejects_non_dict(self) -> None:
+        from backend.guardrail.middleware import GuardrailViolation, guardrail_check
+
+        with self.assertRaises(GuardrailViolation):
+            guardrail_check("not a dict", request_id="r1")  # type: ignore[arg-type]
+
+        with self.assertRaises(GuardrailViolation):
+            guardrail_check(None, request_id="r2")  # type: ignore[arg-type]
+
+    def test_guardrail_check_fail_open_on_unexpected_error(self) -> None:
+        """If guardrail itself crashes, valid Skill output is returned with _guardrail.error annotation."""
+        from backend.guardrail.middleware import guardrail_check
+
+        output = _skill_output()
+        with patch("backend.guardrail.middleware.validate_skill_output", side_effect=RuntimeError("bug")):
+            result = guardrail_check(output, request_id="r1")
+
+        self.assertIs(result, output)
+        self.assertTrue(result["_guardrail"]["error"])
+
+    def test_guardrail_needs_review_reason_is_sanitized(self) -> None:
+        """The _guardrail annotation must not contain raw PII or amounts."""
+        from backend.guardrail.middleware import guardrail_check
+
+        output = guardrail_check(_skill_output(source_attribution=""), request_id="r1")
+
+        reason = output["_guardrail"]["reason"]
+        self.assertNotRegex(reason, r"\d+\.\d{2}")
+
 
 class TestGuardrailIntegration(unittest.TestCase):
     def setUp(self) -> None:

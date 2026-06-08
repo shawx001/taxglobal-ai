@@ -198,11 +198,12 @@ def validate_amounts_match(claimed: dict[str, str], engine_amounts: dict[str, st
         if amount in engine_values:
             checks.append(CheckResult(passed=True, code="amount_match", message=f"{field} matches engine output."))
         else:
+            # Never embed raw dollar amounts in messages (PII-safety).
             checks.append(
                 CheckResult(
                     passed=False,
                     code="amount_mismatch",
-                    message=f"{field}={amount} does not match any engine amount.",
+                    message=f"{field} does not match any engine amount (mismatch detected).",
                 )
             )
 

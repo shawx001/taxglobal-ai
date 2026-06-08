@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
-from backend.guardrail.escalation import EscalationLevel, request_human_review
+from backend.guardrail.escalation import EscalationLevel, _sanitize_reason, request_human_review
 from backend.guardrail.validator import validate_skill_output
+
+logger = logging.getLogger("taxglobal.guardrail")
 
 
 class GuardrailViolation(Exception):
@@ -17,7 +20,32 @@ class GuardrailViolation(Exception):
 
 
 def guardrail_check(skill_output: dict[str, Any], request_id: str = "") -> dict[str, Any]:
-    """Validate a Skill output and raise if guardrail blocks it."""
+    """Validate a Skill output and raise if guardrail blocks it.
+
+    If the guardrail itself crashes (unexpected exception), the Skill output
+    is returned with a ``_guardrail.error`` annotation rather than raising —
+    a valid engine result is never lost due to a guardrail bug.
+    """
+
+    # Defensive: non-dict input cannot be a valid Skill envelope.
+    if not isinstance(skill_output, dict):
+        raise GuardrailViolation({"reason": "Skill output is not a dict.", "request_id": request_id})
+
+    try:
+        return _run_checks(skill_output, request_id)
+    except GuardrailViolation:
+        raise
+    except Exception:
+        logger.exception(
+            "Guardrail check failed unexpectedly; passing Skill output unchecked (request_id=%s)",
+            request_id,
+        )
+        skill_output["_guardrail"] = {"error": True, "reason": "Guardrail check failed; output returned unchecked."}
+        return skill_output
+
+
+def _run_checks(skill_output: dict[str, Any], request_id: str) -> dict[str, Any]:
+    """Core validation logic, separated for the fail-open wrapper."""
 
     verdict = validate_skill_output(skill_output)
     engine_function = str(skill_output.get("engine_function", ""))
@@ -43,7 +71,7 @@ def guardrail_check(skill_output: dict[str, Any], request_id: str = "") -> dict[
         )
         skill_output["_guardrail"] = {
             "needs_review": True,
-            "reason": verdict.reason,
+            "reason": _sanitize_reason(verdict.reason),
         }
 
     return skill_output

@@ -13,16 +13,16 @@ US-first 报税计算/合规 MVP,真实上线导向(高并发、极敏 PII、数
 - **模块化包** `engine/`:`money / responses / filing / brackets / dates / federal / payroll / qbi / feie / state / crypto / rsu / nexus / summary` + `__init__`(公共门面)+ `tax_engine.py`(legacy shim)+ `rules_loader`。
 - **税年数据** `data/tax_years/2025/` 与 `2026/`;**默认 tax_year=2026**(2025 保留,可传参回溯)。每数可溯(source_manifest + 归档原件)。
 - **`income_tax_summary`**(合并计税):W-2 + 自雇(共享SS基数/合并AddlMedicare)+ 其它普通 + 短/长期资本利得(QDCGT 叠加)+ QBI(§199A,含 2026 phase-in)+ NIIT(含 FEIE 加回)+ **FEIE 税率叠加(对普通税与资本利得都垫底)** + 州税。
-- **州覆盖(46 effective)**:CA/NY/OR/MS/AR/DE/HI/KS/ME/MD/MO/MT/NE/NM/ND/OH/OK/RI/SC/VA/VT/WV(累进)、GA/IL/CO/AZ/ID/IN/IA/KY/LA/MI/NC/UT/MA(flat)、**WA(资本利得 excise)**、**NJ(gross-income 累进+门槛+免税额)**、**PA(flat 3.07% gross)**、FL/NV/AK/NH/SD/TN/WY/TX(无税)。MA 含 4% millionaire surtax。
+- **州覆盖(51 effective — 50 州 + DC 全覆盖 ✅)**:28 progressive(AL/AR/CA/CT/DC/DE/HI/KS/MD/ME/MN/MO/MS/MT/ND/NE/NJ/NM/NY/OH/OK/OR/RI/SC/VA/VT/WI/WV)+ 14 flat(AZ/CO/GA/IA/ID/IL/IN/KY/LA/MA/MI/NC/PA/UT)+ 9 none(AK/FL/NH/NV/SD/TN/TX/WA/WY)。特殊机制:MA 4% surtax、AL/OR federal tax subtraction、WA capital gains excise、NJ gross-income+门槛+免税额、PA 3.07% gross。
 - 其它引擎函数:`federal_income_tax / fica_tax / self_employment_tax / qbi_deduction / feie_estimate / state_income_tax / crypto_gain_estimate / rsu_tax_estimate / nexus_estimate`。
 - **前端**:`frontend/index.html`(vanilla SPA)——profile 单一真相源(localStorage)+ 合并总览一次调 `/calc/income-summary`;根 `index.html` 冻结。
 
 ## 3. 当前进度 / 下一步
-- **刚完成**:Step C3b(progressive 后半 NM/ND/OH/OK/RI/SC/VA/VT/WV)。37→46 effective。无引擎改动。
-- **州覆盖**:46 effective(22 累进 + 14 flat + WA-excise/NJ/PA + 8 无税)。
-- **50 州计划**:见 `docs/step_c_all_states_plan.md`。最后一批 C4(complex: AL/CT/DC/MN/WI)→ 51 税区全覆盖。
+- **刚完成**:Step C4(complex AL/CT/DC/MN/WI)。46→51 effective。**50 州 + DC 全覆盖达成!** 🎉
+- **州覆盖**:51 effective = 28 progressive + 14 flat + 9 none。全部 50 州 + DC 完成。
+- **50 州计划**:`docs/step_c_all_states_plan.md` 所有批次 C1–C4 完成。
 - **deferred**:deepcopy 规则数据性能优化(per"先把 function 搞出来再调优")。
-- **下一步**:完成 C2-C4 → 51 税区全覆盖 → M1 正式关闭 → **M2(LangChain Agent + 18 Skills + GraphRAG 知识库)**。
+- **下一步**:deepcopy 优化 → **M1 正式关闭** → **M2(LangChain Agent + 18 Skills + GraphRAG 知识库)**。
 
 ## 4. 协作 & 规则(详见 `/AGENTS.md`)
 - 分工:**Shaw** 拍板;**Codex** 主实现+开 PR;**Claude** 规划/设计文档/逐行 review + **独立逐分重算** + 官方源交叉核 + 多智能体审查矩阵 + **review 通过无问题直接 merge**。

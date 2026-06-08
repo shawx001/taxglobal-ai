@@ -24,8 +24,14 @@ def init_chroma() -> None:
         return
     try:
         import chromadb
+        from chromadb.config import Settings
 
-        client = chromadb.PersistentClient(path=config.CHROMA_PERSIST_DIR)
+        # Disable anonymized telemetry (PostHog) to enforce local-only operation
+        # and comply with data-sovereignty requirements (数据不出境).
+        client = chromadb.PersistentClient(
+            path=config.CHROMA_PERSIST_DIR,
+            settings=Settings(anonymized_telemetry=False),
+        )
         collection = client.get_or_create_collection(
             name=config.CHROMA_COLLECTION,
             metadata={"hnsw:space": "cosine"},

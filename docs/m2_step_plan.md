@@ -122,8 +122,8 @@ M2 核心价值:①搭好基础设施(三库+知识+Skill+安全) ②实打实�
 | M2.2 | 知识图谱建模 + 数据入库 | Neo4j schema + Chroma embeddings + 入库脚本 | M2.1 | ✅ PR #47 merged 2026-06-08 |
 | M2.3 | GraphRAG 检索 API | `GET /api/knowledge/search`(图+向量混合) | M2.2 | ✅ PR #49 merged 2026-06-08 |
 | M2.4 | 档案持久化 API | `POST/GET /api/profiles` | M2.1(PG) | ✅ PR #51 merged 2026-06-08 |
-| M2.5 | LangChain Skill 框架 + 5 引擎 Skills | LangChain Tool 封装 + 注册表 | — | 🟡 Prompt ready, Issue #52 |
-| M2.6 | Guardrail 中间件 | 金额来源验证 + schema 校验 + 升级钩子 | M2.5 | ⬜ |
+| M2.5 | LangChain Skill 框架 + 5 引擎 Skills | LangChain Tool 封装 + 注册表 | — | ✅ PR #53 merged 2026-06-08 |
+| M2.6 | Guardrail 中间件 | 金额来源验证 + schema 校验 + 升级钩子 | M2.5 | 🟡 Prompt ready — Issue #54, `docs/codex_prompts/m2_6_guardrail_middleware.md` |
 | M2.7 | LangGraph Workflow 编排器 | 意图路由 → KB + Skill 调度 → 结构化响应 | M2.3, M2.5, M2.6 | ⬜ |
 | M2.8 | KB 驱动税务提醒 + 截止日 | `GET /api/tips` + 档案关联提醒 | M2.3, M2.4 | ⬜ |
 | M2.9 | 审计日志 | 全链路追踪:计算/查询/档案访问 + PII 脱敏 | M2.1(PG) | ⬜ |

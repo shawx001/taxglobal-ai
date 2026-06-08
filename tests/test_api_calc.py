@@ -147,12 +147,12 @@ class CalcApiTests(unittest.TestCase):
 
     def test_not_covered_state_income_is_http_200(self):
         response = self.client.post(
-            "/calc/state-income", json={"state_code": "MA", "taxable_income": 100000, "tax_year": 2025}
+            "/calc/state-income", json={"state_code": "ZZ", "taxable_income": 100000, "tax_year": 2025}
         )
 
         body = self.assert_engine_payload(response)
         self.assertEqual(body["status"], "not_covered")
-        self.assertIn("source_pending", body["reason"])
+        self.assertIn("not present", body["reason"])
 
     def test_state_income_accepts_filing_status_for_progressive_states(self):
         response = self.client.post(
@@ -246,7 +246,7 @@ class CalcApiTests(unittest.TestCase):
             json={
                 "net_self_employment_profit": 100000,
                 "filing_status": "single",
-                "state_code": "MA",
+                "state_code": "XX",
                 "tax_year": 2025,
             },
         )

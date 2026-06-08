@@ -54,6 +54,70 @@
       "expected": {"status": "ok", "rate": 0, "tax": 0.00}
     },
     {
+      "name": "az_flat",
+      "input": {"state_code": "AZ", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.025, "tax": 2500.00}
+    },
+    {
+      "name": "id_flat",
+      "input": {"state_code": "ID", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.053, "tax": 5300.00}
+    },
+    {
+      "name": "in_flat",
+      "input": {"state_code": "IN", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.03, "tax": 3000.00}
+    },
+    {
+      "name": "ia_flat",
+      "input": {"state_code": "IA", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.038, "tax": 3800.00}
+    },
+    {
+      "name": "ky_flat",
+      "input": {"state_code": "KY", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.04, "tax": 4000.00}
+    },
+    {
+      "name": "la_flat",
+      "input": {"state_code": "LA", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.03, "tax": 3000.00}
+    },
+    {
+      "name": "mi_flat",
+      "input": {"state_code": "MI", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.0425, "tax": 4250.00}
+    },
+    {
+      "name": "ms_progressive_100k",
+      "input": {"state_code": "MS", "taxable_income": 100000, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 3960.00
+      }
+    },
+    {
+      "name": "nc_flat",
+      "input": {"state_code": "NC", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.0425, "tax": 4250.00}
+    },
+    {
+      "name": "ut_flat",
+      "input": {"state_code": "UT", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.045, "tax": 4500.00}
+    },
+    {
+      "name": "ma_flat_below_surtax",
+      "input": {"state_code": "MA", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0.05, "tax": 5000.00}
+    },
+    {
+      "name": "ma_flat_above_surtax",
+      "input": {"state_code": "MA", "taxable_income": 2000000},
+      "expected": {"status": "ok", "rate": 0.05, "tax": 136674.00}
+    },
+    {
       "name": "il_flat",
       "input": {"state_code": "IL", "taxable_income": 100000},
       "expected": {"status": "ok", "rate": 0.0495, "tax": 4950.00}
@@ -161,11 +225,6 @@
         "citation_source_ids": ["or_dor_or40_instructions_2025", "or_dor_pub_or17_2025", "or_dor_estimated_income_tax_2025"],
         "assumption_contains": "kicker"
       }
-    },
-    {
-      "name": "ma_blocked",
-      "input": {"state_code": "MA", "taxable_income": 100000},
-      "expected": {"status": "not_covered", "reason_contains": "source_pending"}
     },
     {
       "name": "unknown",

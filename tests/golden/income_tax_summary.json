@@ -111,8 +111,8 @@
       }
     },
     {
-      "name": "self_employment_100k_ma_not_covered",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "MA"},
+      "name": "self_employment_100k_xx_not_covered",
+      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "XX"},
       "expected": {
         "status": "ok",
         "state_income_tax": {"status": "not_covered", "not_covered": true, "tax": 0.00},

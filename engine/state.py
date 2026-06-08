@@ -58,18 +58,33 @@ def state_income_tax(
     if tax_type in {"flat", "none"}:
         rate = float(state.get("flat_rate", 0.0))
         tax = taxable * rate
+        surtax_config = state.get("surtax")
+        surtax_amount = 0.0
+        if surtax_config:
+            surtax_threshold = float(surtax_config["threshold"])
+            surtax_rate = float(surtax_config["rate"])
+            surtax_amount = max(0.0, taxable - surtax_threshold) * surtax_rate
+            tax += surtax_amount
+        breakdown = [
+            {"label": "taxable_income", "amount": _money(taxable)},
+        ]
+        if surtax_amount > 0:
+            breakdown.append({"label": "base_tax", "amount": _money(taxable * rate)})
+            breakdown.append({"label": "surtax", "amount": _money(surtax_amount)})
+        breakdown.append({"label": "state_income_tax", "amount": _money(tax)})
+        result = {
+            "state": code,
+            "tax": _money(tax),
+            "rate": rate,
+        }
+        if surtax_config:
+            result["surtax_rate"] = float(surtax_config["rate"])
+            result["surtax_threshold"] = float(surtax_config["threshold"])
         return _response(
             status="ok",
             input_data=input_data,
-            result={
-                "state": code,
-                "tax": _money(tax),
-                "rate": rate,
-            },
-            breakdown=[
-                {"label": "taxable_income", "amount": _money(taxable)},
-                {"label": "state_income_tax", "amount": _money(tax)},
-            ],
+            result=result,
+            breakdown=breakdown,
             rule_version=rules["rule_version"],
             citations=_citations(state),
             assumptions=["State-specific deductions and credits are not included."],

@@ -377,6 +377,123 @@
       }
     },
     {
+      "name": "nm_progressive_100k",
+      "input": {
+        "state_code": "NM",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 4552.5,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "nd_progressive_100k",
+      "input": {
+        "state_code": "ND",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 1004.74,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "oh_progressive_100k",
+      "input": {
+        "state_code": "OH",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 2033.63,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "ok_progressive_100k",
+      "input": {
+        "state_code": "OK",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 4561.5,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "ri_progressive_100k",
+      "input": {
+        "state_code": "RI",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 3951.0,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "sc_progressive_100k",
+      "input": {
+        "state_code": "SC",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 5358.3,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "va_progressive_100k",
+      "input": {
+        "state_code": "VA",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 5492.5,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "vt_progressive_100k",
+      "input": {
+        "state_code": "VT",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 5043.25,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "wv_progressive_100k",
+      "input": {
+        "state_code": "WV",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 3981.5,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
       "name": "il_flat",
       "input": {
         "state_code": "IL",

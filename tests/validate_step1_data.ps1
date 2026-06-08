@@ -701,6 +701,98 @@ if ($states.states.NE.tax_base.standard_deduction.single -ne 8600) {
   throw "Unexpected NE single standard deduction"
 }
 
+# C3b: Progressive states second half spot checks (2025)
+if ($states.states.NM.income_tax_type -ne "progressive") {
+  throw "New Mexico must be income_tax_type progressive"
+}
+if ($states.states.NM.brackets.single[-1].rate -ne 0.059) {
+  throw "Unexpected NM top rate"
+}
+if ($states.states.NM.brackets.single.Count -ne 6) {
+  throw "NM must have 6 brackets for single"
+}
+if ($states.states.ND.income_tax_type -ne "progressive") {
+  throw "North Dakota must be income_tax_type progressive"
+}
+if ($states.states.ND.brackets.single[0].rate -ne 0) {
+  throw "Unexpected ND first bracket rate (should be 0)"
+}
+if ($states.states.ND.brackets.single[-1].rate -ne 0.025) {
+  throw "Unexpected ND top rate"
+}
+if ($states.states.OH.income_tax_type -ne "progressive") {
+  throw "Ohio must be income_tax_type progressive"
+}
+if ($states.states.OH.brackets.single[0].rate -ne 0) {
+  throw "Unexpected OH first bracket rate (should be 0)"
+}
+if ($states.states.OH.brackets.single[-1].rate -ne 0.03125) {
+  throw "Unexpected OH top rate (should be 3.125%)"
+}
+if ($states.states.OH.tax_base.standard_deduction.single -ne 1850) {
+  throw "Unexpected OH single standard deduction (personal exemption >80k tier)"
+}
+if ($states.states.OK.income_tax_type -ne "progressive") {
+  throw "Oklahoma must be income_tax_type progressive"
+}
+if ($states.states.OK.brackets.single[-1].rate -ne 0.0475) {
+  throw "Unexpected OK top rate"
+}
+if ($states.states.OK.tax_base.standard_deduction.single -ne 7350) {
+  throw "Unexpected OK single standard deduction (incl personal exemption)"
+}
+if ($states.states.RI.income_tax_type -ne "progressive") {
+  throw "Rhode Island must be income_tax_type progressive"
+}
+if ($states.states.RI.brackets.single[-1].rate -ne 0.0599) {
+  throw "Unexpected RI top rate"
+}
+if ($states.states.RI.tax_base.standard_deduction.single -ne 16000) {
+  throw "Unexpected RI single standard deduction (incl personal exemption)"
+}
+if ($states.states.SC.income_tax_type -ne "progressive") {
+  throw "South Carolina must be income_tax_type progressive"
+}
+if ($states.states.SC.brackets.single[0].rate -ne 0) {
+  throw "Unexpected SC first bracket rate (should be 0)"
+}
+if ($states.states.SC.brackets.single[-1].rate -ne 0.06) {
+  throw "Unexpected SC top rate"
+}
+if ($states.states.VA.income_tax_type -ne "progressive") {
+  throw "Virginia must be income_tax_type progressive"
+}
+if ($states.states.VA.brackets.single[-1].rate -ne 0.0575) {
+  throw "Unexpected VA top rate"
+}
+if ($states.states.VA.brackets.single[0].up_to -ne 3000) {
+  throw "Unexpected VA first bracket cap"
+}
+if ($states.states.VA.tax_base.standard_deduction.single -ne 9680) {
+  throw "Unexpected VA single standard deduction (incl personal exemption)"
+}
+if ($states.states.VT.income_tax_type -ne "progressive") {
+  throw "Vermont must be income_tax_type progressive"
+}
+if ($states.states.VT.brackets.single[-1].rate -ne 0.0875) {
+  throw "Unexpected VT top rate"
+}
+if ($states.states.VT.tax_base.standard_deduction.single -ne 12950) {
+  throw "Unexpected VT single standard deduction (incl personal exemption)"
+}
+if ($states.states.WV.income_tax_type -ne "progressive") {
+  throw "West Virginia must be income_tax_type progressive"
+}
+if ($states.states.WV.brackets.single[-1].rate -ne 0.0482) {
+  throw "Unexpected WV top rate"
+}
+if ($states.states.WV.brackets.single.Count -ne 5) {
+  throw "WV must have 5 brackets"
+}
+if ($states.states.WV.tax_base.standard_deduction.single -ne 2000) {
+  throw "Unexpected WV single standard deduction (personal exemption only)"
+}
+
 if ($states.states.CA.tax_base.standard_deduction.single -ne 5706) {
   throw "Unexpected CA single standard deduction"
 }

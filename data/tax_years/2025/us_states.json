@@ -3789,6 +3789,720 @@
       ],
       "notes": "WV 2025 per SB 2033; uniform brackets. No standard deduction; personal exemption ($2,000/person) modeled as standard_deduction.",
       "effective_date": "2025-01-01"
+    },
+    "AL": {
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "brackets": {
+        "single": [
+          {
+            "up_to": 500,
+            "rate": 0.02
+          },
+          {
+            "up_to": 3000,
+            "rate": 0.04
+          },
+          {
+            "up_to": null,
+            "rate": 0.05
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 1000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 6000,
+            "rate": 0.04
+          },
+          {
+            "up_to": null,
+            "rate": 0.05
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 500,
+            "rate": 0.02
+          },
+          {
+            "up_to": 3000,
+            "rate": 0.04
+          },
+          {
+            "up_to": null,
+            "rate": 0.05
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 1000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 6000,
+            "rate": 0.04
+          },
+          {
+            "up_to": null,
+            "rate": 0.05
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 1000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 6000,
+            "rate": 0.04
+          },
+          {
+            "up_to": null,
+            "rate": 0.05
+          }
+        ]
+      },
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 4500,
+          "married_filing_jointly": 11500,
+          "married_filing_separately": 5750,
+          "head_of_household": 8200,
+          "qualifying_surviving_spouse": 10000
+        },
+        "federal_tax_subtraction": {
+          "phaseout_table": {
+            "single": [
+              {
+                "agi_up_to": 100000,
+                "limit": 999999999
+              },
+              {
+                "agi_up_to": null,
+                "limit": 999999999
+              }
+            ],
+            "married_filing_jointly": [
+              {
+                "agi_up_to": 100000,
+                "limit": 999999999
+              },
+              {
+                "agi_up_to": null,
+                "limit": 999999999
+              }
+            ],
+            "married_filing_separately": [
+              {
+                "agi_up_to": 100000,
+                "limit": 999999999
+              },
+              {
+                "agi_up_to": null,
+                "limit": 999999999
+              }
+            ],
+            "head_of_household": [
+              {
+                "agi_up_to": 100000,
+                "limit": 999999999
+              },
+              {
+                "agi_up_to": null,
+                "limit": 999999999
+              }
+            ],
+            "qualifying_surviving_spouse": [
+              {
+                "agi_up_to": 100000,
+                "limit": 999999999
+              },
+              {
+                "agi_up_to": null,
+                "limit": 999999999
+              }
+            ]
+          }
+        }
+      },
+      "source_ids": [
+        "al_dor_income_tax_2025"
+      ],
+      "notes": "AL 2025; 3 brackets (2%/4%/5%). Standard deduction ($3,000/$8,500) + personal exemption ($1,500/$3,000) combined; standard deduction phaseout NOT modeled. Federal tax subtraction with no cap. Dependent exemption ($1,000 or $300 by income) not modeled."
+    },
+    "CT": {
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "brackets": {
+        "single": [
+          {
+            "up_to": 10000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 50000,
+            "rate": 0.045
+          },
+          {
+            "up_to": 100000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 200000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.069
+          },
+          {
+            "up_to": null,
+            "rate": 0.0699
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 20000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 100000,
+            "rate": 0.045
+          },
+          {
+            "up_to": 200000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 400000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.069
+          },
+          {
+            "up_to": null,
+            "rate": 0.0699
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 10000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 50000,
+            "rate": 0.045
+          },
+          {
+            "up_to": 100000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 200000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.069
+          },
+          {
+            "up_to": null,
+            "rate": 0.0699
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 16000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 80000,
+            "rate": 0.045
+          },
+          {
+            "up_to": 160000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 320000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 400000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 800000,
+            "rate": 0.069
+          },
+          {
+            "up_to": null,
+            "rate": 0.0699
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 20000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 100000,
+            "rate": 0.045
+          },
+          {
+            "up_to": 200000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 400000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.069
+          },
+          {
+            "up_to": null,
+            "rate": 0.0699
+          }
+        ]
+      },
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 0,
+          "married_filing_jointly": 0,
+          "married_filing_separately": 0,
+          "head_of_household": 0,
+          "qualifying_surviving_spouse": 0
+        }
+      },
+      "source_ids": [
+        "ct_drs_income_tax_2025"
+      ],
+      "notes": "CT 2025; 7 brackets (2%-6.99%). No standard deduction. Personal exemptions ($15,000/$24,000) are tax credits, NOT modeled. Benefit recapture (Tables C/D) NOT modeled--understates tax for high earners."
+    },
+    "DC": {
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "brackets": {
+        "single": [
+          {
+            "up_to": 10000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 40000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.085
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0925
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0975
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 10000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 40000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.085
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0925
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0975
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 10000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 40000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.085
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0925
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0975
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 10000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 40000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.085
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0925
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0975
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 10000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 40000,
+            "rate": 0.06
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.065
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.085
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0925
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0975
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
+        ]
+      },
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 15000,
+          "married_filing_jointly": 30000,
+          "married_filing_separately": 15000,
+          "head_of_household": 22500,
+          "qualifying_surviving_spouse": 30000
+        }
+      },
+      "source_ids": [
+        "dc_otr_income_tax_2025"
+      ],
+      "notes": "DC 2025; 7 brackets (4%-10.75%), uniform. Standard deduction $15,000/$30,000. Personal exemptions eliminated for 2025."
+    },
+    "MN": {
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "brackets": {
+        "single": [
+          {
+            "up_to": 32570,
+            "rate": 0.0535
+          },
+          {
+            "up_to": 106990,
+            "rate": 0.068
+          },
+          {
+            "up_to": 198630,
+            "rate": 0.0785
+          },
+          {
+            "up_to": null,
+            "rate": 0.0985
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 47620,
+            "rate": 0.0535
+          },
+          {
+            "up_to": 189180,
+            "rate": 0.068
+          },
+          {
+            "up_to": 330410,
+            "rate": 0.0785
+          },
+          {
+            "up_to": null,
+            "rate": 0.0985
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 23810,
+            "rate": 0.0535
+          },
+          {
+            "up_to": 94590,
+            "rate": 0.068
+          },
+          {
+            "up_to": 165205,
+            "rate": 0.0785
+          },
+          {
+            "up_to": null,
+            "rate": 0.0985
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 40100,
+            "rate": 0.0535
+          },
+          {
+            "up_to": 161130,
+            "rate": 0.068
+          },
+          {
+            "up_to": 264050,
+            "rate": 0.0785
+          },
+          {
+            "up_to": null,
+            "rate": 0.0985
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 47620,
+            "rate": 0.0535
+          },
+          {
+            "up_to": 189180,
+            "rate": 0.068
+          },
+          {
+            "up_to": 330410,
+            "rate": 0.0785
+          },
+          {
+            "up_to": null,
+            "rate": 0.0985
+          }
+        ]
+      },
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 14950,
+          "married_filing_jointly": 29900,
+          "married_filing_separately": 14950,
+          "head_of_household": 22500,
+          "qualifying_surviving_spouse": 29900
+        }
+      },
+      "source_ids": [
+        "mn_dor_income_tax_2025"
+      ],
+      "notes": "MN 2025; 4 brackets (5.35%-9.85%), indexed. Standard deduction $14,950/$29,900. 1% net investment income surtax on >$1M NOT modeled (applies to investment income only, not wage income). Dependent exemption ($5,200/dependent) not modeled."
+    },
+    "WI": {
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "brackets": {
+        "single": [
+          {
+            "up_to": 14680,
+            "rate": 0.035
+          },
+          {
+            "up_to": 29370,
+            "rate": 0.044
+          },
+          {
+            "up_to": 323290,
+            "rate": 0.053
+          },
+          {
+            "up_to": null,
+            "rate": 0.0765
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 19580,
+            "rate": 0.035
+          },
+          {
+            "up_to": 39150,
+            "rate": 0.044
+          },
+          {
+            "up_to": 431060,
+            "rate": 0.053
+          },
+          {
+            "up_to": null,
+            "rate": 0.0765
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 9790,
+            "rate": 0.035
+          },
+          {
+            "up_to": 19580,
+            "rate": 0.044
+          },
+          {
+            "up_to": 215530,
+            "rate": 0.053
+          },
+          {
+            "up_to": null,
+            "rate": 0.0765
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 14680,
+            "rate": 0.035
+          },
+          {
+            "up_to": 29370,
+            "rate": 0.044
+          },
+          {
+            "up_to": 323290,
+            "rate": 0.053
+          },
+          {
+            "up_to": null,
+            "rate": 0.0765
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 19580,
+            "rate": 0.035
+          },
+          {
+            "up_to": 39150,
+            "rate": 0.044
+          },
+          {
+            "up_to": 431060,
+            "rate": 0.053
+          },
+          {
+            "up_to": null,
+            "rate": 0.0765
+          }
+        ]
+      },
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 14260,
+          "married_filing_jointly": 26510,
+          "married_filing_separately": 12630,
+          "head_of_household": 18220,
+          "qualifying_surviving_spouse": 25810
+        }
+      },
+      "source_ids": [
+        "wi_dor_income_tax_2025"
+      ],
+      "notes": "WI 2025; 4 brackets (3.50%-7.65%). Standard deduction ($13,560/$25,110) + personal exemption ($700/person) combined; sliding-scale standard deduction phaseout NOT modeled--overstates deduction for higher earners."
     }
   }
 }

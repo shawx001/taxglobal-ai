@@ -884,6 +884,41 @@
       "url": "https://tax.wv.gov/Individuals/Pages/PersonalIncomeTax.aspx",
       "status": "not_archived",
       "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "al_dor_income_tax_2025",
+      "description": "Alabama Dept of Revenue - 2025 individual income tax rates, deductions, and federal tax subtraction",
+      "url": "https://www.revenue.alabama.gov/individual-corporate/taxes-individual-income-tax/",
+      "status": "not_archived",
+      "notes": "Official state DOR source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "ct_drs_income_tax_2025",
+      "description": "Connecticut Dept of Revenue Services - 2025 income tax rate schedules (CT-1040 TCS)",
+      "url": "https://portal.ct.gov/drs/individuals/individual-tax-types/income-tax",
+      "status": "not_archived",
+      "notes": "Official state DRS source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "dc_otr_income_tax_2025",
+      "description": "District of Columbia Office of Tax and Revenue - 2025 individual income tax rates",
+      "url": "https://otr.cfo.dc.gov/page/dc-individual-and-fiduciary-income-tax-rates",
+      "status": "not_archived",
+      "notes": "Official DC OTR source for 2025 tax year rates."
+    },
+    {
+      "source_id": "mn_dor_income_tax_2025",
+      "description": "Minnesota Dept of Revenue - 2025 income tax brackets, standard deduction, and NIIT",
+      "url": "https://www.revenue.state.mn.us/individual-income-tax",
+      "status": "not_archived",
+      "notes": "Official state DOR source for 2025 tax year rates, brackets, and NIIT."
+    },
+    {
+      "source_id": "wi_dor_income_tax_2025",
+      "description": "Wisconsin Dept of Revenue - 2025 income tax rates and sliding-scale standard deduction",
+      "url": "https://www.revenue.wi.gov/Pages/FAQS/ise-indcrdts.aspx",
+      "status": "not_archived",
+      "notes": "Official state DOR source for 2025 tax year rates and deductions."
     }
   ],
   "failed_sources": [

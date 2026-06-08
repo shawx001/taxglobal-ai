@@ -793,6 +793,65 @@ if ($states.states.WV.tax_base.standard_deduction.single -ne 2000) {
   throw "Unexpected WV single standard deduction (personal exemption only)"
 }
 
+# C4: Complex states spot checks (2025)
+if ($states.states.AL.income_tax_type -ne "progressive") {
+  throw "Alabama must be income_tax_type progressive"
+}
+if ($states.states.AL.brackets.single[-1].rate -ne 0.05) {
+  throw "Unexpected AL top rate"
+}
+if ($states.states.AL.brackets.single.Count -ne 3) {
+  throw "AL must have 3 brackets"
+}
+if ($states.states.AL.tax_base.standard_deduction.single -ne 4500) {
+  throw "Unexpected AL single standard deduction (incl personal exemption)"
+}
+if ($null -eq $states.states.AL.tax_base.federal_tax_subtraction) {
+  throw "AL must have federal_tax_subtraction"
+}
+if ($states.states.CT.income_tax_type -ne "progressive") {
+  throw "Connecticut must be income_tax_type progressive"
+}
+if ($states.states.CT.brackets.single.Count -ne 7) {
+  throw "CT must have 7 brackets for single"
+}
+if ($states.states.CT.brackets.single[-1].rate -ne 0.0699) {
+  throw "Unexpected CT top rate"
+}
+if ($states.states.CT.tax_base.standard_deduction.single -ne 0) {
+  throw "CT must have zero standard deduction (uses personal exemption credits)"
+}
+if ($states.states.DC.income_tax_type -ne "progressive") {
+  throw "DC must be income_tax_type progressive"
+}
+if ($states.states.DC.brackets.single.Count -ne 7) {
+  throw "DC must have 7 brackets"
+}
+if ($states.states.DC.brackets.single[-1].rate -ne 0.1075) {
+  throw "Unexpected DC top rate"
+}
+if ($states.states.DC.tax_base.standard_deduction.single -ne 15000) {
+  throw "Unexpected DC single standard deduction"
+}
+if ($states.states.MN.income_tax_type -ne "progressive") {
+  throw "Minnesota must be income_tax_type progressive"
+}
+if ($states.states.MN.brackets.single[-1].rate -ne 0.0985) {
+  throw "Unexpected MN top rate"
+}
+if ($states.states.MN.tax_base.standard_deduction.single -ne 14950) {
+  throw "Unexpected MN single standard deduction"
+}
+if ($states.states.WI.income_tax_type -ne "progressive") {
+  throw "Wisconsin must be income_tax_type progressive"
+}
+if ($states.states.WI.brackets.single[-1].rate -ne 0.0765) {
+  throw "Unexpected WI top rate"
+}
+if ($states.states.WI.tax_base.standard_deduction.single -ne 14260) {
+  throw "Unexpected WI single standard deduction (incl personal exemption)"
+}
+
 if ($states.states.CA.tax_base.standard_deduction.single -ne 5706) {
   throw "Unexpected CA single standard deduction"
 }

@@ -54,7 +54,7 @@ Response: {
 实现：
 - `backend/main.py` 新增 `/api/states` 路由
 - 读取 `us_states.json`，遍历 `states` 字段
-- 州名使用标准映射（`STATE_NAMES = {"AL": "Alabama", ...}` 常量字典）
+- 州名优先使用规则数据 `state.name`，缺失/非字符串时 fallback `STATE_NAMES` 常量；非 mapping 的 state block 做防御跳过
 - 返回按 code 字母序排列
 - 标注 `income_tax_type`（progressive/flat/none）供前端分组显示
 

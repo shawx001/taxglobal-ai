@@ -35,11 +35,20 @@ def get_available_states(tax_year: int = DEFAULT_TAX_YEAR):
         "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
     }
     
+    states_block = states_data.get("states", {})
+    if not isinstance(states_block, Mapping):
+        states_block = {}
     result = []
-    for code, state in sorted(states_data.get("states", {}).items()):
+    for code in sorted(states_block):
+        state = states_block[code]
+        if not isinstance(state, Mapping):
+            state = {}
+        state_name = state.get("name")
+        if not isinstance(state_name, str) or not state_name:
+            state_name = STATE_NAMES.get(code, code)
         result.append({
             "code": code,
-            "name": STATE_NAMES.get(code, code),
+            "name": state_name,
             "income_tax_type": state.get("income_tax_type", "unknown"),
         })
     

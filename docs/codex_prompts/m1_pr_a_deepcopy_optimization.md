@@ -31,7 +31,7 @@ def _freeze(obj):
 移除 `deepcopy` 调用，直接返回缓存引用：
 
 ```python
-def load_rule_file(tax_year: int, filename: str) -> ...:
+def load_rule_file(tax_year: int, filename: str) -> "Mapping[str, Any]":
     """Load a JSON rule file (immutable, safe to share across threads)."""
     return _load_rule_file_cached(tax_year, filename)
 ```

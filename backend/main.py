@@ -20,6 +20,7 @@ from backend.errors import error_response
 from backend.knowledge.search_routes import router as search_router
 from backend.profiles.routes import router as profiles_router
 from backend.routes.calc import router as calc_router
+from backend.skills.routes import router as skills_router
 from engine.rules_loader import RuleLoadError, load_rule_file
 
 logger = logging.getLogger("taxglobal.api")
@@ -164,6 +165,7 @@ def create_app() -> FastAPI:
     app.include_router(calc_router)
     app.include_router(search_router)
     app.include_router(profiles_router)
+    app.include_router(skills_router)
 
     @app.get("/api/states", response_model=None)
     def get_available_states(request: Request, tax_year: int = DEFAULT_TAX_YEAR) -> dict[str, Any] | JSONResponse:

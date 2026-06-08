@@ -29,6 +29,14 @@ def init_embedder() -> None:
         _model = None
 
 
+def close_embedder() -> None:
+    """Release the embedding model reference for reloads/tests in the same process."""
+
+    global _model
+    _model = None
+    logger.info("Embedding model released")
+
+
 def embed_text(text: str) -> list[float]:
     """Embed a single text string."""
 

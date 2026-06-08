@@ -132,7 +132,7 @@ async def lifespan(app: FastAPI):
     """Initialize optional M2 stores without making calc routes depend on them."""
 
     from backend.database import close_db, init_db
-    from backend.knowledge.embedder import init_embedder
+    from backend.knowledge.embedder import close_embedder, init_embedder
     from backend.knowledge.neo4j_client import close_neo4j, init_neo4j
     from backend.knowledge.vector_store import close_chroma, init_chroma
 
@@ -143,6 +143,7 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        close_embedder()
         close_chroma()
         close_neo4j()
         await close_db()

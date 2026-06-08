@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import unittest
 from unittest.mock import patch
 
@@ -53,7 +52,6 @@ class M2InfrastructureTests(unittest.TestCase):
             patch.object(config, "ENABLE_POSTGRES", False),
             patch.object(config, "ENABLE_NEO4J", False),
             patch.object(config, "ENABLE_CHROMA", False),
-            patch.dict(os.environ, {"ENABLE_POSTGRES": "false", "ENABLE_NEO4J": "false", "ENABLE_CHROMA": "false"}),
             TestClient(create_app()) as client,
         ):
             response = client.get("/api/health")
@@ -78,7 +76,6 @@ class M2InfrastructureTests(unittest.TestCase):
             patch.object(config, "ENABLE_POSTGRES", False),
             patch.object(config, "ENABLE_NEO4J", False),
             patch.object(config, "ENABLE_CHROMA", False),
-            patch.dict(os.environ, {"ENABLE_POSTGRES": "false", "ENABLE_NEO4J": "false", "ENABLE_CHROMA": "false"}),
             TestClient(create_app()) as client,
         ):
             response = client.post(

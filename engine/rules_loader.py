@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import json
-from copy import deepcopy
+import types
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA_ROOT = REPO_ROOT / "data" / "tax_years"
@@ -17,7 +17,7 @@ class RuleLoadError(ValueError):
 
 
 @lru_cache(maxsize=32)
-def _load_rule_file_cached(tax_year: int, filename: str) -> dict[str, Any]:
+def _load_rule_file_cached(tax_year: int, filename: str) -> Mapping[str, Any]:
     """Load and cache a JSON rule file for a tax year.
 
     The engine deliberately reads only stored rule data. It does not fetch
@@ -31,18 +31,39 @@ def _load_rule_file_cached(tax_year: int, filename: str) -> dict[str, Any]:
         data = json.load(handle)
     if data.get("tax_year") != tax_year:
         raise RuleLoadError(f"Rule file {path} has unexpected tax_year")
-    return data
+    return _freeze(data)
 
 
-def load_rule_file(tax_year: int, filename: str) -> dict[str, Any]:
-    """Load a JSON rule file and return an isolated copy.
+def _freeze(obj: Any) -> Any:
+    """Recursively freeze a JSON-deserialized object tree into immutable types."""
 
-    The cached object must never be handed directly to callers. A route,
-    alert generator, or test mutating rule data should not poison the process
-    for later calculations.
-    """
+    if isinstance(obj, dict):
+        return types.MappingProxyType({key: _freeze(value) for key, value in obj.items()})
+    if isinstance(obj, list):
+        return tuple(_freeze(item) for item in obj)
+    return obj
 
-    return deepcopy(_load_rule_file_cached(tax_year, filename))
+
+def _mutable_copy(obj: Any) -> Any:
+    """Recursively thaw frozen JSON rule data into mutable dict/list containers."""
+
+    if isinstance(obj, Mapping):
+        return {key: _mutable_copy(value) for key, value in obj.items()}
+    if isinstance(obj, tuple):
+        return [_mutable_copy(item) for item in obj]
+    return obj
+
+
+def load_rule_file(tax_year: int, filename: str) -> Mapping[str, Any]:
+    """Load a JSON rule file (immutable, safe to share across threads)."""
+
+    return _load_rule_file_cached(tax_year, filename)
+
+
+def load_rule_file_mutable(tax_year: int, filename: str) -> dict[str, Any]:
+    """Load a JSON rule file and return a mutable deep copy."""
+
+    return _mutable_copy(_load_rule_file_cached(tax_year, filename))
 
 
 def load_federal_rules(tax_year: int = 2026) -> dict[str, Any]:

@@ -13,7 +13,7 @@ from engine import (
     self_employment_tax,
     state_income_tax,
 )
-from engine.rules_loader import load_state_rules
+from engine.rules_loader import load_rule_file_mutable, load_state_rules
 from engine.state import state_capital_gains_excise
 from engine.tax_engine import _state_taxable_base
 
@@ -182,9 +182,13 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "not_covered")
         self.assertIn("not present", result["reason"])
 
-    def test_rule_loader_returns_isolated_copies(self):
+    def test_rule_loader_mutable_copy_does_not_poison_cache(self):
         rules = load_state_rules(2025)
-        rules["states"]["FL"]["flat_rate"] = 0.99
+        with self.assertRaises(TypeError):
+            rules["states"]["FL"]["flat_rate"] = 0.99
+
+        mutable_rules = load_rule_file_mutable(2025, "us_states.json")
+        mutable_rules["states"]["FL"]["flat_rate"] = 0.99
 
         result = state_income_tax("FL", 100_000, tax_year=2025)
 

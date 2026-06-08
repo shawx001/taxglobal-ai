@@ -66,7 +66,7 @@
               details: apiError.details || [],
             });
           }
-          if (!body || typeof body !== "object") {
+          if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length === 0) {
             throw makeApiError("Server returned an unexpected response.", {
               code: "invalid_response",
               status: response.status,

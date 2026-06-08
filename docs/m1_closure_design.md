@@ -75,7 +75,7 @@ Response: {
 
 ---
 
-## PR-C: M1 关闭文档（Claude 直接更新，非代码）
+## PR #43（原 PR-C）: M1 关闭文档（Claude 直接更新，非代码）
 - `docs/feature_status.md`：更新 us_states 行为"50 州 + DC 全覆盖"、添加 C1-C4 steps
 - `docs/roadmap_skills_status.md`：M1 状态从"收尾完成"→"✅ 已完成并关闭"
 - `project.md`：当前进度更新、M1 正式关闭标记、下一步指向 M2

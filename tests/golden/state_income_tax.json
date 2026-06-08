@@ -5,231 +5,583 @@
   "cases": [
     {
       "name": "fl_zero",
-      "input": {"state_code": "FL", "taxable_income": 100000},
+      "input": {
+        "state_code": "FL",
+        "taxable_income": 100000
+      },
       "expected": {
         "status": "ok",
         "rate": 0,
-        "tax": 0.00,
-        "citation_source_ids": ["fl_personal_income_tax_faq"]
+        "tax": 0.0,
+        "citation_source_ids": [
+          "fl_personal_income_tax_faq"
+        ]
       }
     },
     {
       "name": "nv_zero",
-      "input": {"state_code": "NV", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+      "input": {
+        "state_code": "NV",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0,
+        "tax": 0.0
+      }
     },
     {
       "name": "wa_zero",
-      "input": {"state_code": "WA", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+      "input": {
+        "state_code": "WA",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0,
+        "tax": 0.0
+      }
     },
     {
       "name": "ak_zero",
-      "input": {"state_code": "AK", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+      "input": {
+        "state_code": "AK",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0,
+        "tax": 0.0
+      }
     },
     {
       "name": "nh_zero",
-      "input": {"state_code": "NH", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+      "input": {
+        "state_code": "NH",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0,
+        "tax": 0.0
+      }
     },
     {
       "name": "sd_zero",
-      "input": {"state_code": "SD", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+      "input": {
+        "state_code": "SD",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0,
+        "tax": 0.0
+      }
     },
     {
       "name": "tn_zero",
-      "input": {"state_code": "TN", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+      "input": {
+        "state_code": "TN",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0,
+        "tax": 0.0
+      }
     },
     {
       "name": "wy_zero",
-      "input": {"state_code": "WY", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+      "input": {
+        "state_code": "WY",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0,
+        "tax": 0.0
+      }
     },
     {
       "name": "tx_zero",
-      "input": {"state_code": "TX", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+      "input": {
+        "state_code": "TX",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0,
+        "tax": 0.0
+      }
     },
     {
       "name": "az_flat",
-      "input": {"state_code": "AZ", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.025, "tax": 2500.00}
+      "input": {
+        "state_code": "AZ",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.025,
+        "tax": 2500.0
+      }
     },
     {
       "name": "id_flat",
-      "input": {"state_code": "ID", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.053, "tax": 5300.00}
+      "input": {
+        "state_code": "ID",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.053,
+        "tax": 5300.0
+      }
     },
     {
       "name": "in_flat",
-      "input": {"state_code": "IN", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.03, "tax": 3000.00}
+      "input": {
+        "state_code": "IN",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.03,
+        "tax": 3000.0
+      }
     },
     {
       "name": "ia_flat",
-      "input": {"state_code": "IA", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.038, "tax": 3800.00}
+      "input": {
+        "state_code": "IA",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.038,
+        "tax": 3800.0
+      }
     },
     {
       "name": "ky_flat",
-      "input": {"state_code": "KY", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.04, "tax": 4000.00}
+      "input": {
+        "state_code": "KY",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.04,
+        "tax": 4000.0
+      }
     },
     {
       "name": "la_flat",
-      "input": {"state_code": "LA", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.03, "tax": 3000.00}
+      "input": {
+        "state_code": "LA",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.03,
+        "tax": 3000.0
+      }
     },
     {
       "name": "mi_flat",
-      "input": {"state_code": "MI", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.0425, "tax": 4250.00}
+      "input": {
+        "state_code": "MI",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.0425,
+        "tax": 4250.0
+      }
     },
     {
       "name": "ms_progressive_100k",
-      "input": {"state_code": "MS", "taxable_income": 100000, "filing_status": "single"},
+      "input": {
+        "state_code": "MS",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
-        "tax": 3960.00
+        "tax": 3960.0
       }
     },
     {
       "name": "nc_flat",
-      "input": {"state_code": "NC", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.0425, "tax": 4250.00}
+      "input": {
+        "state_code": "NC",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.0425,
+        "tax": 4250.0
+      }
     },
     {
       "name": "ut_flat",
-      "input": {"state_code": "UT", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.045, "tax": 4500.00}
+      "input": {
+        "state_code": "UT",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.045,
+        "tax": 4500.0
+      }
     },
     {
       "name": "ma_flat_below_surtax",
-      "input": {"state_code": "MA", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.05, "tax": 5000.00}
+      "input": {
+        "state_code": "MA",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.05,
+        "tax": 5000.0
+      }
     },
     {
       "name": "ma_flat_above_surtax",
-      "input": {"state_code": "MA", "taxable_income": 2000000},
-      "expected": {"status": "ok", "rate": 0.05, "tax": 136674.00}
+      "input": {
+        "state_code": "MA",
+        "taxable_income": 2000000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.05,
+        "tax": 136674.0
+      }
+    },
+    {
+      "name": "ar_progressive_100k",
+      "input": {
+        "state_code": "AR",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 3480.04
+      }
+    },
+    {
+      "name": "de_progressive_100k",
+      "input": {
+        "state_code": "DE",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 5583.5
+      }
+    },
+    {
+      "name": "hi_progressive_100k",
+      "input": {
+        "state_code": "HI",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 6491.2
+      }
+    },
+    {
+      "name": "ks_progressive_100k",
+      "input": {
+        "state_code": "KS",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 5492.6
+      }
+    },
+    {
+      "name": "me_progressive_100k",
+      "input": {
+        "state_code": "ME",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 6641.6
+      }
+    },
+    {
+      "name": "md_progressive_100k",
+      "input": {
+        "state_code": "MD",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 4697.5
+      }
+    },
+    {
+      "name": "mo_progressive_100k",
+      "input": {
+        "state_code": "MO",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 4524.06
+      }
+    },
+    {
+      "name": "mt_progressive_100k",
+      "input": {
+        "state_code": "MT",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 5646.8
+      }
+    },
+    {
+      "name": "ne_progressive_100k",
+      "input": {
+        "state_code": "NE",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 4722.03
+      }
     },
     {
       "name": "il_flat",
-      "input": {"state_code": "IL", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.0495, "tax": 4950.00}
+      "input": {
+        "state_code": "IL",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.0495,
+        "tax": 4950.0
+      }
     },
     {
       "name": "co_flat",
-      "input": {"state_code": "CO", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.044, "tax": 4400.00}
+      "input": {
+        "state_code": "CO",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.044,
+        "tax": 4400.0
+      }
     },
     {
       "name": "ga_flat",
-      "input": {"state_code": "GA", "taxable_income": 100000},
-      "expected": {"status": "ok", "rate": 0.0519, "tax": 5190.00}
+      "input": {
+        "state_code": "GA",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.0519,
+        "tax": 5190.0
+      }
     },
     {
       "name": "il_zero_income",
-      "input": {"state_code": "IL", "taxable_income": 0},
-      "expected": {"status": "ok", "rate": 0.0495, "tax": 0.00}
+      "input": {
+        "state_code": "IL",
+        "taxable_income": 0
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.0495,
+        "tax": 0.0
+      }
     },
     {
       "name": "il_negative",
-      "input": {"state_code": "IL", "taxable_income": -100},
-      "expected": {"status": "ok", "rate": 0.0495, "tax": 0.00}
+      "input": {
+        "state_code": "IL",
+        "taxable_income": -100
+      },
+      "expected": {
+        "status": "ok",
+        "rate": 0.0495,
+        "tax": 0.0
+      }
     },
     {
       "name": "ca_single_200k",
-      "input": {"state_code": "CA", "taxable_income": 200000, "filing_status": "single"},
+      "input": {
+        "state_code": "CA",
+        "taxable_income": 200000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
         "tax": 15038.64,
-        "citation_source_ids": ["ca_2025_540_tax_rate_schedules"],
+        "citation_source_ids": [
+          "ca_2025_540_tax_rate_schedules"
+        ],
         "assumption_contains": "Mental Health Services Tax"
       }
     },
     {
       "name": "ca_mfj_125k",
-      "input": {"state_code": "CA", "taxable_income": 125000, "filing_status": "mfj"},
+      "input": {
+        "state_code": "CA",
+        "taxable_income": 125000,
+        "filing_status": "mfj"
+      },
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
-        "tax": 4768.10,
-        "citation_source_ids": ["ca_2025_540_tax_rate_schedules"]
+        "tax": 4768.1,
+        "citation_source_ids": [
+          "ca_2025_540_tax_rate_schedules"
+        ]
       }
     },
     {
       "name": "ny_single_100k",
-      "input": {"state_code": "NY", "taxable_income": 100000, "filing_status": "single"},
+      "input": {
+        "state_code": "NY",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
         "tax": 5431.75,
-        "citation_source_ids": ["ny_2025_it201_instructions", "ny_2025_tax_tables"],
+        "citation_source_ids": [
+          "ny_2025_it201_instructions",
+          "ny_2025_tax_tables"
+        ],
         "assumption_contains": "tax benefit recapture"
       }
     },
     {
       "name": "ny_mfj_100k",
-      "input": {"state_code": "NY", "taxable_income": 100000, "filing_status": "mfj"},
+      "input": {
+        "state_code": "NY",
+        "taxable_income": 100000,
+        "filing_status": "mfj"
+      },
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
-        "tax": 5167.50,
-        "citation_source_ids": ["ny_2025_it201_instructions", "ny_2025_tax_tables"]
+        "tax": 5167.5,
+        "citation_source_ids": [
+          "ny_2025_it201_instructions",
+          "ny_2025_tax_tables"
+        ]
       }
     },
     {
       "name": "nj_single_149k",
-      "input": {"state_code": "NJ", "taxable_income": 149000, "filing_status": "single"},
+      "input": {
+        "state_code": "NJ",
+        "taxable_income": 149000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
         "tax": 7365.05,
-        "citation_source_ids": ["nj_dor_tax_rate_schedules_2025", "nj_dor_gross_income_tax_overview_2025"],
+        "citation_source_ids": [
+          "nj_dor_tax_rate_schedules_2025",
+          "nj_dor_gross_income_tax_overview_2025"
+        ],
         "assumption_contains": "pension exclusions"
       }
     },
     {
       "name": "nj_mfj_schedule_ii_148k",
-      "input": {"state_code": "NJ", "taxable_income": 148000, "filing_status": "mfj"},
+      "input": {
+        "state_code": "NJ",
+        "taxable_income": 148000,
+        "filing_status": "mfj"
+      },
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
-        "tax": 5402.00,
-        "citation_source_ids": ["nj_dor_tax_rate_schedules_2025"]
+        "tax": 5402.0,
+        "citation_source_ids": [
+          "nj_dor_tax_rate_schedules_2025"
+        ]
       }
     },
     {
       "name": "pa_flat_150k",
-      "input": {"state_code": "PA", "taxable_income": 150000},
+      "input": {
+        "state_code": "PA",
+        "taxable_income": 150000
+      },
       "expected": {
         "status": "ok",
         "rate": 0.0307,
-        "tax": 4605.00,
-        "citation_source_ids": ["pa_dor_pit_rate"]
+        "tax": 4605.0,
+        "citation_source_ids": [
+          "pa_dor_pit_rate"
+        ]
       }
     },
     {
       "name": "or_single_taxable_88665",
-      "input": {"state_code": "OR", "taxable_income": 88665, "filing_status": "single"},
+      "input": {
+        "state_code": "OR",
+        "taxable_income": 88665,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
         "tax": 7448.19,
-        "citation_source_ids": ["or_dor_or40_instructions_2025", "or_dor_pub_or17_2025", "or_dor_estimated_income_tax_2025"],
+        "citation_source_ids": [
+          "or_dor_or40_instructions_2025",
+          "or_dor_pub_or17_2025",
+          "or_dor_estimated_income_tax_2025"
+        ],
         "assumption_contains": "kicker"
       }
     },
     {
       "name": "unknown",
-      "input": {"state_code": "ZZ", "taxable_income": 100000},
-      "expected": {"status": "not_covered", "reason_contains": "not present"}
+      "input": {
+        "state_code": "ZZ",
+        "taxable_income": 100000
+      },
+      "expected": {
+        "status": "not_covered",
+        "reason_contains": "not present"
+      }
     }
   ]
 }

@@ -10,7 +10,9 @@
       "income_tax_type": "progressive",
       "status": "effective",
       "effective_date": "2025-01-01",
-      "source_ids": ["ca_2025_540_tax_rate_schedules"],
+      "source_ids": [
+        "ca_2025_540_tax_rate_schedules"
+      ],
       "citation": "California FTB 2025 Form 540 tax rate schedules list California personal income tax brackets by filing status.",
       "notes": "Base rate schedule only; 1% Mental Health Services Tax over $1,000,000 not modeled (MVP estimate).",
       "tax_base": {
@@ -33,59 +35,194 @@
       },
       "brackets": {
         "single": [
-          {"up_to": 11079, "rate": 0.01},
-          {"up_to": 26264, "rate": 0.02},
-          {"up_to": 41452, "rate": 0.04},
-          {"up_to": 57542, "rate": 0.06},
-          {"up_to": 72724, "rate": 0.08},
-          {"up_to": 371479, "rate": 0.093},
-          {"up_to": 445771, "rate": 0.103},
-          {"up_to": 742953, "rate": 0.113},
-          {"up_to": null, "rate": 0.123}
+          {
+            "up_to": 11079,
+            "rate": 0.01
+          },
+          {
+            "up_to": 26264,
+            "rate": 0.02
+          },
+          {
+            "up_to": 41452,
+            "rate": 0.04
+          },
+          {
+            "up_to": 57542,
+            "rate": 0.06
+          },
+          {
+            "up_to": 72724,
+            "rate": 0.08
+          },
+          {
+            "up_to": 371479,
+            "rate": 0.093
+          },
+          {
+            "up_to": 445771,
+            "rate": 0.103
+          },
+          {
+            "up_to": 742953,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
         ],
         "married_filing_separately": [
-          {"up_to": 11079, "rate": 0.01},
-          {"up_to": 26264, "rate": 0.02},
-          {"up_to": 41452, "rate": 0.04},
-          {"up_to": 57542, "rate": 0.06},
-          {"up_to": 72724, "rate": 0.08},
-          {"up_to": 371479, "rate": 0.093},
-          {"up_to": 445771, "rate": 0.103},
-          {"up_to": 742953, "rate": 0.113},
-          {"up_to": null, "rate": 0.123}
+          {
+            "up_to": 11079,
+            "rate": 0.01
+          },
+          {
+            "up_to": 26264,
+            "rate": 0.02
+          },
+          {
+            "up_to": 41452,
+            "rate": 0.04
+          },
+          {
+            "up_to": 57542,
+            "rate": 0.06
+          },
+          {
+            "up_to": 72724,
+            "rate": 0.08
+          },
+          {
+            "up_to": 371479,
+            "rate": 0.093
+          },
+          {
+            "up_to": 445771,
+            "rate": 0.103
+          },
+          {
+            "up_to": 742953,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
         ],
         "married_filing_jointly": [
-          {"up_to": 22158, "rate": 0.01},
-          {"up_to": 52528, "rate": 0.02},
-          {"up_to": 82904, "rate": 0.04},
-          {"up_to": 115084, "rate": 0.06},
-          {"up_to": 145448, "rate": 0.08},
-          {"up_to": 742958, "rate": 0.093},
-          {"up_to": 891542, "rate": 0.103},
-          {"up_to": 1485906, "rate": 0.113},
-          {"up_to": null, "rate": 0.123}
+          {
+            "up_to": 22158,
+            "rate": 0.01
+          },
+          {
+            "up_to": 52528,
+            "rate": 0.02
+          },
+          {
+            "up_to": 82904,
+            "rate": 0.04
+          },
+          {
+            "up_to": 115084,
+            "rate": 0.06
+          },
+          {
+            "up_to": 145448,
+            "rate": 0.08
+          },
+          {
+            "up_to": 742958,
+            "rate": 0.093
+          },
+          {
+            "up_to": 891542,
+            "rate": 0.103
+          },
+          {
+            "up_to": 1485906,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
         ],
         "qualifying_surviving_spouse": [
-          {"up_to": 22158, "rate": 0.01},
-          {"up_to": 52528, "rate": 0.02},
-          {"up_to": 82904, "rate": 0.04},
-          {"up_to": 115084, "rate": 0.06},
-          {"up_to": 145448, "rate": 0.08},
-          {"up_to": 742958, "rate": 0.093},
-          {"up_to": 891542, "rate": 0.103},
-          {"up_to": 1485906, "rate": 0.113},
-          {"up_to": null, "rate": 0.123}
+          {
+            "up_to": 22158,
+            "rate": 0.01
+          },
+          {
+            "up_to": 52528,
+            "rate": 0.02
+          },
+          {
+            "up_to": 82904,
+            "rate": 0.04
+          },
+          {
+            "up_to": 115084,
+            "rate": 0.06
+          },
+          {
+            "up_to": 145448,
+            "rate": 0.08
+          },
+          {
+            "up_to": 742958,
+            "rate": 0.093
+          },
+          {
+            "up_to": 891542,
+            "rate": 0.103
+          },
+          {
+            "up_to": 1485906,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
         ],
         "head_of_household": [
-          {"up_to": 22173, "rate": 0.01},
-          {"up_to": 52530, "rate": 0.02},
-          {"up_to": 67716, "rate": 0.04},
-          {"up_to": 83805, "rate": 0.06},
-          {"up_to": 98990, "rate": 0.08},
-          {"up_to": 505208, "rate": 0.093},
-          {"up_to": 606251, "rate": 0.103},
-          {"up_to": 1010417, "rate": 0.113},
-          {"up_to": null, "rate": 0.123}
+          {
+            "up_to": 22173,
+            "rate": 0.01
+          },
+          {
+            "up_to": 52530,
+            "rate": 0.02
+          },
+          {
+            "up_to": 67716,
+            "rate": 0.04
+          },
+          {
+            "up_to": 83805,
+            "rate": 0.06
+          },
+          {
+            "up_to": 98990,
+            "rate": 0.08
+          },
+          {
+            "up_to": 505208,
+            "rate": 0.093
+          },
+          {
+            "up_to": 606251,
+            "rate": 0.103
+          },
+          {
+            "up_to": 1010417,
+            "rate": 0.113
+          },
+          {
+            "up_to": null,
+            "rate": 0.123
+          }
         ]
       }
     },
@@ -94,7 +231,10 @@
       "income_tax_type": "progressive",
       "status": "effective",
       "effective_date": "2025-01-01",
-      "source_ids": ["ny_2025_it201_instructions", "ny_2025_tax_tables"],
+      "source_ids": [
+        "ny_2025_it201_instructions",
+        "ny_2025_tax_tables"
+      ],
       "citation": "New York 2025 IT-201 instructions and tax tables list marginal tax brackets by filing status.",
       "notes": "Marginal brackets only; tax benefit recapture above $107,650 NYAGI not modeled (estimate understates above that).",
       "tax_base": {
@@ -109,64 +249,201 @@
           "head_of_household": 11200
         },
         "citation": "New York 2025 IT-201 instructions list the New York State standard deduction table by filing status.",
-        "source_ids": ["ny_2025_it201_instructions"],
+        "source_ids": [
+          "ny_2025_it201_instructions"
+        ],
         "notes": "New York modifications, credits, and tax benefit recapture above $107,650 NYAGI are not modeled."
       },
       "brackets": {
         "single": [
-          {"up_to": 8500, "rate": 0.04},
-          {"up_to": 11700, "rate": 0.045},
-          {"up_to": 13900, "rate": 0.0525},
-          {"up_to": 80650, "rate": 0.055},
-          {"up_to": 215400, "rate": 0.06},
-          {"up_to": 1077550, "rate": 0.0685},
-          {"up_to": 5000000, "rate": 0.0965},
-          {"up_to": 25000000, "rate": 0.103},
-          {"up_to": null, "rate": 0.109}
+          {
+            "up_to": 8500,
+            "rate": 0.04
+          },
+          {
+            "up_to": 11700,
+            "rate": 0.045
+          },
+          {
+            "up_to": 13900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 80650,
+            "rate": 0.055
+          },
+          {
+            "up_to": 215400,
+            "rate": 0.06
+          },
+          {
+            "up_to": 1077550,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
         ],
         "married_filing_separately": [
-          {"up_to": 8500, "rate": 0.04},
-          {"up_to": 11700, "rate": 0.045},
-          {"up_to": 13900, "rate": 0.0525},
-          {"up_to": 80650, "rate": 0.055},
-          {"up_to": 215400, "rate": 0.06},
-          {"up_to": 1077550, "rate": 0.0685},
-          {"up_to": 5000000, "rate": 0.0965},
-          {"up_to": 25000000, "rate": 0.103},
-          {"up_to": null, "rate": 0.109}
+          {
+            "up_to": 8500,
+            "rate": 0.04
+          },
+          {
+            "up_to": 11700,
+            "rate": 0.045
+          },
+          {
+            "up_to": 13900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 80650,
+            "rate": 0.055
+          },
+          {
+            "up_to": 215400,
+            "rate": 0.06
+          },
+          {
+            "up_to": 1077550,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
         ],
         "married_filing_jointly": [
-          {"up_to": 17150, "rate": 0.04},
-          {"up_to": 23600, "rate": 0.045},
-          {"up_to": 27900, "rate": 0.0525},
-          {"up_to": 161550, "rate": 0.055},
-          {"up_to": 323200, "rate": 0.06},
-          {"up_to": 2155350, "rate": 0.0685},
-          {"up_to": 5000000, "rate": 0.0965},
-          {"up_to": 25000000, "rate": 0.103},
-          {"up_to": null, "rate": 0.109}
+          {
+            "up_to": 17150,
+            "rate": 0.04
+          },
+          {
+            "up_to": 23600,
+            "rate": 0.045
+          },
+          {
+            "up_to": 27900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 161550,
+            "rate": 0.055
+          },
+          {
+            "up_to": 323200,
+            "rate": 0.06
+          },
+          {
+            "up_to": 2155350,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
         ],
         "qualifying_surviving_spouse": [
-          {"up_to": 17150, "rate": 0.04},
-          {"up_to": 23600, "rate": 0.045},
-          {"up_to": 27900, "rate": 0.0525},
-          {"up_to": 161550, "rate": 0.055},
-          {"up_to": 323200, "rate": 0.06},
-          {"up_to": 2155350, "rate": 0.0685},
-          {"up_to": 5000000, "rate": 0.0965},
-          {"up_to": 25000000, "rate": 0.103},
-          {"up_to": null, "rate": 0.109}
+          {
+            "up_to": 17150,
+            "rate": 0.04
+          },
+          {
+            "up_to": 23600,
+            "rate": 0.045
+          },
+          {
+            "up_to": 27900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 161550,
+            "rate": 0.055
+          },
+          {
+            "up_to": 323200,
+            "rate": 0.06
+          },
+          {
+            "up_to": 2155350,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
         ],
         "head_of_household": [
-          {"up_to": 12800, "rate": 0.04},
-          {"up_to": 17650, "rate": 0.045},
-          {"up_to": 20900, "rate": 0.0525},
-          {"up_to": 107650, "rate": 0.055},
-          {"up_to": 269300, "rate": 0.06},
-          {"up_to": 1616450, "rate": 0.0685},
-          {"up_to": 5000000, "rate": 0.0965},
-          {"up_to": 25000000, "rate": 0.103},
-          {"up_to": null, "rate": 0.109}
+          {
+            "up_to": 12800,
+            "rate": 0.04
+          },
+          {
+            "up_to": 17650,
+            "rate": 0.045
+          },
+          {
+            "up_to": 20900,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 107650,
+            "rate": 0.055
+          },
+          {
+            "up_to": 269300,
+            "rate": 0.06
+          },
+          {
+            "up_to": 1616450,
+            "rate": 0.0685
+          },
+          {
+            "up_to": 5000000,
+            "rate": 0.0965
+          },
+          {
+            "up_to": 25000000,
+            "rate": 0.103
+          },
+          {
+            "up_to": null,
+            "rate": 0.109
+          }
         ]
       }
     },
@@ -175,7 +452,10 @@
       "income_tax_type": "progressive",
       "status": "effective",
       "effective_date": "2025-01-01",
-      "source_ids": ["nj_dor_tax_rate_schedules_2025", "nj_dor_gross_income_tax_overview_2025"],
+      "source_ids": [
+        "nj_dor_tax_rate_schedules_2025",
+        "nj_dor_gross_income_tax_overview_2025"
+      ],
       "citation": "New Jersey Division of Taxation gross income tax overview says New Jersey has a graduated income tax rate and the tax rate schedules list brackets by filing status.",
       "notes": "Gross income tax approximation only; pension exclusions, medical deductions, credits, and other New Jersey-specific deductions are not modeled.",
       "tax_base": {
@@ -191,57 +471,173 @@
         },
         "exemption_per_person": 1000,
         "citation": "New Jersey gross income tax overview says filers at or below the annual filing-status income thresholds pay no tax, and lists a $1,000 taxpayer exemption plus a $1,000 spouse/civil union partner exemption when not filing separately.",
-        "source_ids": ["nj_dor_gross_income_tax_overview_2025"],
+        "source_ids": [
+          "nj_dor_gross_income_tax_overview_2025"
+        ],
         "notes": "The MVP uses federal above-line-deduction-before gross income as a proxy for New Jersey gross income. New Jersey-specific income categories, pension exclusions, medical deductions, property tax deduction, dependent exemptions, age/blind exemptions, credits, and residency allocation are not modeled. Qualifying surviving spouse is modeled as MFJ-equivalent (Rate Schedule II plus two $1,000 exemptions) consistent with its surviving-spouse continuation purpose; the exact NJ QSS personal-exemption count is not authoritatively confirmed."
       },
       "brackets": {
         "single": [
-          {"up_to": 20000, "rate": 0.014},
-          {"up_to": 35000, "rate": 0.0175},
-          {"up_to": 40000, "rate": 0.035},
-          {"up_to": 75000, "rate": 0.05525},
-          {"up_to": 500000, "rate": 0.0637},
-          {"up_to": 1000000, "rate": 0.0897},
-          {"up_to": null, "rate": 0.1075}
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 35000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 40000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 75000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
         ],
         "married_filing_separately": [
-          {"up_to": 20000, "rate": 0.014},
-          {"up_to": 35000, "rate": 0.0175},
-          {"up_to": 40000, "rate": 0.035},
-          {"up_to": 75000, "rate": 0.05525},
-          {"up_to": 500000, "rate": 0.0637},
-          {"up_to": 1000000, "rate": 0.0897},
-          {"up_to": null, "rate": 0.1075}
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 35000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 40000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 75000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
         ],
         "married_filing_jointly": [
-          {"up_to": 20000, "rate": 0.014},
-          {"up_to": 50000, "rate": 0.0175},
-          {"up_to": 70000, "rate": 0.0245},
-          {"up_to": 80000, "rate": 0.035},
-          {"up_to": 150000, "rate": 0.05525},
-          {"up_to": 500000, "rate": 0.0637},
-          {"up_to": 1000000, "rate": 0.0897},
-          {"up_to": null, "rate": 0.1075}
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 50000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 70000,
+            "rate": 0.0245
+          },
+          {
+            "up_to": 80000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
         ],
         "qualifying_surviving_spouse": [
-          {"up_to": 20000, "rate": 0.014},
-          {"up_to": 50000, "rate": 0.0175},
-          {"up_to": 70000, "rate": 0.0245},
-          {"up_to": 80000, "rate": 0.035},
-          {"up_to": 150000, "rate": 0.05525},
-          {"up_to": 500000, "rate": 0.0637},
-          {"up_to": 1000000, "rate": 0.0897},
-          {"up_to": null, "rate": 0.1075}
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 50000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 70000,
+            "rate": 0.0245
+          },
+          {
+            "up_to": 80000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
         ],
         "head_of_household": [
-          {"up_to": 20000, "rate": 0.014},
-          {"up_to": 50000, "rate": 0.0175},
-          {"up_to": 70000, "rate": 0.0245},
-          {"up_to": 80000, "rate": 0.035},
-          {"up_to": 150000, "rate": 0.05525},
-          {"up_to": 500000, "rate": 0.0637},
-          {"up_to": 1000000, "rate": 0.0897},
-          {"up_to": null, "rate": 0.1075}
+          {
+            "up_to": 20000,
+            "rate": 0.014
+          },
+          {
+            "up_to": 50000,
+            "rate": 0.0175
+          },
+          {
+            "up_to": 70000,
+            "rate": 0.0245
+          },
+          {
+            "up_to": 80000,
+            "rate": 0.035
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.05525
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0637
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0897
+          },
+          {
+            "up_to": null,
+            "rate": 0.1075
+          }
         ]
       }
     },
@@ -251,7 +647,10 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.0307,
-      "source_ids": ["pa_dor_pit_rate", "pa_dor_pit_overview"],
+      "source_ids": [
+        "pa_dor_pit_rate",
+        "pa_dor_pit_overview"
+      ],
       "citation": "Pennsylvania Department of Revenue personal income tax rate page lists the rate as 3.07% from 2004-present.",
       "notes": "Pennsylvania class-of-income loss rules, exclusions, deductions, credits, local earned income taxes, and residency allocation are not modeled.",
       "tax_base": {
@@ -259,7 +658,10 @@
         "allows_qbi": false,
         "capital_gains_treatment": "ordinary_income",
         "citation": "Pennsylvania Department of Revenue personal income tax overview says Pennsylvania personal income tax is levied at 3.07% against taxable income and taxes eight classes of income. This MVP uses gross income as the PA taxable income proxy.",
-        "source_ids": ["pa_dor_pit_rate", "pa_dor_pit_overview"],
+        "source_ids": [
+          "pa_dor_pit_rate",
+          "pa_dor_pit_overview"
+        ],
         "notes": "The MVP approximates Pennsylvania taxable income as federal above-line-deduction-before gross income. Pennsylvania class-of-income loss rules, deductions, exclusions, credits, and local income taxes are not modeled."
       }
     },
@@ -268,7 +670,11 @@
       "income_tax_type": "progressive",
       "status": "effective",
       "effective_date": "2025-01-01",
-      "source_ids": ["or_dor_or40_instructions_2025", "or_dor_pub_or17_2025", "or_dor_estimated_income_tax_2025"],
+      "source_ids": [
+        "or_dor_or40_instructions_2025",
+        "or_dor_pub_or17_2025",
+        "or_dor_estimated_income_tax_2025"
+      ],
       "citation": "Oregon Department of Revenue 2025 Form OR-40 instructions, Publication OR-17, and estimated tax instructions list Oregon tax rate charts, standard deductions, and the federal tax liability subtraction AGI phaseout table.",
       "notes": "Full-year resident state income tax approximation only; Oregon additions/subtractions, itemized deductions, exemption credits, kicker, other credits, local taxes, and resident/source allocation are not modeled.",
       "tax_base": {
@@ -285,84 +691,239 @@
         "federal_tax_subtraction": {
           "phaseout_table": {
             "single": [
-              {"agi_up_to": "124999.99", "limit": "8500"},
-              {"agi_up_to": "129999.99", "limit": "6800"},
-              {"agi_up_to": "134999.99", "limit": "5100"},
-              {"agi_up_to": "139999.99", "limit": "3400"},
-              {"agi_up_to": "144999.99", "limit": "1700"},
-              {"agi_up_to": null, "limit": "0"}
+              {
+                "agi_up_to": "124999.99",
+                "limit": "8500"
+              },
+              {
+                "agi_up_to": "129999.99",
+                "limit": "6800"
+              },
+              {
+                "agi_up_to": "134999.99",
+                "limit": "5100"
+              },
+              {
+                "agi_up_to": "139999.99",
+                "limit": "3400"
+              },
+              {
+                "agi_up_to": "144999.99",
+                "limit": "1700"
+              },
+              {
+                "agi_up_to": null,
+                "limit": "0"
+              }
             ],
             "married_filing_separately": [
-              {"agi_up_to": "124999.99", "limit": "4250"},
-              {"agi_up_to": "129999.99", "limit": "3400"},
-              {"agi_up_to": "134999.99", "limit": "2550"},
-              {"agi_up_to": "139999.99", "limit": "1700"},
-              {"agi_up_to": "144999.99", "limit": "850"},
-              {"agi_up_to": null, "limit": "0"}
+              {
+                "agi_up_to": "124999.99",
+                "limit": "4250"
+              },
+              {
+                "agi_up_to": "129999.99",
+                "limit": "3400"
+              },
+              {
+                "agi_up_to": "134999.99",
+                "limit": "2550"
+              },
+              {
+                "agi_up_to": "139999.99",
+                "limit": "1700"
+              },
+              {
+                "agi_up_to": "144999.99",
+                "limit": "850"
+              },
+              {
+                "agi_up_to": null,
+                "limit": "0"
+              }
             ],
             "married_filing_jointly": [
-              {"agi_up_to": "249999.99", "limit": "8500"},
-              {"agi_up_to": "259999.99", "limit": "6800"},
-              {"agi_up_to": "269999.99", "limit": "5100"},
-              {"agi_up_to": "279999.99", "limit": "3400"},
-              {"agi_up_to": "289999.99", "limit": "1700"},
-              {"agi_up_to": null, "limit": "0"}
+              {
+                "agi_up_to": "249999.99",
+                "limit": "8500"
+              },
+              {
+                "agi_up_to": "259999.99",
+                "limit": "6800"
+              },
+              {
+                "agi_up_to": "269999.99",
+                "limit": "5100"
+              },
+              {
+                "agi_up_to": "279999.99",
+                "limit": "3400"
+              },
+              {
+                "agi_up_to": "289999.99",
+                "limit": "1700"
+              },
+              {
+                "agi_up_to": null,
+                "limit": "0"
+              }
             ],
             "head_of_household": [
-              {"agi_up_to": "249999.99", "limit": "8500"},
-              {"agi_up_to": "259999.99", "limit": "6800"},
-              {"agi_up_to": "269999.99", "limit": "5100"},
-              {"agi_up_to": "279999.99", "limit": "3400"},
-              {"agi_up_to": "289999.99", "limit": "1700"},
-              {"agi_up_to": null, "limit": "0"}
+              {
+                "agi_up_to": "249999.99",
+                "limit": "8500"
+              },
+              {
+                "agi_up_to": "259999.99",
+                "limit": "6800"
+              },
+              {
+                "agi_up_to": "269999.99",
+                "limit": "5100"
+              },
+              {
+                "agi_up_to": "279999.99",
+                "limit": "3400"
+              },
+              {
+                "agi_up_to": "289999.99",
+                "limit": "1700"
+              },
+              {
+                "agi_up_to": null,
+                "limit": "0"
+              }
             ],
             "qualifying_surviving_spouse": [
-              {"agi_up_to": "249999.99", "limit": "8500"},
-              {"agi_up_to": "259999.99", "limit": "6800"},
-              {"agi_up_to": "269999.99", "limit": "5100"},
-              {"agi_up_to": "279999.99", "limit": "3400"},
-              {"agi_up_to": "289999.99", "limit": "1700"},
-              {"agi_up_to": null, "limit": "0"}
+              {
+                "agi_up_to": "249999.99",
+                "limit": "8500"
+              },
+              {
+                "agi_up_to": "259999.99",
+                "limit": "6800"
+              },
+              {
+                "agi_up_to": "269999.99",
+                "limit": "5100"
+              },
+              {
+                "agi_up_to": "279999.99",
+                "limit": "3400"
+              },
+              {
+                "agi_up_to": "289999.99",
+                "limit": "1700"
+              },
+              {
+                "agi_up_to": null,
+                "limit": "0"
+              }
             ]
           },
           "citation": "Oregon 2025 Form OR-40 instructions Table 4 lists maximum federal tax liability subtraction limits by filing status and federal AGI range.",
-          "source_ids": ["or_dor_or40_instructions_2025"],
+          "source_ids": [
+            "or_dor_or40_instructions_2025"
+          ],
           "notes": "The MVP applies the table to federal AGI at cent precision; official instructions round return entries to whole dollars and define each phaseout range as at least the lower bound but less than the upper bound."
         },
         "citation": "Oregon Publication OR-17 lists 2025 standard deductions by filing status, and Form OR-40 instructions line 10 lists the federal tax liability subtraction and AGI phaseout table.",
-        "source_ids": ["or_dor_or40_instructions_2025", "or_dor_pub_or17_2025"],
+        "source_ids": [
+          "or_dor_or40_instructions_2025",
+          "or_dor_pub_or17_2025"
+        ],
         "notes": "Uses federal AGI minus Oregon standard deduction and modeled federal tax liability subtraction. Oregon-specific additions/subtractions, itemized deductions, and credits are not modeled."
       },
       "brackets": {
         "single": [
-          {"up_to": "4400", "rate": "0.0475"},
-          {"up_to": "11100", "rate": "0.0675"},
-          {"up_to": "125000", "rate": "0.0875"},
-          {"up_to": null, "rate": "0.099"}
+          {
+            "up_to": "4400",
+            "rate": "0.0475"
+          },
+          {
+            "up_to": "11100",
+            "rate": "0.0675"
+          },
+          {
+            "up_to": "125000",
+            "rate": "0.0875"
+          },
+          {
+            "up_to": null,
+            "rate": "0.099"
+          }
         ],
         "married_filing_separately": [
-          {"up_to": "4400", "rate": "0.0475"},
-          {"up_to": "11100", "rate": "0.0675"},
-          {"up_to": "125000", "rate": "0.0875"},
-          {"up_to": null, "rate": "0.099"}
+          {
+            "up_to": "4400",
+            "rate": "0.0475"
+          },
+          {
+            "up_to": "11100",
+            "rate": "0.0675"
+          },
+          {
+            "up_to": "125000",
+            "rate": "0.0875"
+          },
+          {
+            "up_to": null,
+            "rate": "0.099"
+          }
         ],
         "married_filing_jointly": [
-          {"up_to": "8800", "rate": "0.0475"},
-          {"up_to": "22200", "rate": "0.0675"},
-          {"up_to": "250000", "rate": "0.0875"},
-          {"up_to": null, "rate": "0.099"}
+          {
+            "up_to": "8800",
+            "rate": "0.0475"
+          },
+          {
+            "up_to": "22200",
+            "rate": "0.0675"
+          },
+          {
+            "up_to": "250000",
+            "rate": "0.0875"
+          },
+          {
+            "up_to": null,
+            "rate": "0.099"
+          }
         ],
         "head_of_household": [
-          {"up_to": "8800", "rate": "0.0475"},
-          {"up_to": "22200", "rate": "0.0675"},
-          {"up_to": "250000", "rate": "0.0875"},
-          {"up_to": null, "rate": "0.099"}
+          {
+            "up_to": "8800",
+            "rate": "0.0475"
+          },
+          {
+            "up_to": "22200",
+            "rate": "0.0675"
+          },
+          {
+            "up_to": "250000",
+            "rate": "0.0875"
+          },
+          {
+            "up_to": null,
+            "rate": "0.099"
+          }
         ],
         "qualifying_surviving_spouse": [
-          {"up_to": "8800", "rate": "0.0475"},
-          {"up_to": "22200", "rate": "0.0675"},
-          {"up_to": "250000", "rate": "0.0875"},
-          {"up_to": null, "rate": "0.099"}
+          {
+            "up_to": "8800",
+            "rate": "0.0475"
+          },
+          {
+            "up_to": "22200",
+            "rate": "0.0675"
+          },
+          {
+            "up_to": "250000",
+            "rate": "0.0875"
+          },
+          {
+            "up_to": null,
+            "rate": "0.099"
+          }
         ]
       }
     },
@@ -372,7 +933,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.0495,
-      "source_ids": ["il_2025_individual_income_tax_whats_new"],
+      "source_ids": [
+        "il_2025_individual_income_tax_whats_new"
+      ],
       "citation": "Illinois Department of Revenue 2025 individual income tax instructions state the Illinois income tax rate is 4.95%.",
       "tax_base": {
         "start_from": "federal_agi",
@@ -401,7 +964,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.044,
-      "source_ids": ["co_individual_income_tax_guide"],
+      "source_ids": [
+        "co_individual_income_tax_guide"
+      ],
       "citation": "Colorado Individual Income Tax Guide lists the 2025 Colorado income tax rate as 4.4%.",
       "tax_base": {
         "start_from": "federal_taxable_income",
@@ -409,7 +974,9 @@
         "capital_gains_treatment": "ordinary_income",
         "qbi_addback": true,
         "citation": "Colorado Individual Income Tax Guide states Colorado income tax is based on federal taxable income and describes a qualified business income deduction addback that may apply.",
-        "source_ids": ["co_individual_income_tax_guide"],
+        "source_ids": [
+          "co_individual_income_tax_guide"
+        ],
         "notes": "Colorado additions/subtractions are not modeled. The QBI addback has statutory conditions, including AGI and entity-specific rules; later engine steps must not treat this flag as a complete unconditional addback model without those inputs."
       }
     },
@@ -419,7 +986,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.0519,
-      "source_ids": ["ga_2025_it511_booklet"],
+      "source_ids": [
+        "ga_2025_it511_booklet"
+      ],
       "citation": "Georgia 2025 IT-511 booklet states the 2025 income tax rate is 5.19%.",
       "tax_base": {
         "start_from": "federal_agi",
@@ -433,7 +1002,9 @@
           "head_of_household": 12000
         },
         "citation": "Georgia 2025 IT-511 booklet lists the 2025 standard deduction by filing status.",
-        "source_ids": ["ga_2025_it511_booklet"],
+        "source_ids": [
+          "ga_2025_it511_booklet"
+        ],
         "notes": "Georgia retirement income exclusion, additions, subtractions, and credits are not modeled."
       }
     },
@@ -443,7 +1014,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0,
-      "source_ids": ["fl_personal_income_tax_faq"],
+      "source_ids": [
+        "fl_personal_income_tax_faq"
+      ],
       "citation": "Florida Department of Revenue FAQ states Florida does not impose a personal income tax."
     },
     "WA": {
@@ -452,7 +1025,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0,
-      "source_ids": ["wa_income_tax"],
+      "source_ids": [
+        "wa_income_tax"
+      ],
       "citation": "Washington Department of Revenue states Washington does not have an individual income tax.",
       "capital_gains_excise": {
         "rate": 0.07,
@@ -474,7 +1049,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0,
-      "source_ids": ["nv_tax_notes_194"],
+      "source_ids": [
+        "nv_tax_notes_194"
+      ],
       "citation": "Nevada Department of Taxation Tax Notes states Nevada does not impose an individual income tax."
     },
     "AK": {
@@ -483,7 +1060,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0,
-      "source_ids": ["ak_dor_no_income_tax"],
+      "source_ids": [
+        "ak_dor_no_income_tax"
+      ],
       "citation": "Alaska Department of Revenue states Alaska does not impose a personal income tax."
     },
     "NH": {
@@ -492,7 +1071,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0,
-      "source_ids": ["nh_dra_interest_dividends_repeal"],
+      "source_ids": [
+        "nh_dra_interest_dividends_repeal"
+      ],
       "citation": "New Hampshire Department of Revenue Administration confirms the Interest and Dividends Tax was fully repealed effective January 1, 2025, per HB 2 (2023 session).",
       "notes": "New Hampshire historically taxed interest and dividend income under RSA 77. The tax rate was phased down from 5% to 3% (2023), 2% (2024), and fully repealed effective 2025-01-01. For tax year 2025+, NH imposes no personal income tax."
     },
@@ -502,7 +1083,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0,
-      "source_ids": ["sd_dor_no_income_tax"],
+      "source_ids": [
+        "sd_dor_no_income_tax"
+      ],
       "citation": "South Dakota Department of Revenue states South Dakota does not have an individual income tax."
     },
     "TN": {
@@ -511,7 +1094,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0,
-      "source_ids": ["tn_dor_hall_tax_repeal"],
+      "source_ids": [
+        "tn_dor_hall_tax_repeal"
+      ],
       "citation": "Tennessee Department of Revenue confirms the Hall Income Tax on interest and dividends was fully repealed effective January 1, 2021.",
       "notes": "Tennessee's Hall Income Tax (on interest and dividend income) was phased out per Public Chapter 3 (2016) and fully repealed effective 2021-01-01. For tax year 2021+, Tennessee imposes no state income tax."
     },
@@ -521,7 +1106,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0,
-      "source_ids": ["wy_dor_no_income_tax"],
+      "source_ids": [
+        "wy_dor_no_income_tax"
+      ],
       "citation": "Wyoming Department of Revenue states Wyoming does not have an individual income tax."
     },
     "AZ": {
@@ -530,7 +1117,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.025,
-      "source_ids": ["az_dor_income_tax_2025"],
+      "source_ids": [
+        "az_dor_income_tax_2025"
+      ],
       "citation": "Arizona Department of Revenue confirms the 2025 individual income tax rate is a flat 2.5 percent.",
       "notes": "Arizona conforms to federal standard deduction; state-specific additions, subtractions, and the 33% charitable deduction increase are not modeled."
     },
@@ -540,7 +1129,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.053,
-      "source_ids": ["id_tax_commission_2025"],
+      "source_ids": [
+        "id_tax_commission_2025"
+      ],
       "citation": "Idaho Tax Commission confirms the 2025 individual income tax rate is 5.3 percent per HB 40 (2025), retroactive to January 1, 2025.",
       "notes": "Idaho rate reduced from 5.695% to 5.3% by HB 40 (signed March 2025). Idaho conforms to federal standard deduction. Idaho-specific adjustments (Form 39R) and grocery credit are not modeled."
     },
@@ -550,7 +1141,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.03,
-      "source_ids": ["in_dor_individual_income_tax"],
+      "source_ids": [
+        "in_dor_individual_income_tax"
+      ],
       "citation": "Indiana Department of Revenue states the 2025 adjusted gross income tax rate is 3.00 percent.",
       "tax_base": {
         "start_from": "federal_agi",
@@ -572,7 +1165,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.038,
-      "source_ids": ["ia_dor_individual_income_tax_2025"],
+      "source_ids": [
+        "ia_dor_individual_income_tax_2025"
+      ],
       "citation": "Iowa Department of Revenue confirms the 2025 individual income tax rate is a flat 3.8 percent, consolidated from prior progressive brackets.",
       "notes": "Iowa adopted a flat rate for 2025 (previously progressive). Iowa now uses federal standard/itemized deductions. Personal exemption credits ($40/$80) and Iowa-specific modifications are not modeled."
     },
@@ -582,7 +1177,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.04,
-      "source_ids": ["ky_dor_standard_deduction_2025"],
+      "source_ids": [
+        "ky_dor_standard_deduction_2025"
+      ],
       "citation": "Kentucky Department of Revenue announces the 2025 individual income tax rate is 4.0 percent with a standard deduction of $3,270.",
       "tax_base": {
         "start_from": "federal_agi",
@@ -594,7 +1191,9 @@
           "head_of_household": 3270,
           "qualifying_surviving_spouse": 3270
         },
-        "source_ids": ["ky_dor_standard_deduction_2025"],
+        "source_ids": [
+          "ky_dor_standard_deduction_2025"
+        ],
         "citation": "Kentucky DOR 2025 standard deduction is $3,270, the same for all filing statuses.",
         "notes": "Kentucky uses a flat standard deduction regardless of filing status. Rate scheduled to drop to 3.5% in 2026 per revenue trigger."
       }
@@ -605,7 +1204,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.03,
-      "source_ids": ["la_dor_income_tax_reform_2025"],
+      "source_ids": [
+        "la_dor_income_tax_reform_2025"
+      ],
       "citation": "Louisiana Department of Revenue confirms the 2025 individual income tax rate is a flat 3.0 percent per Act 11 of the 2024 Third Extraordinary Session.",
       "tax_base": {
         "start_from": "federal_agi",
@@ -617,7 +1218,9 @@
           "head_of_household": 25000,
           "qualifying_surviving_spouse": 25000
         },
-        "source_ids": ["la_dor_income_tax_reform_2025"],
+        "source_ids": [
+          "la_dor_income_tax_reform_2025"
+        ],
         "citation": "Louisiana RIB No. 25-012 states the 2025 standard deduction is $12,500 (single/MFS) and $25,000 (MFJ/HOH/QSS).",
         "notes": "Louisiana converted from progressive (2/4/6%) to flat 3% effective 2025. Prior personal exemptions and credits repealed. Inflation adjustment begins 2026."
       }
@@ -628,7 +1231,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.0425,
-      "source_ids": ["mi_treasury_2025_tax_info"],
+      "source_ids": [
+        "mi_treasury_2025_tax_info"
+      ],
       "citation": "Michigan Treasury confirms the 2025 individual income tax rate is 4.25 percent.",
       "tax_base": {
         "start_from": "federal_agi",
@@ -640,7 +1245,9 @@
           "head_of_household": 5800,
           "qualifying_surviving_spouse": 11600
         },
-        "source_ids": ["mi_treasury_2025_tax_info"],
+        "source_ids": [
+          "mi_treasury_2025_tax_info"
+        ],
         "citation": "Michigan personal exemption for 2025 is $5,800 per person.",
         "notes": "Michigan has no standard deduction; the personal exemption ($5,800 per person) is modeled here as the standard deduction equivalent. Dependent exemptions are not included."
       }
@@ -650,7 +1257,9 @@
       "income_tax_type": "progressive",
       "status": "effective",
       "effective_date": "2025-01-01",
-      "source_ids": ["ms_dor_individual_income_tax"],
+      "source_ids": [
+        "ms_dor_individual_income_tax"
+      ],
       "citation": "Mississippi Department of Revenue states the 2025 individual income tax rate is 4.4 percent on taxable income above $10,000.",
       "tax_base": {
         "start_from": "federal_agi",
@@ -662,30 +1271,62 @@
           "head_of_household": 9400,
           "qualifying_surviving_spouse": 16600
         },
-        "source_ids": ["ms_dor_individual_income_tax"],
+        "source_ids": [
+          "ms_dor_individual_income_tax"
+        ],
         "citation": "Mississippi standard deduction (single $2,300/MFJ $4,600/HOH $3,400) plus personal exemption (single $6,000/MFJ $12,000) combined.",
         "notes": "Standard deduction includes personal exemption amount. Dependent exemptions ($1,500 each) are not included. Mississippi is phasing out its income tax entirely under the Build-Up Mississippi Act."
       },
       "brackets": {
         "single": [
-          {"up_to": 10000, "rate": 0},
-          {"up_to": null, "rate": 0.044}
+          {
+            "up_to": 10000,
+            "rate": 0
+          },
+          {
+            "up_to": null,
+            "rate": 0.044
+          }
         ],
         "married_filing_separately": [
-          {"up_to": 10000, "rate": 0},
-          {"up_to": null, "rate": 0.044}
+          {
+            "up_to": 10000,
+            "rate": 0
+          },
+          {
+            "up_to": null,
+            "rate": 0.044
+          }
         ],
         "married_filing_jointly": [
-          {"up_to": 10000, "rate": 0},
-          {"up_to": null, "rate": 0.044}
+          {
+            "up_to": 10000,
+            "rate": 0
+          },
+          {
+            "up_to": null,
+            "rate": 0.044
+          }
         ],
         "head_of_household": [
-          {"up_to": 10000, "rate": 0},
-          {"up_to": null, "rate": 0.044}
+          {
+            "up_to": 10000,
+            "rate": 0
+          },
+          {
+            "up_to": null,
+            "rate": 0.044
+          }
         ],
         "qualifying_surviving_spouse": [
-          {"up_to": 10000, "rate": 0},
-          {"up_to": null, "rate": 0.044}
+          {
+            "up_to": 10000,
+            "rate": 0
+          },
+          {
+            "up_to": null,
+            "rate": 0.044
+          }
         ]
       },
       "notes": "Mississippi 4.4% rate applies only to taxable income above $10,000 ($10,000 zero bracket). Rate reduced from 4.7% (2024). Income tax being phased out under the Build-Up Mississippi Act (HB 531)."
@@ -696,7 +1337,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.0425,
-      "source_ids": ["nc_dor_standard_deduction_2025"],
+      "source_ids": [
+        "nc_dor_standard_deduction_2025"
+      ],
       "citation": "North Carolina Department of Revenue states the 2025 individual income tax rate is 4.25 percent.",
       "tax_base": {
         "start_from": "federal_agi",
@@ -708,7 +1351,9 @@
           "head_of_household": 19125,
           "qualifying_surviving_spouse": 25500
         },
-        "source_ids": ["nc_dor_standard_deduction_2025"],
+        "source_ids": [
+          "nc_dor_standard_deduction_2025"
+        ],
         "citation": "NCDOR states the 2025 NC standard deduction is $12,750 (single/MFS), $25,500 (MFJ/QSS), and $19,125 (HOH).",
         "notes": "NC has fixed-date IRC conformity (Jan 1, 2023). NC standard deduction is set by the General Assembly, not tied to federal amounts. Rate reduced from 4.5% (2024), scheduled to drop to 3.99% (2026)."
       }
@@ -719,7 +1364,9 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.045,
-      "source_ids": ["ut_tax_commission_2025"],
+      "source_ids": [
+        "ut_tax_commission_2025"
+      ],
       "citation": "Utah State Tax Commission confirms the 2025 individual income tax rate is 4.5 percent per HB 106 (2025), retroactive to January 1, 2025.",
       "notes": "Utah rate reduced from 4.55% to 4.5% by HB 106 (signed May 2025). Utah uses a taxpayer tax credit (6% of federal deductions + state exemptions, phasing out at higher incomes) instead of a standard deduction; this credit is not modeled. Tax approximated as flat rate on federal taxable income."
     },
@@ -729,13 +1376,17 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0.05,
-      "source_ids": ["ma_dor_income_tax_rates_2025"],
+      "source_ids": [
+        "ma_dor_income_tax_rates_2025"
+      ],
       "citation": "Massachusetts Department of Revenue states the 2025 Part B income tax rate is 5 percent, plus a 4 percent surtax on taxable income exceeding $1,083,150.",
       "surtax": {
         "rate": 0.04,
         "threshold": 1083150,
         "citation": "Massachusetts voters approved a 4% surtax on annual taxable income exceeding $1,000,000 (indexed for inflation; 2025 threshold: $1,083,150).",
-        "source_ids": ["ma_dor_income_tax_rates_2025"]
+        "source_ids": [
+          "ma_dor_income_tax_rates_2025"
+        ]
       },
       "tax_base": {
         "start_from": "federal_agi",
@@ -747,7 +1398,9 @@
           "head_of_household": 6800,
           "qualifying_surviving_spouse": 8800
         },
-        "source_ids": ["ma_dor_income_tax_rates_2025"],
+        "source_ids": [
+          "ma_dor_income_tax_rates_2025"
+        ],
         "citation": "Massachusetts personal exemption for 2025 is $4,400 (single), $8,800 (MFJ), $6,800 (HOH).",
         "notes": "Massachusetts has no standard deduction; personal exemptions modeled as standard deduction equivalent. Dependent exemptions ($1,000 each) not included. MA Part A income (12% rate on certain interest/dividends) and Part C (5% on long-term capital gains) are not modeled; all income taxed at Part B rate."
       }
@@ -758,8 +1411,1389 @@
       "status": "effective",
       "effective_date": "2025-01-01",
       "flat_rate": 0,
-      "source_ids": ["tx_comptroller_no_income_tax"],
+      "source_ids": [
+        "tx_comptroller_no_income_tax"
+      ],
       "citation": "Texas Comptroller of Public Accounts states Texas has no state income tax, constitutionally prohibited by Article VIII Section 24-a."
+    },
+    "AR": {
+      "name": "Arkansas",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "ar_dfa_income_tax_2025"
+      ],
+      "citation": "Arkansas Department of Finance and Administration 2025 Form AR1000F instructions list Arkansas individual income tax rate schedules.",
+      "notes": "Act 1 of the 2024 Second Extraordinary Session reduced top rate from 4.4% to 3.9% effective 2025. Brackets indexed annually. Low-bracket benefit phase-out above $94,700 (effectively flat 3.9% above $100,001) not modeled. $29 personal tax credit per filer/dependent not modeled.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 2410,
+          "married_filing_separately": 2410,
+          "married_filing_jointly": 4820,
+          "head_of_household": 2410,
+          "qualifying_surviving_spouse": 4820
+        },
+        "source_ids": [
+          "ar_dfa_income_tax_2025"
+        ],
+        "citation": "Arkansas 2025 standard deduction is $2,410 (single/MFS/HOH) or $4,820 (MFJ/QSS).",
+        "notes": "Arkansas-specific modifications to federal AGI, itemized deduction option, and $29 personal tax credit are not modeled."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 5599,
+            "rate": 0
+          },
+          {
+            "up_to": 11199,
+            "rate": 0.02
+          },
+          {
+            "up_to": 15999,
+            "rate": 0.03
+          },
+          {
+            "up_to": 26399,
+            "rate": 0.034
+          },
+          {
+            "up_to": null,
+            "rate": 0.039
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 5599,
+            "rate": 0
+          },
+          {
+            "up_to": 11199,
+            "rate": 0.02
+          },
+          {
+            "up_to": 15999,
+            "rate": 0.03
+          },
+          {
+            "up_to": 26399,
+            "rate": 0.034
+          },
+          {
+            "up_to": null,
+            "rate": 0.039
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 5599,
+            "rate": 0
+          },
+          {
+            "up_to": 11199,
+            "rate": 0.02
+          },
+          {
+            "up_to": 15999,
+            "rate": 0.03
+          },
+          {
+            "up_to": 26399,
+            "rate": 0.034
+          },
+          {
+            "up_to": null,
+            "rate": 0.039
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 5599,
+            "rate": 0
+          },
+          {
+            "up_to": 11199,
+            "rate": 0.02
+          },
+          {
+            "up_to": 15999,
+            "rate": 0.03
+          },
+          {
+            "up_to": 26399,
+            "rate": 0.034
+          },
+          {
+            "up_to": null,
+            "rate": 0.039
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 5599,
+            "rate": 0
+          },
+          {
+            "up_to": 11199,
+            "rate": 0.02
+          },
+          {
+            "up_to": 15999,
+            "rate": 0.03
+          },
+          {
+            "up_to": 26399,
+            "rate": 0.034
+          },
+          {
+            "up_to": null,
+            "rate": 0.039
+          }
+        ]
+      }
+    },
+    "DE": {
+      "name": "Delaware",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "de_dor_income_tax_2025"
+      ],
+      "citation": "Delaware Division of Revenue 2025 personal income tax forms and instructions list the Delaware tax rate schedule.",
+      "notes": "Delaware personal exemption credit ($110 per exemption, enhanced $330 for income $18,000-$36,000) not modeled. Delaware-specific modifications and itemized deductions not modeled.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 3250,
+          "married_filing_separately": 3250,
+          "married_filing_jointly": 6500,
+          "head_of_household": 3250,
+          "qualifying_surviving_spouse": 6500
+        },
+        "source_ids": [
+          "de_dor_income_tax_2025"
+        ],
+        "citation": "Delaware 2025 standard deduction is $3,250 (single/MFS/HOH) or $6,500 (MFJ/QSS).",
+        "notes": "Additional $2,500 deduction for age 65+/blind not modeled. Personal exemption credit ($110/exemption) not modeled."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 2000,
+            "rate": 0
+          },
+          {
+            "up_to": 5000,
+            "rate": 0.022
+          },
+          {
+            "up_to": 10000,
+            "rate": 0.039
+          },
+          {
+            "up_to": 20000,
+            "rate": 0.048
+          },
+          {
+            "up_to": 25000,
+            "rate": 0.052
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.0555
+          },
+          {
+            "up_to": null,
+            "rate": 0.066
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 2000,
+            "rate": 0
+          },
+          {
+            "up_to": 5000,
+            "rate": 0.022
+          },
+          {
+            "up_to": 10000,
+            "rate": 0.039
+          },
+          {
+            "up_to": 20000,
+            "rate": 0.048
+          },
+          {
+            "up_to": 25000,
+            "rate": 0.052
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.0555
+          },
+          {
+            "up_to": null,
+            "rate": 0.066
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 2000,
+            "rate": 0
+          },
+          {
+            "up_to": 5000,
+            "rate": 0.022
+          },
+          {
+            "up_to": 10000,
+            "rate": 0.039
+          },
+          {
+            "up_to": 20000,
+            "rate": 0.048
+          },
+          {
+            "up_to": 25000,
+            "rate": 0.052
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.0555
+          },
+          {
+            "up_to": null,
+            "rate": 0.066
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 2000,
+            "rate": 0
+          },
+          {
+            "up_to": 5000,
+            "rate": 0.022
+          },
+          {
+            "up_to": 10000,
+            "rate": 0.039
+          },
+          {
+            "up_to": 20000,
+            "rate": 0.048
+          },
+          {
+            "up_to": 25000,
+            "rate": 0.052
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.0555
+          },
+          {
+            "up_to": null,
+            "rate": 0.066
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 2000,
+            "rate": 0
+          },
+          {
+            "up_to": 5000,
+            "rate": 0.022
+          },
+          {
+            "up_to": 10000,
+            "rate": 0.039
+          },
+          {
+            "up_to": 20000,
+            "rate": 0.048
+          },
+          {
+            "up_to": 25000,
+            "rate": 0.052
+          },
+          {
+            "up_to": 60000,
+            "rate": 0.0555
+          },
+          {
+            "up_to": null,
+            "rate": 0.066
+          }
+        ]
+      }
+    },
+    "HI": {
+      "name": "Hawaii",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "hi_dotax_income_tax_2025"
+      ],
+      "citation": "Hawaii Department of Taxation 2025 individual income tax rate schedules list Hawaii tax brackets by filing status per Act 46, SLH 2024.",
+      "notes": "Act 46 (2024) widened bracket thresholds effective 2025. Personal exemption ($1,144) combined into standard deduction. Hawaii modifications to federal AGI, credits, and refundable food/excise tax credit not modeled.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 5544,
+          "married_filing_separately": 5544,
+          "married_filing_jointly": 11088,
+          "head_of_household": 7568,
+          "qualifying_surviving_spouse": 9944
+        },
+        "source_ids": [
+          "hi_dotax_income_tax_2025"
+        ],
+        "citation": "Hawaii 2025 standard deduction ($4,400 S/$8,800 MFJ/$6,424 HOH) plus personal exemption ($1,144 per person) combined.",
+        "notes": "Combined standard deduction + personal exemption for primary filer(s). Dependent exemptions ($1,144 each) not included. QSS uses MFJ standard deduction + one personal exemption."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 9600,
+            "rate": 0.014
+          },
+          {
+            "up_to": 14400,
+            "rate": 0.032
+          },
+          {
+            "up_to": 19200,
+            "rate": 0.055
+          },
+          {
+            "up_to": 24000,
+            "rate": 0.064
+          },
+          {
+            "up_to": 36000,
+            "rate": 0.068
+          },
+          {
+            "up_to": 48000,
+            "rate": 0.072
+          },
+          {
+            "up_to": 125000,
+            "rate": 0.076
+          },
+          {
+            "up_to": 175000,
+            "rate": 0.079
+          },
+          {
+            "up_to": 225000,
+            "rate": 0.0825
+          },
+          {
+            "up_to": 275000,
+            "rate": 0.09
+          },
+          {
+            "up_to": 325000,
+            "rate": 0.1
+          },
+          {
+            "up_to": null,
+            "rate": 0.11
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 9600,
+            "rate": 0.014
+          },
+          {
+            "up_to": 14400,
+            "rate": 0.032
+          },
+          {
+            "up_to": 19200,
+            "rate": 0.055
+          },
+          {
+            "up_to": 24000,
+            "rate": 0.064
+          },
+          {
+            "up_to": 36000,
+            "rate": 0.068
+          },
+          {
+            "up_to": 48000,
+            "rate": 0.072
+          },
+          {
+            "up_to": 125000,
+            "rate": 0.076
+          },
+          {
+            "up_to": 175000,
+            "rate": 0.079
+          },
+          {
+            "up_to": 225000,
+            "rate": 0.0825
+          },
+          {
+            "up_to": 275000,
+            "rate": 0.09
+          },
+          {
+            "up_to": 325000,
+            "rate": 0.1
+          },
+          {
+            "up_to": null,
+            "rate": 0.11
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 19200,
+            "rate": 0.014
+          },
+          {
+            "up_to": 28800,
+            "rate": 0.032
+          },
+          {
+            "up_to": 38400,
+            "rate": 0.055
+          },
+          {
+            "up_to": 48000,
+            "rate": 0.064
+          },
+          {
+            "up_to": 72000,
+            "rate": 0.068
+          },
+          {
+            "up_to": 96000,
+            "rate": 0.072
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.076
+          },
+          {
+            "up_to": 350000,
+            "rate": 0.079
+          },
+          {
+            "up_to": 450000,
+            "rate": 0.0825
+          },
+          {
+            "up_to": 550000,
+            "rate": 0.09
+          },
+          {
+            "up_to": 650000,
+            "rate": 0.1
+          },
+          {
+            "up_to": null,
+            "rate": 0.11
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 14400,
+            "rate": 0.014
+          },
+          {
+            "up_to": 21600,
+            "rate": 0.032
+          },
+          {
+            "up_to": 28800,
+            "rate": 0.055
+          },
+          {
+            "up_to": 36000,
+            "rate": 0.064
+          },
+          {
+            "up_to": 54000,
+            "rate": 0.068
+          },
+          {
+            "up_to": 72000,
+            "rate": 0.072
+          },
+          {
+            "up_to": 187500,
+            "rate": 0.076
+          },
+          {
+            "up_to": 262500,
+            "rate": 0.079
+          },
+          {
+            "up_to": 337500,
+            "rate": 0.0825
+          },
+          {
+            "up_to": 412500,
+            "rate": 0.09
+          },
+          {
+            "up_to": 487500,
+            "rate": 0.1
+          },
+          {
+            "up_to": null,
+            "rate": 0.11
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 19200,
+            "rate": 0.014
+          },
+          {
+            "up_to": 28800,
+            "rate": 0.032
+          },
+          {
+            "up_to": 38400,
+            "rate": 0.055
+          },
+          {
+            "up_to": 48000,
+            "rate": 0.064
+          },
+          {
+            "up_to": 72000,
+            "rate": 0.068
+          },
+          {
+            "up_to": 96000,
+            "rate": 0.072
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.076
+          },
+          {
+            "up_to": 350000,
+            "rate": 0.079
+          },
+          {
+            "up_to": 450000,
+            "rate": 0.0825
+          },
+          {
+            "up_to": 550000,
+            "rate": 0.09
+          },
+          {
+            "up_to": 650000,
+            "rate": 0.1
+          },
+          {
+            "up_to": null,
+            "rate": 0.11
+          }
+        ]
+      }
+    },
+    "KS": {
+      "name": "Kansas",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "ks_dor_income_tax_2025"
+      ],
+      "citation": "Kansas Department of Revenue 2025 income tax booklet lists Kansas tax rate schedules and deduction amounts per Senate Bill 1.",
+      "notes": "SB 1 consolidated three brackets into two and reduced rates effective 2025. Personal exemption ($9,160 per filer) combined into standard deduction. Dependent exemptions ($2,320 each) not modeled.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 12765,
+          "married_filing_separately": 13280,
+          "married_filing_jointly": 26560,
+          "head_of_household": 15340,
+          "qualifying_surviving_spouse": 26560
+        },
+        "source_ids": [
+          "ks_dor_income_tax_2025"
+        ],
+        "citation": "Kansas 2025 standard deduction ($3,605 S/$8,240 MFJ/$4,120 MFS/$6,180 HOH) plus personal exemption ($9,160 per filer, $18,320 MFJ) combined.",
+        "notes": "Combined standard deduction + personal exemption for primary filer(s). Dependent exemptions ($2,320 each) not included. Kansas-specific Schedule S modifications not modeled."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 23000,
+            "rate": 0.052
+          },
+          {
+            "up_to": null,
+            "rate": 0.0558
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 23000,
+            "rate": 0.052
+          },
+          {
+            "up_to": null,
+            "rate": 0.0558
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 46000,
+            "rate": 0.052
+          },
+          {
+            "up_to": null,
+            "rate": 0.0558
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 23000,
+            "rate": 0.052
+          },
+          {
+            "up_to": null,
+            "rate": 0.0558
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 46000,
+            "rate": 0.052
+          },
+          {
+            "up_to": null,
+            "rate": 0.0558
+          }
+        ]
+      }
+    },
+    "ME": {
+      "name": "Maine",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "me_rs_income_tax_2025"
+      ],
+      "citation": "Maine Revenue Services 2025 individual income tax rate schedule lists marginal brackets by filing status.",
+      "notes": "Personal exemption ($5,150) combined into standard deduction. Standard deduction and personal exemption phase out at high income (not modeled). Dependent exemptions not included. Maine-specific modifications, credits, and property tax fairness credit not modeled.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 20150,
+          "married_filing_separately": 20150,
+          "married_filing_jointly": 40300,
+          "head_of_household": 27650,
+          "qualifying_surviving_spouse": 35150
+        },
+        "source_ids": [
+          "me_rs_income_tax_2025"
+        ],
+        "citation": "Maine 2025 standard deduction ($15,000 S/MFS, $30,000 MFJ, $22,500 HOH) plus personal exemption ($5,150 per person) combined.",
+        "notes": "Combined standard deduction + personal exemption for primary filer(s). Phaseout above $100,000 (S) / $200,000 (MFJ) not modeled. Dependent exemptions not included."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 26800,
+            "rate": 0.058
+          },
+          {
+            "up_to": 63450,
+            "rate": 0.0675
+          },
+          {
+            "up_to": null,
+            "rate": 0.0715
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 26800,
+            "rate": 0.058
+          },
+          {
+            "up_to": 63450,
+            "rate": 0.0675
+          },
+          {
+            "up_to": null,
+            "rate": 0.0715
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 53600,
+            "rate": 0.058
+          },
+          {
+            "up_to": 126900,
+            "rate": 0.0675
+          },
+          {
+            "up_to": null,
+            "rate": 0.0715
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 40200,
+            "rate": 0.058
+          },
+          {
+            "up_to": 95150,
+            "rate": 0.0675
+          },
+          {
+            "up_to": null,
+            "rate": 0.0715
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 53600,
+            "rate": 0.058
+          },
+          {
+            "up_to": 126900,
+            "rate": 0.0675
+          },
+          {
+            "up_to": null,
+            "rate": 0.0715
+          }
+        ]
+      }
+    },
+    "MD": {
+      "name": "Maryland",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "md_comptroller_income_tax_2025"
+      ],
+      "citation": "Maryland Comptroller 2025 tax alert lists new state income tax brackets and deduction changes effective for tax years beginning after 12/31/2024.",
+      "notes": "Two new high-income brackets (6.25% and 6.50%) added for 2025. Personal exemption ($3,200) combined into standard deduction. County income tax (2.25%-3.3%), 2% capital gains surtax above $350K FAGI, and itemized deduction phaseout not modeled.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 6550,
+          "married_filing_separately": 6550,
+          "married_filing_jointly": 13100,
+          "head_of_household": 9900,
+          "qualifying_surviving_spouse": 9900
+        },
+        "source_ids": [
+          "md_comptroller_income_tax_2025"
+        ],
+        "citation": "Maryland 2025 standard deduction ($3,350 S/MFS, $6,700 MFJ/HOH/QSS) plus personal exemption ($3,200 per person) combined.",
+        "notes": "Combined standard deduction + personal exemption for primary filer(s). Dependent exemptions ($3,200 each) not included. County income tax adds 2.25%-3.3% and is not modeled."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 1000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 2000,
+            "rate": 0.03
+          },
+          {
+            "up_to": 3000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 100000,
+            "rate": 0.0475
+          },
+          {
+            "up_to": 125000,
+            "rate": 0.05
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0575
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0625
+          },
+          {
+            "up_to": null,
+            "rate": 0.065
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 1000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 2000,
+            "rate": 0.03
+          },
+          {
+            "up_to": 3000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 100000,
+            "rate": 0.0475
+          },
+          {
+            "up_to": 125000,
+            "rate": 0.05
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 250000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 500000,
+            "rate": 0.0575
+          },
+          {
+            "up_to": 1000000,
+            "rate": 0.0625
+          },
+          {
+            "up_to": null,
+            "rate": 0.065
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 1000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 2000,
+            "rate": 0.03
+          },
+          {
+            "up_to": 3000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.0475
+          },
+          {
+            "up_to": 175000,
+            "rate": 0.05
+          },
+          {
+            "up_to": 225000,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 300000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 600000,
+            "rate": 0.0575
+          },
+          {
+            "up_to": 1200000,
+            "rate": 0.0625
+          },
+          {
+            "up_to": null,
+            "rate": 0.065
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 1000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 2000,
+            "rate": 0.03
+          },
+          {
+            "up_to": 3000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.0475
+          },
+          {
+            "up_to": 175000,
+            "rate": 0.05
+          },
+          {
+            "up_to": 225000,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 300000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 600000,
+            "rate": 0.0575
+          },
+          {
+            "up_to": 1200000,
+            "rate": 0.0625
+          },
+          {
+            "up_to": null,
+            "rate": 0.065
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 1000,
+            "rate": 0.02
+          },
+          {
+            "up_to": 2000,
+            "rate": 0.03
+          },
+          {
+            "up_to": 3000,
+            "rate": 0.04
+          },
+          {
+            "up_to": 150000,
+            "rate": 0.0475
+          },
+          {
+            "up_to": 175000,
+            "rate": 0.05
+          },
+          {
+            "up_to": 225000,
+            "rate": 0.0525
+          },
+          {
+            "up_to": 300000,
+            "rate": 0.055
+          },
+          {
+            "up_to": 600000,
+            "rate": 0.0575
+          },
+          {
+            "up_to": 1200000,
+            "rate": 0.0625
+          },
+          {
+            "up_to": null,
+            "rate": 0.065
+          }
+        ]
+      }
+    },
+    "MO": {
+      "name": "Missouri",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "mo_dor_income_tax_2025"
+      ],
+      "citation": "Missouri Department of Revenue 2025 tax year changes list Missouri individual income tax brackets indexed for inflation.",
+      "notes": "Missouri conforms to federal standard deduction. Brackets include a $0-$1,313 zero bracket. Personal exemptions were eliminated. Missouri-specific modifications not modeled.",
+      "brackets": {
+        "single": [
+          {
+            "up_to": 1313,
+            "rate": 0
+          },
+          {
+            "up_to": 2626,
+            "rate": 0.02
+          },
+          {
+            "up_to": 3939,
+            "rate": 0.025
+          },
+          {
+            "up_to": 5252,
+            "rate": 0.03
+          },
+          {
+            "up_to": 6565,
+            "rate": 0.035
+          },
+          {
+            "up_to": 7878,
+            "rate": 0.04
+          },
+          {
+            "up_to": 9191,
+            "rate": 0.045
+          },
+          {
+            "up_to": null,
+            "rate": 0.047
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 1313,
+            "rate": 0
+          },
+          {
+            "up_to": 2626,
+            "rate": 0.02
+          },
+          {
+            "up_to": 3939,
+            "rate": 0.025
+          },
+          {
+            "up_to": 5252,
+            "rate": 0.03
+          },
+          {
+            "up_to": 6565,
+            "rate": 0.035
+          },
+          {
+            "up_to": 7878,
+            "rate": 0.04
+          },
+          {
+            "up_to": 9191,
+            "rate": 0.045
+          },
+          {
+            "up_to": null,
+            "rate": 0.047
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 1313,
+            "rate": 0
+          },
+          {
+            "up_to": 2626,
+            "rate": 0.02
+          },
+          {
+            "up_to": 3939,
+            "rate": 0.025
+          },
+          {
+            "up_to": 5252,
+            "rate": 0.03
+          },
+          {
+            "up_to": 6565,
+            "rate": 0.035
+          },
+          {
+            "up_to": 7878,
+            "rate": 0.04
+          },
+          {
+            "up_to": 9191,
+            "rate": 0.045
+          },
+          {
+            "up_to": null,
+            "rate": 0.047
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 1313,
+            "rate": 0
+          },
+          {
+            "up_to": 2626,
+            "rate": 0.02
+          },
+          {
+            "up_to": 3939,
+            "rate": 0.025
+          },
+          {
+            "up_to": 5252,
+            "rate": 0.03
+          },
+          {
+            "up_to": 6565,
+            "rate": 0.035
+          },
+          {
+            "up_to": 7878,
+            "rate": 0.04
+          },
+          {
+            "up_to": 9191,
+            "rate": 0.045
+          },
+          {
+            "up_to": null,
+            "rate": 0.047
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 1313,
+            "rate": 0
+          },
+          {
+            "up_to": 2626,
+            "rate": 0.02
+          },
+          {
+            "up_to": 3939,
+            "rate": 0.025
+          },
+          {
+            "up_to": 5252,
+            "rate": 0.03
+          },
+          {
+            "up_to": 6565,
+            "rate": 0.035
+          },
+          {
+            "up_to": 7878,
+            "rate": 0.04
+          },
+          {
+            "up_to": 9191,
+            "rate": 0.045
+          },
+          {
+            "up_to": null,
+            "rate": 0.047
+          }
+        ]
+      }
+    },
+    "MT": {
+      "name": "Montana",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "mt_dor_income_tax_2025"
+      ],
+      "citation": "Montana Department of Revenue 2025 tax rates and deductions list Montana individual income tax brackets per SB 121 (2023).",
+      "notes": "Montana starts from federal taxable income (federal standard deduction already included). SB 121 (2023) established two-bracket system, reduced top rate from 6.5% to 5.9% effective TY 2024. Brackets indexed annually. Montana-specific additions/subtractions not modeled.",
+      "brackets": {
+        "single": [
+          {
+            "up_to": 21100,
+            "rate": 0.047
+          },
+          {
+            "up_to": null,
+            "rate": 0.059
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 21100,
+            "rate": 0.047
+          },
+          {
+            "up_to": null,
+            "rate": 0.059
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 42200,
+            "rate": 0.047
+          },
+          {
+            "up_to": null,
+            "rate": 0.059
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 30750,
+            "rate": 0.047
+          },
+          {
+            "up_to": null,
+            "rate": 0.059
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 42200,
+            "rate": 0.047
+          },
+          {
+            "up_to": null,
+            "rate": 0.059
+          }
+        ]
+      }
+    },
+    "NE": {
+      "name": "Nebraska",
+      "income_tax_type": "progressive",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "source_ids": [
+        "ne_dor_income_tax_2025"
+      ],
+      "citation": "Nebraska Department of Revenue 2025 individual income tax booklet lists Nebraska tax rate schedules and standard deduction amounts per LB 754 (2023) phased reduction.",
+      "notes": "LB 754 (2023) phased rate reduction; 2025 top rate 5.20% (from 5.84%). Brackets indexed annually. Personal exemption credit ($171/exemption) not modeled. Nebraska-specific modifications and credits not modeled.",
+      "tax_base": {
+        "start_from": "federal_agi",
+        "allows_qbi": false,
+        "standard_deduction": {
+          "single": 8600,
+          "married_filing_separately": 8600,
+          "married_filing_jointly": 17200,
+          "head_of_household": 12600,
+          "qualifying_surviving_spouse": 17200
+        },
+        "source_ids": [
+          "ne_dor_income_tax_2025"
+        ],
+        "citation": "Nebraska 2025 standard deduction is $8,600 (single/MFS), $17,200 (MFJ/QSS), $12,600 (HOH).",
+        "notes": "Personal exemption credit ($171 per exemption) is a non-refundable credit against tax, not a deduction. Not modeled."
+      },
+      "brackets": {
+        "single": [
+          {
+            "up_to": 4030,
+            "rate": 0.0246
+          },
+          {
+            "up_to": 24120,
+            "rate": 0.0351
+          },
+          {
+            "up_to": 38870,
+            "rate": 0.0501
+          },
+          {
+            "up_to": null,
+            "rate": 0.052
+          }
+        ],
+        "married_filing_separately": [
+          {
+            "up_to": 4030,
+            "rate": 0.0246
+          },
+          {
+            "up_to": 24120,
+            "rate": 0.0351
+          },
+          {
+            "up_to": 38870,
+            "rate": 0.0501
+          },
+          {
+            "up_to": null,
+            "rate": 0.052
+          }
+        ],
+        "married_filing_jointly": [
+          {
+            "up_to": 8040,
+            "rate": 0.0246
+          },
+          {
+            "up_to": 48250,
+            "rate": 0.0351
+          },
+          {
+            "up_to": 77730,
+            "rate": 0.0501
+          },
+          {
+            "up_to": null,
+            "rate": 0.052
+          }
+        ],
+        "head_of_household": [
+          {
+            "up_to": 7510,
+            "rate": 0.0246
+          },
+          {
+            "up_to": 38590,
+            "rate": 0.0351
+          },
+          {
+            "up_to": 57630,
+            "rate": 0.0501
+          },
+          {
+            "up_to": null,
+            "rate": 0.052
+          }
+        ],
+        "qualifying_surviving_spouse": [
+          {
+            "up_to": 8040,
+            "rate": 0.0246
+          },
+          {
+            "up_to": 48250,
+            "rate": 0.0351
+          },
+          {
+            "up_to": 77730,
+            "rate": 0.0501
+          },
+          {
+            "up_to": null,
+            "rate": 0.052
+          }
+        ]
+      }
     }
   }
 }

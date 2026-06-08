@@ -603,6 +603,104 @@ if ($states.states.MA.surtax.threshold -ne 1083150) {
   throw "Unexpected MA surtax threshold"
 }
 
+# C3a: Progressive states spot checks (2025)
+if ($states.states.AR.income_tax_type -ne "progressive") {
+  throw "Arkansas must be income_tax_type progressive"
+}
+if ($states.states.AR.status -ne "effective") {
+  throw "Arkansas must be effective"
+}
+if ($states.states.AR.brackets.single[0].rate -ne 0) {
+  throw "Unexpected AR first bracket rate (should be 0)"
+}
+if ($states.states.AR.brackets.single[-1].rate -ne 0.039) {
+  throw "Unexpected AR top rate"
+}
+if ($states.states.AR.tax_base.standard_deduction.single -ne 2410) {
+  throw "Unexpected AR single standard deduction"
+}
+if ($states.states.DE.income_tax_type -ne "progressive") {
+  throw "Delaware must be income_tax_type progressive"
+}
+if ($states.states.DE.brackets.single[-1].rate -ne 0.066) {
+  throw "Unexpected DE top rate"
+}
+if ($states.states.DE.tax_base.standard_deduction.single -ne 3250) {
+  throw "Unexpected DE single standard deduction"
+}
+if ($states.states.HI.income_tax_type -ne "progressive") {
+  throw "Hawaii must be income_tax_type progressive"
+}
+if ($states.states.HI.brackets.single.Count -ne 12) {
+  throw "Hawaii must have 12 brackets for single"
+}
+if ($states.states.HI.brackets.single[-1].rate -ne 0.11) {
+  throw "Unexpected HI top rate"
+}
+if ($states.states.HI.tax_base.standard_deduction.single -ne 5544) {
+  throw "Unexpected HI single standard deduction (should include personal exemption)"
+}
+if ($states.states.KS.income_tax_type -ne "progressive") {
+  throw "Kansas must be income_tax_type progressive"
+}
+if ($states.states.KS.brackets.single[-1].rate -ne 0.0558) {
+  throw "Unexpected KS top rate"
+}
+if ($states.states.KS.brackets.married_filing_jointly[0].up_to -ne 46000) {
+  throw "Unexpected KS MFJ first bracket cap"
+}
+if ($states.states.KS.tax_base.standard_deduction.single -ne 12765) {
+  throw "Unexpected KS single standard deduction (should include personal exemption)"
+}
+if ($states.states.ME.income_tax_type -ne "progressive") {
+  throw "Maine must be income_tax_type progressive"
+}
+if ($states.states.ME.brackets.single[-1].rate -ne 0.0715) {
+  throw "Unexpected ME top rate"
+}
+if ($states.states.ME.tax_base.standard_deduction.single -ne 20150) {
+  throw "Unexpected ME single standard deduction (should include personal exemption)"
+}
+if ($states.states.MD.income_tax_type -ne "progressive") {
+  throw "Maryland must be income_tax_type progressive"
+}
+if ($states.states.MD.brackets.single.Count -ne 10) {
+  throw "Maryland must have 10 brackets for single (incl new 6.25%/6.50%)"
+}
+if ($states.states.MD.brackets.single[-1].rate -ne 0.065) {
+  throw "Unexpected MD top rate"
+}
+if ($states.states.MD.tax_base.standard_deduction.single -ne 6550) {
+  throw "Unexpected MD single standard deduction (should include personal exemption)"
+}
+if ($states.states.MO.income_tax_type -ne "progressive") {
+  throw "Missouri must be income_tax_type progressive"
+}
+if ($states.states.MO.brackets.single[0].rate -ne 0) {
+  throw "Unexpected MO first bracket rate (should be 0)"
+}
+if ($states.states.MO.brackets.single[-1].rate -ne 0.047) {
+  throw "Unexpected MO top rate"
+}
+if ($states.states.MT.income_tax_type -ne "progressive") {
+  throw "Montana must be income_tax_type progressive"
+}
+if ($states.states.MT.brackets.single[-1].rate -ne 0.059) {
+  throw "Unexpected MT top rate"
+}
+if ($states.states.MT.brackets.married_filing_jointly[0].up_to -ne 42200) {
+  throw "Unexpected MT MFJ first bracket cap"
+}
+if ($states.states.NE.income_tax_type -ne "progressive") {
+  throw "Nebraska must be income_tax_type progressive"
+}
+if ($states.states.NE.brackets.single[-1].rate -ne 0.052) {
+  throw "Unexpected NE top rate"
+}
+if ($states.states.NE.tax_base.standard_deduction.single -ne 8600) {
+  throw "Unexpected NE single standard deduction"
+}
+
 if ($states.states.CA.tax_base.standard_deduction.single -ne 5706) {
   throw "Unexpected CA single standard deduction"
 }

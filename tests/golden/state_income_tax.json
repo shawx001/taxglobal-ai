@@ -494,6 +494,71 @@
       }
     },
     {
+      "name": "al_progressive_100k",
+      "input": {
+        "state_code": "AL",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 4960.0,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "ct_progressive_100k",
+      "input": {
+        "state_code": "CT",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 4750.0,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "dc_progressive_100k",
+      "input": {
+        "state_code": "DC",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 6900.0,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "mn_progressive_100k",
+      "input": {
+        "state_code": "MN",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 6327.74,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
+      "name": "wi_progressive_100k",
+      "input": {
+        "state_code": "WI",
+        "taxable_income": 100000,
+        "filing_status": "single"
+      },
+      "expected": {
+        "status": "ok",
+        "tax": 4903.55,
+        "income_tax_type": "progressive"
+      }
+    },
+    {
       "name": "il_flat",
       "input": {
         "state_code": "IL",

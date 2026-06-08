@@ -99,8 +99,8 @@ class TestVectorSearch(unittest.TestCase):
             search.vector_search("California tax", filters={"jurisdiction": "CA", "tax_year": 2026})
 
         where = collection.query.call_args.kwargs["where"]
-        self.assertEqual(where["$and"][0], {"$or": [{"jurisdiction": "CA"}, {"jurisdiction": "US"}]})
-        self.assertEqual(where["$and"][1], {"tax_year": 2026})
+        self.assertIn({"$or": [{"jurisdiction": "CA"}, {"jurisdiction": "US"}]}, where["$and"])
+        self.assertIn({"tax_year": 2026}, where["$and"])
 
 
 class TestGraphSearch(unittest.TestCase):

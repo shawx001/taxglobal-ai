@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, Query, Request
 
-from backend.knowledge.search import MAX_TOP_K, hybrid_search
+from backend.knowledge.search import DEFAULT_TOP_K, MAX_TOP_K, hybrid_search
 
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 
@@ -18,7 +18,7 @@ def search_knowledge(
     jurisdiction: str | None = Query(None, max_length=10, description="Filter by jurisdiction code"),
     topic: str | None = Query(None, max_length=100, description="Filter by topic"),
     tax_year: int | None = Query(None, ge=2020, le=2030, description="Filter by tax year"),
-    top_k: int = Query(5, ge=1, le=MAX_TOP_K, description="Max results to return"),
+    top_k: int = Query(DEFAULT_TOP_K, ge=1, le=MAX_TOP_K, description="Max results to return"),
 ) -> dict[str, Any]:
     """Hybrid knowledge search: vector similarity + graph traversal."""
 

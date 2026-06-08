@@ -13,14 +13,14 @@ US-first 报税计算/合规 MVP,真实上线导向(高并发、极敏 PII、数
 - **模块化包** `engine/`:`money / responses / filing / brackets / dates / federal / payroll / qbi / feie / state / crypto / rsu / nexus / summary` + `__init__`(公共门面)+ `tax_engine.py`(legacy shim)+ `rules_loader`。
 - **税年数据** `data/tax_years/2025/` 与 `2026/`;**默认 tax_year=2026**(2025 保留,可传参回溯)。每数可溯(source_manifest + 归档原件)。
 - **`income_tax_summary`**(合并计税):W-2 + 自雇(共享SS基数/合并AddlMedicare)+ 其它普通 + 短/长期资本利得(QDCGT 叠加)+ QBI(§199A,含 2026 phase-in)+ NIIT(含 FEIE 加回)+ **FEIE 税率叠加(对普通税与资本利得都垫底)** + 州税。
-- **州覆盖(28 effective)**:CA/NY/OR/MS(累进)、GA/IL/CO/AZ/ID/IN/IA/KY/LA/MI/NC/UT/MA(flat)、**WA(资本利得 excise)**、**NJ(gross-income 累进+门槛+免税额)**、**PA(flat 3.07% gross)**、FL/NV/AK/NH/SD/TN/WY/TX(无税)。MA 含 4% millionaire surtax。
+- **州覆盖(37 effective)**:CA/NY/OR/MS/AR/DE/HI/KS/ME/MD/MO/MT/NE(累进)、GA/IL/CO/AZ/ID/IN/IA/KY/LA/MI/NC/UT/MA(flat)、**WA(资本利得 excise)**、**NJ(gross-income 累进+门槛+免税额)**、**PA(flat 3.07% gross)**、FL/NV/AK/NH/SD/TN/WY/TX(无税)。MA 含 4% millionaire surtax。
 - 其它引擎函数:`federal_income_tax / fica_tax / self_employment_tax / qbi_deduction / feie_estimate / state_income_tax / crypto_gain_estimate / rsu_tax_estimate / nexus_estimate`。
 - **前端**:`frontend/index.html`(vanilla SPA)——profile 单一真相源(localStorage)+ 合并总览一次调 `/calc/income-summary`;根 `index.html` 冻结。
 
 ## 3. 当前进度 / 下一步
-- **刚完成**:Step C2(flat 州 AZ/ID/IN/IA/KY/LA/MI/MS/NC/UT + 激活 MA w/ surtax)。引擎新增 surtax 路径。17→28 effective。
-- **州覆盖**:28 effective(CA/NY/OR/MS 累进 + GA/IL/CO/AZ/ID/IN/IA/KY/LA/MI/NC/UT/MA flat + WA-excise/NJ/PA + FL/NV/AK/NH/SD/TN/WY/TX 无税)。
-- **50 州计划**:见 `docs/step_c_all_states_plan.md`。下一批 C3a(progressive 前半: AR/DE/HI/KS/ME/MD/MO/MT/NE)→ C3b(progressive 后半)→ C4(complex)。
+- **刚完成**:Step C3a(progressive 前半 AR/DE/HI/KS/ME/MD/MO/MT/NE)。28→37 effective。无引擎改动。
+- **州覆盖**:37 effective(CA/NY/OR/MS/AR/DE/HI/KS/ME/MD/MO/MT/NE 累进 + GA/IL/CO/AZ/ID/IN/IA/KY/LA/MI/NC/UT/MA flat + WA-excise/NJ/PA + FL/NV/AK/NH/SD/TN/WY/TX 无税)。
+- **50 州计划**:见 `docs/step_c_all_states_plan.md`。下一批 C3b(progressive 后半: NM/ND/OH/OK/RI/SC/VA/VT/WV)→ C4(complex: AL/CT/DC/MN/WI)。
 - **deferred**:deepcopy 规则数据性能优化(per"先把 function 搞出来再调优")。
 - **下一步**:完成 C2-C4 → 51 税区全覆盖 → M1 正式关闭 → **M2(LangChain Agent + 18 Skills + GraphRAG 知识库)**。
 

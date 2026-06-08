@@ -269,7 +269,10 @@ class TestSearchDataIntegrity(unittest.TestCase):
 
     def test_source_manifest_has_urls(self):
         referenced = {source_id for item in self.items for source_id in item["source_ids"]}
-        missing = [source_id for source_id in sorted(referenced) if not self.sources[source_id].get("source_url")]
+        missing = [
+            source_id for source_id in sorted(referenced)
+            if source_id not in self.sources or not self.sources[source_id].get("source_url")
+        ]
         self.assertEqual(missing, [])
 
     def test_minimum_topic_diversity(self):

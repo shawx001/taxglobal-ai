@@ -54,15 +54,15 @@ def vector_search(
     """Semantic similarity search via Chroma."""
 
     if not vector_store.is_chroma_available():
-        logger.warning("Chroma unavailable; vector search skipped")
+        logger.debug("Chroma unavailable; vector search skipped")
         return []
     if not embedder.is_embedder_available():
-        logger.warning("Embedder unavailable; vector search skipped")
+        logger.debug("Embedder unavailable; vector search skipped")
         return []
 
     collection = vector_store.get_collection()
     if collection is None:
-        logger.warning("Chroma collection unavailable; vector search skipped")
+        logger.debug("Chroma collection unavailable; vector search skipped")
         return []
 
     try:
@@ -119,7 +119,7 @@ def graph_search(knowledge_ids: list[str]) -> dict[str, dict[str, Any]]:
     if not knowledge_ids:
         return {}
     if not neo4j_client.is_neo4j_available():
-        logger.warning("Neo4j unavailable; graph expansion skipped")
+        logger.debug("Neo4j unavailable; graph expansion skipped")
         return {}
 
     cypher = """
@@ -188,7 +188,11 @@ def _fallback_sources(metadata: dict[str, Any]) -> list[dict[str, Any]]:
         source_ids = raw_source_ids
     else:
         source_ids = []
-    return [{"source_id": source_id, "title": None, "url": None, "publisher": None} for source_id in source_ids]
+    return [
+        {"source_id": source_id, "title": None, "url": None, "publisher": None}
+        for source_id in source_ids
+        if source_id
+    ]
 
 
 def _retrieval_method(vector_hits: list[dict[str, Any]], graph_expansions: dict[str, dict[str, Any]]) -> str:

@@ -7,6 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.schemas import FilingStatus
 from backend.skills.base import TaxSkill
 from engine import income_tax_summary
 
@@ -25,7 +26,7 @@ class IncomeTaxInput(BaseModel):
     modified_agi: Decimal | None = Field(default=None, ge=0)
     foreign_earned_income: Decimal = Field(default=Decimal("0"), ge=0)
     days_abroad: int = Field(default=0, ge=0, le=366)
-    filing_status: str = "single"
+    filing_status: FilingStatus = "single"
     state_code: str | None = Field(default=None, min_length=2, max_length=2)
     se_health_insurance: Decimal = Field(default=Decimal("0"), ge=0)
     retirement_contributions: Decimal = Field(default=Decimal("0"), ge=0)

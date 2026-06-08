@@ -66,13 +66,13 @@ class TaxSkill(BaseTool):
 
     def _run(self, **kwargs: Any) -> dict[str, Any]:
         """Validate -> call engine -> wrap result."""
-        engine_result = self._execute_engine(kwargs)
-        return {
-            "status": engine_result.get("status", "ok"),
-            "result": engine_result,
-            "source_attribution": self.source_attribution,
-            "engine_function": self.engine_function_name,
-        }
+        engine_result = self._execute_engine(_plain_value(kwargs))
+        return TaxSkillResult(
+            status=engine_result.get("status", "ok"),
+            result=engine_result,
+            source_attribution=self.source_attribution,
+            engine_function=self.engine_function_name,
+        ).model_dump()
 
     @abstractmethod
     def _execute_engine(self, params: dict[str, Any]) -> dict[str, Any]:
@@ -81,8 +81,11 @@ class TaxSkill(BaseTool):
 
 Key design decisions:
 - `_run` (sync) not `_arun` — engine functions are CPU-bound pure functions, not async I/O. LangChain calls `_run` in a thread pool when invoked from async context.
+- `_plain_value()` recursively converts Pydantic `BaseModel` instances (from LangChain validation) into plain dicts/lists before passing to the engine. Without this, nested models (e.g., RSU `sale_scenario`, crypto `lots`) would be passed as Pydantic objects which engine functions can't unpack.
 - `ClassVar` for `source_attribution` and `engine_function_name` — these are class-level metadata, not per-instance Pydantic fields (avoids LangChain field conflicts).
 - The output envelope `{status, result, source_attribution, engine_function}` gives downstream consumers (Guardrail in M2.6, LangGraph in M2.7) everything they need to verify the amount came from the engine.
+- Monetary fields use `Decimal` (not `float`) for lossless precision at the Skill input boundary. The engine handles Decimal→internal conversion via `_decimal_input()`.
+- `filing_status` uses the `FilingStatus` Literal type from `backend/schemas.py` for defense-in-depth validation (9 valid values only).
 
 ## Section 2: Five Engine Skills
 
@@ -95,10 +98,12 @@ Wraps `engine.income_tax_summary`. This is the most complex Skill (W-2 + self-em
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
+from backend.schemas import FilingStatus
 from backend.skills.base import TaxSkill
 from engine import income_tax_summary
 
@@ -106,30 +111,32 @@ from engine import income_tax_summary
 class IncomeTaxInput(BaseModel):
     """Input schema for income tax calculation."""
 
-    tax_year: int = Field(default=2026, ge=2020, le=2030)
-    filing_status: str = "single"
+    model_config = ConfigDict(extra="forbid")
+
+    tax_year: int = Field(default=2026, ge=2025)
+    filing_status: FilingStatus = "single"
     # Earned income
-    w2_wages: float = Field(default=0, ge=0)
-    net_self_employment_profit: float = Field(default=0, ge=0)
-    other_ordinary_income: float = Field(default=0, ge=0)
+    w2_wages: Decimal = Field(default=Decimal("0"), ge=0)
+    net_self_employment_profit: Decimal = Field(default=Decimal("0"), ge=0)
+    other_ordinary_income: Decimal = Field(default=Decimal("0"), ge=0)
     # Capital gains
-    long_term_capital_gain: float = Field(default=0, ge=0)
-    short_term_capital_gain: float = Field(default=0, ge=0)
+    long_term_capital_gain: Decimal = Field(default=Decimal("0"), ge=0)
+    short_term_capital_gain: Decimal = Field(default=Decimal("0"), ge=0)
     # FEIE
-    foreign_earned_income: float = Field(default=0, ge=0)
+    foreign_earned_income: Decimal = Field(default=Decimal("0"), ge=0)
     days_abroad: int = Field(default=0, ge=0, le=366)
     # Deductions
-    se_health_insurance: float = Field(default=0, ge=0)
-    retirement_contributions: float = Field(default=0, ge=0)
-    deduction: float | None = Field(default=None, ge=0)
+    se_health_insurance: Decimal = Field(default=Decimal("0"), ge=0)
+    retirement_contributions: Decimal = Field(default=Decimal("0"), ge=0)
+    deduction: Decimal | None = Field(default=None, ge=0)
     # QBI
-    qbi_w2_wages: float = Field(default=0, ge=0)
-    qbi_ubia: float = Field(default=0, ge=0)
+    qbi_w2_wages: Decimal = Field(default=Decimal("0"), ge=0)
+    qbi_ubia: Decimal = Field(default=Decimal("0"), ge=0)
     is_sstb: bool = False
     # State
     state_code: str | None = Field(default=None, min_length=2, max_length=2)
     # MAGI override
-    modified_agi: float | None = Field(default=None, ge=0)
+    modified_agi: Decimal | None = Field(default=None, ge=0)
 
 
 class CalculateIncomeTax(TaxSkill):
@@ -152,8 +159,10 @@ Wraps `engine.feie_estimate`.
 
 ```python
 class FeieInput(BaseModel):
-    tax_year: int = Field(default=2026, ge=2020, le=2030)
-    foreign_earned_income: float = Field(ge=0)
+    model_config = ConfigDict(extra="forbid")
+
+    tax_year: int = Field(default=2026, ge=2025)
+    foreign_earned_income: Decimal = Field(ge=0)
     days_abroad: int = Field(ge=0, le=366)
 
 

@@ -7,6 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.schemas import FilingStatus
 from backend.skills.base import TaxSkill
 from engine import rsu_tax_estimate
 
@@ -29,7 +30,7 @@ class RsuInput(BaseModel):
     shares_vested: Decimal = Field(gt=0)
     fmv_per_share: Decimal = Field(ge=0)
     vest_date: str = Field(min_length=10)
-    filing_status: str = "single"
+    filing_status: FilingStatus = "single"
     other_taxable_income: Decimal = Field(default=Decimal("0"), ge=0)
     sale_scenario: RsuSaleInput | None = None
 

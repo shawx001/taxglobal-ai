@@ -246,11 +246,11 @@ class TestSkillRoutes(unittest.TestCase):
     def test_invoke_skill_engine_invalid_input_returns_422(self) -> None:
         with patch(
             "backend.skills.calculate_income_tax.income_tax_summary",
-            return_value={"status": "invalid_input", "reason": "Unsupported filing status"},
+            return_value={"status": "invalid_input", "reason": "Negative income"},
         ):
             response = self.client.post(
                 "/api/skills/calculate_income_tax",
-                json={"w2_wages": 120000, "filing_status": "bad_status", "tax_year": 2026},
+                json={"w2_wages": 120000, "filing_status": "single", "tax_year": 2026},
             )
 
         self.assertEqual(response.status_code, 422)
@@ -265,6 +265,27 @@ class TestSkillRoutes(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.json()["error"]["code"], "unsupported_tax_year")
+
+    def test_invoke_skill_unexpected_error_returns_500(self) -> None:
+        with patch(
+            "backend.skills.assess_feie.feie_estimate",
+            side_effect=RuntimeError("unexpected engine failure"),
+        ):
+            response = self.client.post(
+                "/api/skills/assess_feie",
+                json={"foreign_earned_income": 120000, "days_abroad": 335, "tax_year": 2026},
+            )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.json()["error"]["code"], "internal_error")
+
+    def test_invoke_skill_invalid_filing_status_returns_422(self) -> None:
+        response = self.client.post(
+            "/api/skills/calculate_income_tax",
+            json={"w2_wages": 120000, "filing_status": "bad_status", "tax_year": 2026},
+        )
+
+        self.assertEqual(response.status_code, 422)
 
     def test_existing_calc_routes_unaffected(self) -> None:
         response = self.client.post(

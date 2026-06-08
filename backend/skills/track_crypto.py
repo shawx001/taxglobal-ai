@@ -7,6 +7,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.schemas import FilingStatus
 from backend.skills.base import TaxSkill
 from engine import crypto_gain_estimate
 
@@ -42,7 +43,7 @@ class CryptoInput(BaseModel):
     lots: list[CryptoLotInput] = Field(min_length=1, max_length=1000)
     disposals: list[CryptoDisposalInput] = Field(min_length=1, max_length=1000)
     method: Literal["FIFO", "LIFO", "HIFO", "fifo", "lifo", "hifo"] = "FIFO"
-    filing_status: str = "single"
+    filing_status: FilingStatus = "single"
     other_taxable_income: Decimal = Field(default=Decimal("0"), ge=0)
     modified_agi: Decimal | None = Field(default=None, ge=0)
     state_code: str | None = Field(default=None, min_length=2, max_length=2)

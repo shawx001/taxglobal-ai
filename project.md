@@ -1,7 +1,7 @@
 # PROJECT.md — TaxGlobal AI 实时工作状态(续接入口)
 
 > 用途:上下文丢失也能无缝续接。**新对话先读本文件**,再按需读下方"续接读取顺序"。
-> 维护:每完成一步由 Claude 更新本文件的"当前进度 / 下一步"。最后更新:2026-06-08。
+> 维护:每完成一步由 Claude 更新本文件的"当前进度 / 下一步"。最后更新:2026-06-08（M2 启动）。
 
 ## 0. 一句话
 US-first 报税计算/合规 MVP,真实上线导向(高并发、极敏 PII、数据不出境、税季尖峰)。**#1 原则:数值精确到分 + 税率只来自版本化数据 + 可溯官方源。**
@@ -21,7 +21,7 @@ US-first 报税计算/合规 MVP,真实上线导向(高并发、极敏 PII、数
 - **M1 正式关闭（2026-06-07）**:PR #40 deepcopy→freeze 优化已合并；PR #41 前端 50 州+DC 动态下拉已合并；PR #43 文档更新。
 - **州覆盖**:51 effective = 28 progressive + 14 flat + 9 none。全部 50 州 + DC 完成。
 - **50 州计划**:`docs/step_c_all_states_plan.md` 所有批次 C1–C4 完成。
-- **下一步**:→ **M2（LangChain Agent + 18 Skills + GraphRAG 知识库）**。
+- **当前**:→ **M2（Agent + 知识层）已启动**。技术栈:Neo4j(图谱) + Chroma(向量) + sentence-transformers(本地 embedding) + LangChain/LangGraph(编排) + PostgreSQL(业务)。步骤计划见 `docs/m2_step_plan.md`(10 步,当前 M2.1)。
 
 ## 4. 协作 & 规则(详见 `/AGENTS.md`)
 - 分工:**Shaw** 拍板;**Codex** 主实现+开 PR;**Claude** 规划/设计文档/逐行 review + **独立逐分重算** + 官方源交叉核 + 多智能体审查矩阵 + **review 通过无问题直接 merge**。

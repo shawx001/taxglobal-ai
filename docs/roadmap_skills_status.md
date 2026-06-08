@@ -2,7 +2,7 @@
 
 > 目的:让"我们现在在哪、18 Skills 做到哪"始终可见,不再"看不到"。
 > 依据:`TaxGlobal_AI_项目计划书_v3.1.md`(M0–M5 里程碑 + 18 Skills 架构)。
-> 维护:每完成一步由 Claude 更新本表 + `feature_status.md`。最后更新:2026-06-07（M1 正式关闭）。
+> 维护:每完成一步由 Claude 更新本表 + `feature_status.md`。最后更新:2026-06-08（M2 启动）。
 
 ## 一、里程碑路线图(M0–M5)与当前位置
 
@@ -10,7 +10,7 @@
 |---|---|---|---|
 | **M0 原型** | — | 高保真可交互原型,全流程可点可算 | ✅ 已完成 |
 | **M1 引擎硬化** | 第 1–3 周 | tax-engine 后端服务 + 黄金测试集 + CI;前后端结果一致 | ✅ **已完成并正式关闭（2026-06-07）** |
-| **M2 Agent + 知识层** | 第 3–5 周 | **18 Skills**(LangChain 编排)+ GraphRAG(MVP) | 🔲 未开始(依赖 M1 + KB) |
+| **M2 Agent + 知识层** | 第 3–5 周 | **18 Skills**(LangChain 编排)+ GraphRAG(MVP) | 🟡 **进行中**(步骤计划 `docs/m2_step_plan.md`,10 步) |
 | **M3 连接器 + 多模态** | 第 5–7 周 | OAuth、Shopify/Amazon 真连、Qwen-VL W-2 识别、自有 Copilot 模型 | 🔲 未开始 |
 | **M4 训练闭环** | 第 7–8 周 | Trace 回流 + LoRA + Eval Harness | 🔲 未开始 |
 | **M5 合规与上线** | 第 9–10 周 | 安全/合规/可观测 + Demo 联调 | 🔲 未开始 |

@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "retrieved_at": "2026-06-03",
+  "retrieved_at": "2026-06-08",
   "sources": [
     {
       "source_id": "irs_rp_2025_32",
@@ -35,6 +35,541 @@
       ],
       "status": "source_verified_raw_fetch_blocked",
       "notes": "SSA page reports the 2026 contribution and benefit base as $184,500. Raw archival fetch was blocked by SSA edge access controls; value was verified against the official SSA page via search/open tooling."
+    },
+    {
+      "source_id": "irs_pub_17",
+      "title": "IRS Publication 17: Your Federal Income Tax",
+      "source_url": "https://www.irs.gov/publications/p17",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "federal_income_tax",
+        "deductions",
+        "credits"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_17.html",
+      "content_hash": "09159C14F1BE00B8D2E14B6684FEF0DFA8C3D8AA3FC38E0ACF33D1C27D5389A3"
+    },
+    {
+      "source_id": "irs_pub_501",
+      "title": "IRS Publication 501: Dependents, Standard Deduction, and Filing Information",
+      "source_url": "https://www.irs.gov/publications/p501",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "filing_status",
+        "standard_deduction",
+        "dependents"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_501.html",
+      "content_hash": "2D66F4A593A56DAD15BE57A0DA960CD84C95F43559FCC125AADE24CE78A285E4"
+    },
+    {
+      "source_id": "irs_pub_54",
+      "title": "IRS Publication 54: Tax Guide for U.S. Citizens and Resident Aliens Abroad",
+      "source_url": "https://www.irs.gov/publications/p54",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "foreign_income",
+        "feie",
+        "foreign_tax_credit"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_54.html",
+      "content_hash": "46412C33B184A1975DBDB4D95EA0532674585A50AE78A347EFAE108F4BA68A9B"
+    },
+    {
+      "source_id": "irs_form_2555",
+      "title": "IRS Form 2555: Foreign Earned Income",
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-2555",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "feie",
+        "housing_exclusion"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_form_2555.html",
+      "content_hash": "003F0307D34D3953A1F3BE8F3E4C2A82119F8E8D2B81D294B06F828A054F2A51"
+    },
+    {
+      "source_id": "irs_form_1116",
+      "title": "IRS Form 1116: Foreign Tax Credit",
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-1116",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "foreign_tax_credit"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_form_1116.html",
+      "content_hash": "3C0EC0A726390E7C67A2A5825DB184B04EC47EE69A9F46A2D4C7E34C9F548111"
+    },
+    {
+      "source_id": "irs_pub_505",
+      "title": "IRS Publication 505: Tax Withholding and Estimated Tax",
+      "source_url": "https://www.irs.gov/publications/p505",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "estimated_tax",
+        "withholding",
+        "deadlines"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_505.html",
+      "content_hash": "FD716D576377D064F24E53E9E999439779B319A93DC6A682B04E8B8950B98C48"
+    },
+    {
+      "source_id": "irs_form_4868",
+      "title": "IRS Form 4868: Application for Automatic Extension of Time To File",
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-4868",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "extension",
+        "deadlines"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_form_4868.html",
+      "content_hash": "14F4CDE3AD3785AC8CEFECF71A705A1CCE97D5D63187A56F1736E221A46624F1"
+    },
+    {
+      "source_id": "irs_w2_w3",
+      "title": "IRS General Instructions for Forms W-2 and W-3",
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-w-2",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "information_returns",
+        "deadlines"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_w2_w3.html",
+      "content_hash": "0E5C5EAF4FD387213549CB98BD29D408BA0B83670F9844805BEB94BA7F9B9648"
+    },
+    {
+      "source_id": "irs_1099_general",
+      "title": "IRS General Instructions for Certain Information Returns",
+      "source_url": "https://www.irs.gov/instructions/i1099gi",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "information_returns",
+        "deadlines"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_1099_general.html",
+      "content_hash": "7C67FE4ACA988234840BDE777C89C3E983595C77F5E1B77D013CBA0EB1B69E2D"
+    },
+    {
+      "source_id": "irs_topic_409",
+      "title": "IRS Topic No. 409: Capital Gains and Losses",
+      "source_url": "https://www.irs.gov/taxtopics/tc409",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "capital_gains"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_topic_409.html",
+      "content_hash": "4488CC585BD122A8C85ED2FEFFDBF159B6FF4A819CC175BC269F541EA3CB3951"
+    },
+    {
+      "source_id": "irs_topic_560",
+      "title": "IRS Topic No. 560: Additional Medicare Tax",
+      "source_url": "https://www.irs.gov/taxtopics/tc560",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "additional_medicare_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_topic_560.html",
+      "content_hash": "0DF332F6AF4F9440EE670C2D5AFF7F65A1B1B420DD3E69F39E1F35353244E184"
+    },
+    {
+      "source_id": "irs_topic_751",
+      "title": "IRS Topic No. 751: Social Security and Medicare Withholding Rates",
+      "source_url": "https://www.irs.gov/taxtopics/tc751",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "fica",
+        "payroll"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_topic_751.html",
+      "content_hash": "DBA917AA2E301BDCC3E96E95E359109D66C1F786F65C165A124602802B6059B2"
+    },
+    {
+      "source_id": "irs_pub_970",
+      "title": "IRS Publication 970: Tax Benefits for Education",
+      "source_url": "https://www.irs.gov/publications/p970",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "education_credits",
+        "student_loan_interest"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_970.html",
+      "content_hash": "85CDD965A91DFD220816335CF947D66230C642056F59953A85D01DA55F9D79A0"
+    },
+    {
+      "source_id": "irs_pub_590a",
+      "title": "IRS Publication 590-A: Contributions to Individual Retirement Arrangements",
+      "source_url": "https://www.irs.gov/publications/p590a",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "ira",
+        "retirement"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_590a.html",
+      "content_hash": "5AA0A4784CEFB3859BF965DC4AF69B6F8AADC2EAFDEAE660F0588BD124CFF4BC"
+    },
+    {
+      "source_id": "irs_pub_596",
+      "title": "IRS Publication 596: Earned Income Credit",
+      "source_url": "https://www.irs.gov/publications/p596",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "eitc"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_596.html",
+      "content_hash": "50EE7738CC46846692D13F3CDD4A87042C42515550208FAD0A9BF6D51FFF1FA0"
+    },
+    {
+      "source_id": "irs_pub_525",
+      "title": "IRS Publication 525: Taxable and Nontaxable Income",
+      "source_url": "https://www.irs.gov/publications/p525",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "income",
+        "rsu",
+        "stock_compensation"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_525.html",
+      "content_hash": "9DDCDF999FDDEF9790A1F4E40D61F01B1F9389FE62E5B9EDB7FAB99439A875AB"
+    },
+    {
+      "source_id": "irs_schedule_se_instructions",
+      "title": "IRS Instructions for Schedule SE",
+      "source_url": "https://www.irs.gov/forms-pubs/about-schedule-se-form-1040",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "self_employment_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_schedule_se_instructions.html",
+      "content_hash": "A6072610BA05BE36CADD0FF790B6E3BCA397929F12CDA2A5EB48CFBDACD26CF1"
+    },
+    {
+      "source_id": "irs_digital_assets",
+      "title": "IRS Digital Assets Tax Guidance",
+      "source_url": "https://www.irs.gov/businesses/small-businesses-self-employed/digital-assets",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "crypto",
+        "digital_assets"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_digital_assets.html",
+      "content_hash": "707CE446ECACF833F7E252BB847FF89C210DADF53BC0244148C38B95C8A7633A"
+    },
+    {
+      "source_id": "irs_form_1099_da",
+      "title": "IRS Form 1099-DA: Digital Asset Proceeds From Broker Transactions",
+      "source_url": "https://www.irs.gov/forms-pubs/about-form-1099-da",
+      "source_type": "html",
+      "publisher": "Internal Revenue Service",
+      "tax_year": 2026,
+      "jurisdiction": "US",
+      "topics": [
+        "crypto",
+        "information_returns"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\irs_form_1099_da.html",
+      "content_hash": "CC6B95540EDB818B0944D67BDCCD35C9FB816FDE1D74FE4166570E975CA0F793"
+    },
+    {
+      "source_id": "ca_2025_540_tax_rate_schedules",
+      "title": "California 2025 Form 540 Tax Rate Schedules",
+      "source_url": "https://www.ftb.ca.gov/forms/2025/2025-540-tax-rate-schedules.pdf",
+      "source_type": "html",
+      "publisher": "California Franchise Tax Board",
+      "tax_year": 2025,
+      "jurisdiction": "CA",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived",
+      "local_path": "data/sources/us/2025/raw/ca_2025_540_tax_rate_schedules.pdf",
+      "content_hash": "AD70EE345AA7DAF5788B64419E04280C76FBEBD0C15856820CCEA71F3534A8C6"
+    },
+    {
+      "source_id": "ny_2025_it201_instructions",
+      "title": "New York 2025 IT-201 Instructions",
+      "source_url": "https://www.tax.ny.gov/forms/current-forms/it/it201i.htm",
+      "source_type": "html",
+      "publisher": "New York State Department of Taxation and Finance",
+      "tax_year": 2025,
+      "jurisdiction": "NY",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\ny_2025_it201_instructions.html",
+      "content_hash": "DFA21A339B492114AAA5BD307A6D3E725B7C997127BE36756E8D964E9437166E"
+    },
+    {
+      "source_id": "ma_dor_millionaire_surtax",
+      "title": "Massachusetts 4% Surtax on Taxable Income Over $1,000,000",
+      "source_url": "https://www.mass.gov/info-details/massachusetts-tax-rates",
+      "source_type": "html",
+      "publisher": "Massachusetts Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "MA",
+      "topics": [
+        "state_income_tax",
+        "surtax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\ma_dor_millionaire_surtax.html",
+      "content_hash": "FAFFB40B2FBDA0ECAFDE366FF55D848F776F392E08C13DFA7F3F276E0B7FB330"
+    },
+    {
+      "source_id": "nj_dor_tax_rate_schedules_2025",
+      "title": "New Jersey 2025 Gross Income Tax Rate Schedules",
+      "source_url": "https://www.nj.gov/treasury/taxation/njit14.shtml",
+      "source_type": "html",
+      "publisher": "New Jersey Division of Taxation",
+      "tax_year": 2025,
+      "jurisdiction": "NJ",
+      "topics": [
+        "state_income_tax",
+        "gross_income"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\nj_dor_tax_rate_schedules_2025.html",
+      "content_hash": "C300B4C7E8ED5FCECF5D3A7B00639AD2FAD1926F1EC29F6C6D82A5F8EC0BED8B"
+    },
+    {
+      "source_id": "wa_dor_capital_gains_excise",
+      "title": "Washington Capital Gains Tax",
+      "source_url": "https://dor.wa.gov/taxes-rates/other-taxes/capital-gains-tax",
+      "source_type": "html",
+      "publisher": "Washington Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "WA",
+      "topics": [
+        "capital_gains",
+        "state_excise"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\wa_dor_capital_gains_excise.html",
+      "content_hash": "E86BC6EA635DE6BC40C31666E1C86A241BA718CCE44ABF57AC6A445312433AA3"
+    },
+    {
+      "source_id": "or_dor_or40_2025",
+      "title": "Oregon 2025 Form OR-40 Instructions",
+      "source_url": "https://www.oregon.gov/dor/forms/FormsPubs/form-or-40-inst_101-040-1_2025.pdf",
+      "source_type": "pdf",
+      "publisher": "Oregon Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "OR",
+      "topics": [
+        "state_income_tax",
+        "federal_tax_subtraction"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\or_dor_or40_2025.pdf",
+      "content_hash": "4EE45BAD719499E2B69977B0DB15DE75ED063AC631B151FDEFE3DB081FA1EAEB"
+    },
+    {
+      "source_id": "il_dor_income_tax_rate",
+      "title": "Illinois 2025 Individual Income Tax What's New",
+      "source_url": "https://tax.illinois.gov/forms/incometax/currentyear/individual/il-1040-instr/what-is-new.html",
+      "source_type": "html",
+      "publisher": "Illinois Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "IL",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived_redacted",
+      "notes": "Page snapshot redacts a Mapbox public token embedded in the official HTML template. Tax content is otherwise retained.",
+      "local_path": "data/sources/us/2025/raw/il_2025_individual_income_tax_whats_new.html",
+      "content_hash": "6C435D20C12AA4857CD1AE4EE7D6B199A479B57F031969AF9151CE6FAF96FD20"
+    },
+    {
+      "source_id": "pa_dor_pit_rate",
+      "title": "Pennsylvania Personal Income Tax",
+      "source_url": "https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/personal-income-tax.html",
+      "source_type": "html",
+      "publisher": "Pennsylvania Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "PA",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\pa_dor_pit_rate.html",
+      "content_hash": "DA78A9EAD816A1988F00F8C05AA0263D8CAD2F822DC2D983A6F95661ACD82248"
+    },
+    {
+      "source_id": "tx_comptroller_no_income_tax",
+      "title": "Texas Taxes",
+      "source_url": "https://comptroller.texas.gov/taxes/",
+      "source_type": "html",
+      "publisher": "Texas Comptroller of Public Accounts",
+      "tax_year": 2025,
+      "jurisdiction": "TX",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\tx_comptroller_no_income_tax.html",
+      "content_hash": "79FF52E80CF1C95A0000612E16D0F340C08EE23D48C2250FF7043E5E62E914B6"
+    },
+    {
+      "source_id": "fl_dor_no_personal_income_tax",
+      "title": "Florida Tax Information",
+      "source_url": "https://floridarevenue.com/taxes/",
+      "source_type": "html",
+      "publisher": "Florida Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "FL",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\fl_dor_no_personal_income_tax.html",
+      "content_hash": "7316F93ACE8546AC13A39E5D5FCE2E309C1CB6DF1AE15D5A01F560F1683D7B68"
+    },
+    {
+      "source_id": "nv_dor_no_personal_income_tax",
+      "title": "Nevada Department of Taxation",
+      "source_url": "https://tax.nv.gov/",
+      "source_type": "html",
+      "publisher": "Nevada Department of Taxation",
+      "tax_year": 2025,
+      "jurisdiction": "NV",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\nv_dor_no_personal_income_tax.html",
+      "content_hash": "4611ECAF423C1F05CCD649890558FAE5A3DF48A0C774AC32473E499E616831AC"
+    },
+    {
+      "source_id": "wy_dor_no_personal_income_tax",
+      "title": "Wyoming Department of Revenue",
+      "source_url": "https://revenue.wyo.gov/",
+      "source_type": "html",
+      "publisher": "Wyoming Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "WY",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\wy_dor_no_personal_income_tax.html",
+      "content_hash": "1688DD8C96A322BA637A1B89CE8EBC88C9D7E5D8AAFB241FFEBCEB2F589DE0DF"
+    },
+    {
+      "source_id": "ct_drs_income_tax",
+      "title": "Connecticut Income Tax Information",
+      "source_url": "https://portal.ct.gov/drs/individuals/individual-income-tax",
+      "source_type": "html",
+      "publisher": "Connecticut Department of Revenue Services",
+      "tax_year": 2025,
+      "jurisdiction": "CT",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\ct_drs_income_tax.html",
+      "content_hash": "97D45281D205C93540920B00B7540CD8ADF0B57CE6A21A13FDB10B5093A9EF0F"
+    },
+    {
+      "source_id": "hi_dor_income_tax",
+      "title": "Hawaii Individual Income Tax Forms and Instructions",
+      "source_url": "https://tax.hawaii.gov/forms/",
+      "source_type": "html",
+      "publisher": "Hawaii Department of Taxation",
+      "tax_year": 2025,
+      "jurisdiction": "HI",
+      "topics": [
+        "state_income_tax"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\hi_dor_income_tax.html",
+      "content_hash": "E1989E60107A1E6E94C7FC691DF13EFECF69FEBC7D08F9F18CF8C7D79847E73F"
+    },
+    {
+      "source_id": "ny_dtf_residency",
+      "title": "New York Residency and Nonresidency",
+      "source_url": "https://www.tax.ny.gov/pit/file/pit_definitions.htm",
+      "source_type": "html",
+      "publisher": "New York State Department of Taxation and Finance",
+      "tax_year": 2025,
+      "jurisdiction": "NY",
+      "topics": [
+        "residency",
+        "multistate"
+      ],
+      "status": "archived",
+      "local_path": "data\\sources\\us\\2026\\raw\\ny_dtf_residency.html",
+      "content_hash": "F17D07EC4503BCCEA6AE004557DB7F308B15E34197C6CABAD3AE21573031A125"
     }
   ]
 }

@@ -122,6 +122,17 @@
       }
     },
     {
+      "name": "or_single_taxable_88665",
+      "input": {"state_code": "OR", "taxable_income": 88665, "filing_status": "single"},
+      "expected": {
+        "status": "ok",
+        "income_tax_type": "progressive",
+        "tax": 7448.19,
+        "citation_source_ids": ["or_dor_or40_instructions_2025", "or_dor_pub_or17_2025", "or_dor_estimated_income_tax_2025"],
+        "assumption_contains": "kicker"
+      }
+    },
+    {
       "name": "ma_blocked",
       "input": {"state_code": "MA", "taxable_income": 100000},
       "expected": {"status": "not_covered", "reason_contains": "source_pending"}

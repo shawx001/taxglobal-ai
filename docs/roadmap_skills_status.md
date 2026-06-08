@@ -25,7 +25,7 @@
 
 | # | Skill | 依赖的引擎函数/能力 | 引擎内核状态 |
 |---|---|---|---|
-| 1 | `calculate_income_tax` | `income_tax_summary`(W-2/自雇/资本利得/NIIT/FEIE 三块 + WA/NJ/PA 州扩展) | ✅ 已完成 |
+| 1 | `calculate_income_tax` | `income_tax_summary`(W-2/自雇/资本利得/NIIT/FEIE 三块 + WA/NJ/PA/OR 州扩展) | ✅ 已完成 |
 | 2 | `assess_feie` | `feie_estimate` | ✅ 已完成 |
 | 3 | `analyze_rsu` | `rsu_tax_estimate` | ✅ 已完成 |
 | 4 | `track_crypto` | `crypto_gain_estimate` + `_crypto_state_tax` | ✅ 已完成 |

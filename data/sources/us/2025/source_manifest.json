@@ -461,6 +461,46 @@
       "content_hash": "C9EBE9E18B87FC888939305CD6E57E5C3CA89217B008BFDE6FA5496980180CF7",
       "status": "archived"
     }
+    ,
+    {
+      "source_id": "or_dor_or40_instructions_2025",
+      "title": "2025 Oregon Form OR-40 Instructions",
+      "source_url": "https://www.oregon.gov/dor/forms/FormsPubs/form-or-40-inst_101-040-1_2025.pdf",
+      "source_type": "pdf",
+      "publisher": "Oregon Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "OR",
+      "topics": ["state_income_tax", "federal_tax_subtraction", "phaseout_table"],
+      "local_path": "data/sources/us/2025/raw/or_dor_or40_instructions_2025.pdf",
+      "content_hash": "4EE45BAD719499E2B69977B0DB15DE75ED063AC631B151FDEFE3DB081FA1EAEB",
+      "status": "archived"
+    },
+    {
+      "source_id": "or_dor_pub_or17_2025",
+      "title": "2025 Oregon Publication OR-17 Individual Income Tax Guide",
+      "source_url": "https://www.oregon.gov/dor/forms/FormsPubs/publication-or-17_101-431_2025.pdf",
+      "source_type": "pdf",
+      "publisher": "Oregon Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "OR",
+      "topics": ["state_income_tax", "tax_rates", "standard_deduction"],
+      "local_path": "data/sources/us/2025/raw/or_dor_pub_or17_2025.pdf",
+      "content_hash": "3CCFB6B46D9E221CEFA0F3F867D0799BB53192005486B90446D9205F2B9CC7F6",
+      "status": "archived"
+    },
+    {
+      "source_id": "or_dor_estimated_income_tax_2025",
+      "title": "2025 Oregon Estimated Income Tax Instructions",
+      "source_url": "https://www.oregon.gov/dor/forms/FormsPubs/publication-or-estimate_101-026_2025.pdf",
+      "source_type": "pdf",
+      "publisher": "Oregon Department of Revenue",
+      "tax_year": 2025,
+      "jurisdiction": "OR",
+      "topics": ["state_income_tax", "tax_rates"],
+      "local_path": "data/sources/us/2025/raw/or_dor_estimated_income_tax_2025.pdf",
+      "content_hash": "33959711C22665271135E4FD07F772227074558AA8728E955B3A74F043E38522",
+      "status": "archived"
+    }
   ],
   "failed_sources": [
     {

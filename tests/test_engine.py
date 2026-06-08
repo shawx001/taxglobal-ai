@@ -642,6 +642,89 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["state_taxable_base"], 49_000.00)
         self.assertEqual(result["result"]["state_income_tax"]["tax"], 1_214.75)
 
+    def test_state_taxable_base_federal_tax_subtraction_phaseout(self):
+        oregon = load_state_rules(2026)["states"]["OR"]
+
+        self.assertEqual(
+            _state_taxable_base(
+                oregon,
+                gross_income=100_000,
+                federal_agi=100_000,
+                federal_taxable_income=83_900,
+                federal_qbi_deduction=0,
+                filing="single",
+                federal_income_tax=13_170,
+            ),
+            88_665,
+        )
+        self.assertEqual(
+            _state_taxable_base(
+                oregon,
+                gross_income=129_000,
+                federal_agi=129_000,
+                federal_taxable_income=112_900,
+                federal_qbi_deduction=0,
+                filing="single",
+                federal_income_tax=19_694,
+            ),
+            119_365,
+        )
+        self.assertEqual(
+            _state_taxable_base(
+                oregon,
+                gross_income=145_000,
+                federal_agi=145_000,
+                federal_taxable_income=128_900,
+                federal_qbi_deduction=0,
+                filing="single",
+                federal_income_tax=23_534,
+            ),
+            142_165,
+        )
+        self.assertEqual(
+            _state_taxable_base(
+                oregon,
+                gross_income=100_000,
+                federal_agi=100_000,
+                federal_taxable_income=83_900,
+                federal_qbi_deduction=0,
+                filing="married_filing_separately",
+                federal_income_tax=13_170,
+            ),
+            92_915,
+        )
+
+    def test_income_tax_summary_or_w2_uses_federal_tax_subtraction(self):
+        result = income_tax_summary(w2_wages=100_000, filing_status="single", state_code="OR")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["federal_income_tax"], 13_170.00)
+        self.assertEqual(result["result"]["long_term_capital_gains_tax"], 0.00)
+        self.assertEqual(result["result"]["federal_income_tax_liability"], 13_170.00)
+        self.assertNotIn(
+            "federal_income_tax_liability",
+            {line["label"] for line in result["breakdown"]},
+        )
+        self.assertEqual(result["result"]["state_taxable_base"], 88_665.00)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 7_448.19)
+        self.assertEqual(result["result"]["total_tax"], 28_268.19)
+        self.assertIn("State federal-tax subtraction", "\n".join(result["assumptions"]))
+
+    def test_income_tax_summary_non_subtraction_state_does_not_emit_federal_tax_liability(self):
+        result = income_tax_summary(w2_wages=100_000, filing_status="single", state_code="CA")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertNotIn("federal_income_tax_liability", result["result"])
+
+    def test_income_tax_summary_or_phaseout_band(self):
+        result = income_tax_summary(w2_wages=129_000, filing_status="single", state_code="OR")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["federal_income_tax_liability"], 19_694.00)
+        self.assertEqual(result["result"]["state_taxable_base"], 119_365.00)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 10_134.44)
+        self.assertEqual(result["result"]["total_tax"], 39_696.94)
+
     def test_nexus_ca_equal_threshold_uses_strict_greater_than(self):
         result = nexus_estimate("CA", 500_000, tax_year=2025)
 
@@ -752,6 +835,21 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["state"]["status"], "not_covered")
         self.assertEqual(result["result"]["state"]["tax"], 0.00)
+
+    def test_crypto_state_tax_federal_tax_subtraction_state_is_not_covered(self):
+        result = crypto_gain_estimate(
+            lots=[{"asset": "BTC", "date": "2023-01-10", "quantity": 1, "cost_basis": 20000}],
+            disposals=[{"asset": "BTC", "date": "2025-03-01", "quantity": 1, "proceeds": 55000}],
+            method="FIFO",
+            other_taxable_income=100_000,
+            state_code="OR",
+            tax_year=2026,
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["state"]["status"], "not_covered")
+        self.assertEqual(result["result"]["state"]["tax"], 0.00)
+        self.assertIn("federal income tax liability", result["result"]["state"]["reason"])
 
     def test_crypto_wa_short_term_gain_has_zero_excise(self):
         result = crypto_gain_estimate(

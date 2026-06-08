@@ -339,6 +339,15 @@ def _crypto_state_tax(
             f"State {code} does not have modeled ordinary-income capital gains treatment.",
             _merge_citations(state_citations, tax_base_citations),
         )
+    if tax_base.get("federal_tax_subtraction"):
+        return _crypto_state_not_covered(
+            code,
+            (
+                f"State {code} crypto state tax requires a full-return federal income tax liability "
+                "subtraction that is not modeled by the standalone crypto estimator."
+            ),
+            _merge_citations(state_citations, tax_base_citations),
+        )
 
     # Schedule D netting: states tax the NET capital gain that flows into federal AGI, so a
     # short-term loss offsets a long-term gain (and vice versa) before the state rate applies.

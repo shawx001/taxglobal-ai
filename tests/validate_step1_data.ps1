@@ -229,6 +229,57 @@ $requiredStateFilingStatuses = @(
   "head_of_household",
   "married_filing_separately"
 )
+function Convert-RuleDecimal($Value, $Path) {
+  if ($null -eq $Value) {
+    throw "$Path is null"
+  }
+  try {
+    return [decimal]::Parse([string]$Value, [System.Globalization.CultureInfo]::InvariantCulture)
+  } catch {
+    throw "$Path must be parseable as Decimal"
+  }
+}
+
+function Assert-FederalTaxSubtractionShape($TaxBase, $Path) {
+  if (!($TaxBase.PSObject.Properties.Name -contains "federal_tax_subtraction")) {
+    return
+  }
+  $fts = $TaxBase.federal_tax_subtraction
+  if (!$fts.phaseout_table) {
+    throw "$Path federal_tax_subtraction missing phaseout_table"
+  }
+  foreach ($filingStatus in $requiredStateFilingStatuses) {
+    if (!($fts.phaseout_table.PSObject.Properties.Name -contains $filingStatus)) {
+      throw "$Path federal_tax_subtraction phaseout_table missing filing status $filingStatus"
+    }
+    $steps = @($fts.phaseout_table.$filingStatus)
+    if ($steps.Count -lt 2) {
+      throw "$Path federal_tax_subtraction phaseout_table.$filingStatus must have at least two steps"
+    }
+    $previousAgi = [decimal]-1
+    for ($i = 0; $i -lt $steps.Count; $i++) {
+      $step = $steps[$i]
+      $limit = Convert-RuleDecimal $step.limit "$Path federal_tax_subtraction phaseout_table.$filingStatus[$i].limit"
+      if ($limit -lt 0) {
+        throw "$Path federal_tax_subtraction phaseout_table.$filingStatus[$i].limit must be non-negative"
+      }
+      if ($null -eq $step.agi_up_to) {
+        if ($i -ne ($steps.Count - 1)) {
+          throw "$Path federal_tax_subtraction phaseout_table.$filingStatus null agi_up_to must be last"
+        }
+      } else {
+        $agi = Convert-RuleDecimal $step.agi_up_to "$Path federal_tax_subtraction phaseout_table.$filingStatus[$i].agi_up_to"
+        if ($agi -le $previousAgi) {
+          throw "$Path federal_tax_subtraction phaseout_table.$filingStatus must be sorted ascending"
+        }
+        $previousAgi = $agi
+      }
+    }
+    if ($null -ne $steps[$steps.Count - 1].agi_up_to) {
+      throw "$Path federal_tax_subtraction phaseout_table.$filingStatus final step must have agi_up_to null"
+    }
+  }
+}
 $allowedStateTaxBaseStarts = @("federal_agi", "federal_taxable_income", "gross_income")
 foreach ($stateProp in $states.states.PSObject.Properties) {
   $state = $stateProp.Value
@@ -296,6 +347,7 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
           }
         }
       }
+      Assert-FederalTaxSubtractionShape $taxBase "State $($stateProp.Name)"
       }
       if ($taxBase.start_from -eq "gross_income") {
         if ($taxBase.allows_qbi -eq $true) {
@@ -405,6 +457,33 @@ if ($states.states.PA.tax_base.start_from -ne "gross_income") {
 }
 if ($states.states.PA.flat_rate -ne 0.0307) {
   throw "Unexpected PA flat_rate"
+}
+if ($states.states.OR.tax_base.start_from -ne "federal_agi") {
+  throw "Oregon tax_base must start from federal_agi"
+}
+if ($states.states.OR.tax_base.standard_deduction.single -ne 2835) {
+  throw "Unexpected OR single standard deduction"
+}
+if ($states.states.OR.tax_base.standard_deduction.married_filing_jointly -ne 5670) {
+  throw "Unexpected OR MFJ standard deduction"
+}
+if ($states.states.OR.tax_base.standard_deduction.head_of_household -ne 4560) {
+  throw "Unexpected OR HOH standard deduction"
+}
+if ($states.states.OR.brackets.single[1].up_to -ne 11100) {
+  throw "Unexpected OR single second bracket cap"
+}
+if ($states.states.OR.brackets.married_filing_jointly[1].up_to -ne 22200) {
+  throw "Unexpected OR MFJ second bracket cap"
+}
+if ($states.states.OR.tax_base.federal_tax_subtraction.phaseout_table.single[0].limit -ne 8500) {
+  throw "Unexpected OR single federal tax subtraction full limit"
+}
+if ($states.states.OR.tax_base.federal_tax_subtraction.phaseout_table.married_filing_separately[0].limit -ne 4250) {
+  throw "Unexpected OR MFS federal tax subtraction full limit"
+}
+if ($states.states.OR.tax_base.federal_tax_subtraction.phaseout_table.single[-1].limit -ne 0) {
+  throw "Unexpected OR single federal tax subtraction final limit"
 }
 if ($states.states.WA.capital_gains_excise.standard_deduction -ne 278000) {
   throw "Unexpected WA 2025 capital gains standard deduction"
@@ -676,6 +755,9 @@ foreach ($stateProp in $states2026.states.PSObject.Properties) {
   if ($stateProp.Value.state_parameter_year -ne 2025) {
     throw "2026 state $($stateProp.Name) must declare state_parameter_year 2025"
   }
+  if ($stateProp.Value.PSObject.Properties.Name -contains "tax_base") {
+    Assert-FederalTaxSubtractionShape $stateProp.Value.tax_base "2026 state $($stateProp.Name)"
+  }
 }
 if ($states2026.states.NJ.tax_base.start_from -ne "gross_income") {
   throw "2026 New Jersey tax_base must start from gross_income"
@@ -694,6 +776,21 @@ if ($states2026.states.PA.tax_base.start_from -ne "gross_income") {
 }
 if ($states2026.states.PA.flat_rate -ne 0.0307) {
   throw "Unexpected 2026 PA flat_rate"
+}
+if ($states2026.states.OR.tax_base.start_from -ne "federal_agi") {
+  throw "2026 Oregon tax_base must start from federal_agi"
+}
+if ($states2026.states.OR.tax_base.standard_deduction.single -ne 2835) {
+  throw "Unexpected 2026 OR single standard deduction"
+}
+if ($states2026.states.OR.brackets.single[1].up_to -ne 11100) {
+  throw "Unexpected 2026 OR single second bracket cap"
+}
+if ($states2026.states.OR.tax_base.federal_tax_subtraction.phaseout_table.single[0].limit -ne 8500) {
+  throw "Unexpected 2026 OR single federal tax subtraction full limit"
+}
+if ($states2026.states.OR.tax_base.federal_tax_subtraction.phaseout_table.married_filing_separately[0].limit -ne 4250) {
+  throw "Unexpected 2026 OR MFS federal tax subtraction full limit"
 }
 
 $nexus2026 = Read-Json "data/tax_years/2026/us_nexus.json"

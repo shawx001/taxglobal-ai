@@ -97,7 +97,7 @@ async function populateStateDropdowns() {
     const withTax = states.filter(s => s.income_tax_type !== 'none');
     const noTax = states.filter(s => s.income_tax_type === 'none');
     
-    function buildOptions(selectId, includeEmpty) {
+    function buildOptions(selectId) {
       const sel = document.getElementById(selectId);
       // 保留第一个 option（空值占位）
       while (sel.options.length > 1) sel.remove(1);
@@ -161,7 +161,7 @@ git diff --check
 
 ## 验收场景
 
-1. 打开 http://127.0.0.1:3000/index.html → 税务计算 → 州下拉显示 51 个州
+1. 打开 http://127.0.0.1:3000/index.html → 税务计算 → 州下拉显示 50 州 + DC（51 jurisdictions）
 2. 选 AL（Alabama）→ 州税正确计算
 3. 选 TX（Texas）→ 州税 = $0（无州税）
 4. 选 MA（Massachusetts）→ MA 4% surtax 对 $1M+ 收入生效

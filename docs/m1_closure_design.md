@@ -22,7 +22,7 @@
 - `MappingProxyType` 支持 `[]` 读、`.get()`、`.keys()`、`.values()`、`.items()` ——引擎纯读取无问题
 - 不支持 `[]=`、`.pop()`、`.update()` ——若有调用方依赖会立即 TypeError，CI 会捕获
 - JSON 序列化：FastAPI response_model 会自动转 dict，但若有 `json.dumps(rules)` 需改为 `dict(rules)` 或用自定义 encoder
-- 验收：104 tests 全绿 + ruff clean + 新增 freeze 单测
+- 验收：`python -m unittest discover -s tests` 全绿 + ruff clean + 新增 freeze 单测
 
 ### 影响范围
 - 改：`engine/rules_loader.py`
@@ -68,9 +68,9 @@ Response: {
 5. `#cr-state` 的 WA 条目额外标注"（长期 excise）"
 
 ### 验收
-- 全部 3 个下拉显示 51 州（有税 42 + 无税 9）
+- 全部 3 个下拉显示 50 州 + DC（51 jurisdictions，有税 42 + 无税 9）
 - 选任意州触发计算、结果正确
-- 104 tests 全绿 + ruff clean
+- `python -m unittest discover -s tests` 全绿 + ruff clean
 - `index.html` 根文件 hash 不变（改的是 `frontend/index.html`）
 
 ---

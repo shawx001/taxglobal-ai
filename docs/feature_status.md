@@ -36,7 +36,7 @@
 | `us_federal.json`（联邦档+标准扣除） | ✅ | 1 | Rev. Proc. 2024-40 | |
 | `us_fica.json`（FICA/附加医保/自雇基数） | ✅ | 1 | IRS Topic 751/560, Pub 15/15-A | |
 | `us_feie.json`（FEIE 上限/330天） | ✅ | 1 | IRS FEIE / Form 2555 | |
-| `us_states.json`（51 州全覆盖） | ✅ | 1 / 1.2 / C1–C4 | 各州 DOR | 28 progressive + 14 flat + 9 none |
+| `us_states.json`（50 州 + DC 全覆盖，51 jurisdictions） | ✅ | 1 / 1.2 / C1–C4 | 各州 DOR | 28 progressive + 14 flat + 9 none |
 | `us_states.json` crypto 州资本利得扩展 | ✅ | 2.6 | WA DOR capital gains, 各州 DOR | CA/NY/GA/IL/CO=ordinary income; WA=capital gains excise |
 | `us_states.json` OR federal-tax subtraction state income tax | done | Step B2b | Oregon DOR OR-40 / Pub OR-17 / estimated tax instructions | OR progressive tax with standard deduction and AGI-stepped federal tax liability subtraction |
 | `us_nexus.json`（经济联结阈值+`comparison`） | ✅ | 1 / 2.1 | CDTFA/NY/TX/FL | WA=待来源 |

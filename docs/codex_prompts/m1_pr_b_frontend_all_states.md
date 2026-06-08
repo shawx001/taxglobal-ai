@@ -16,6 +16,7 @@
 @app.get("/api/states")
 def get_available_states(tax_year: int = DEFAULT_TAX_YEAR):
     """Return all available states for the given tax year."""
+    from collections.abc import Mapping
     from engine.rules_loader import load_rule_file
     states_data = load_rule_file(tax_year, "us_states.json")
     

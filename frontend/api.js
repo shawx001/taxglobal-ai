@@ -59,8 +59,16 @@
           return null;
         }).then(function (body) {
           if (!response.ok) {
-            throw makeApiError("Backend request failed.", {
-              code: "request_failed",
+            var apiError = body && body.error ? body.error : {};
+            throw makeApiError(apiError.message || "Backend request failed.", {
+              code: apiError.code || "request_failed",
+              status: response.status,
+              details: apiError.details || [],
+            });
+          }
+          if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length === 0) {
+            throw makeApiError("Server returned an unexpected response.", {
+              code: "invalid_response",
               status: response.status,
             });
           }

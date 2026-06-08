@@ -159,10 +159,15 @@ def create_app() -> FastAPI:
         result = []
         for code in sorted(states_block):
             state = states_block[code]
+            if not isinstance(state, Mapping):
+                state = {}
+            state_name = state.get("name")
+            if not isinstance(state_name, str) or not state_name:
+                state_name = STATE_NAMES.get(code, code)
             result.append(
                 {
                     "code": code,
-                    "name": STATE_NAMES.get(code, code),
+                    "name": state_name,
                     "income_tax_type": state.get("income_tax_type", "unknown"),
                 }
             )

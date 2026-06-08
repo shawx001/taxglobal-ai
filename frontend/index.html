@@ -2524,9 +2524,10 @@ async function populateStateDropdowns(){
     buildOptions('tx-state');
     buildOptions('se-state');
     buildOptions('cr-state');
-    if(typeof calcTax==='function') calcTax();
-    if(typeof calcSE==='function') calcSE();
-    if(typeof calcCrypto==='function') calcCrypto();
+    const appActive=document.getElementById('app')?.classList.contains('on');
+    if(appActive&&typeof calcTax==='function') calcTax();
+    if(appActive&&(selectedTypes.includes('self')||selectedTypes.includes('ecom'))&&typeof calcSE==='function') calcSE();
+    if(appActive&&selectedTypes.includes('crypto')&&typeof calcCrypto==='function') calcCrypto();
   }catch(e){
     console.warn('Failed to load states:',e);
   }

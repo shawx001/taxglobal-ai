@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse, Response
 
-from backend.database import get_session
+from backend.database import get_session, is_pg_available
 from backend.errors import error_response
 from backend.profiles.schemas import ProfileCreate, ProfileListResponse, ProfileResponse
 from backend.profiles.service import (
@@ -24,14 +24,11 @@ router = APIRouter(prefix="/api/profiles", tags=["profiles"])
 async def profile_session() -> Any:
     """Yield a profile DB session, or None when PostgreSQL is unavailable."""
 
-    try:
-        async for session in get_session():
-            yield session
-    except RuntimeError as exc:
-        if str(exc) == "PostgreSQL is not available":
-            yield None
-            return
-        raise
+    if not is_pg_available():
+        yield None
+        return
+    async for session in get_session():
+        yield session
 
 
 def _postgres_unavailable(request: Request) -> JSONResponse:

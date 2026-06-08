@@ -12,8 +12,9 @@
 
 ```python
 import types
+from typing import Any
 
-def _freeze(obj):
+def _freeze(obj: Any) -> Any:
     """Recursively freeze a JSON-deserialized object tree into immutable types."""
     if isinstance(obj, dict):
         return types.MappingProxyType({k: _freeze(v) for k, v in obj.items()})

@@ -13,28 +13,30 @@
 新增路由：
 
 ```python
+from collections.abc import Mapping
+from engine.rules_loader import load_rule_file
+
+# 模块级常量——不要在请求函数内重建
+STATE_NAMES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "DC": "District of Columbia", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii",
+    "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa",
+    "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine",
+    "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota",
+    "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska",
+    "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico",
+    "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio",
+    "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island",
+    "SC": "South Carolina", "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas",
+    "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington",
+    "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
+}
+
 @app.get("/api/states")
 def get_available_states(tax_year: int = DEFAULT_TAX_YEAR):
     """Return all available states for the given tax year."""
-    from collections.abc import Mapping
-    from engine.rules_loader import load_rule_file
     states_data = load_rule_file(tax_year, "us_states.json")
-    
-    STATE_NAMES = {
-        "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
-        "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
-        "DC": "District of Columbia", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii",
-        "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa",
-        "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine",
-        "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota",
-        "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska",
-        "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico",
-        "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio",
-        "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island",
-        "SC": "South Carolina", "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas",
-        "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington",
-        "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
-    }
     
     states_block = states_data.get("states", {})
     if not isinstance(states_block, Mapping):
@@ -55,8 +57,6 @@ def get_available_states(tax_year: int = DEFAULT_TAX_YEAR):
     
     return {"tax_year": tax_year, "states": result}
 ```
-
-**注意**：`STATE_NAMES` 应抽成模块级常量（在文件顶部或 `backend/constants.py`），不要每次请求重建。
 
 ### 新增测试
 
@@ -180,11 +180,11 @@ git diff --check
 ## Commit 格式
 
 ```
-feat(frontend+api): dynamic state dropdown with all 51 jurisdictions
+feat(frontend+api): dynamic state dropdown for 50 states + DC
 
-Add GET /api/states endpoint returning all available states from rule
-data. Frontend now dynamically populates all three state dropdowns on
-page load instead of hardcoding 10 states.
+Add GET /api/states endpoint returning all 51 jurisdictions (50 states
++ DC) from rule data. Frontend now dynamically populates all three
+state dropdowns on page load instead of hardcoding 10 states.
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 ```

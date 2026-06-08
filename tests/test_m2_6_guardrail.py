@@ -247,16 +247,42 @@ class TestEscalation(unittest.TestCase):
                 reason="ssn 123-45-6789 and income mismatch 999.99 120000",
                 severity=EscalationLevel.BLOCKED,
                 request_id="r2",
-                engine_function="ssn_income_999.99_123-45-6789_120000",
-                check_code="test_123.45_120000",
+                engine_function="income_tax_summary",
+                check_code="amount_mismatch",
             )
 
-        logged = warning.call_args.args[0].lower()
-        self.assertNotIn("ssn", logged)
-        self.assertNotIn("income", logged)
-        self.assertNotIn("123-45-6789", logged)
-        self.assertNotIn("120000", logged)
-        self.assertIsNone(re.search(r"\d+\.\d{2}", logged))
+        logged_json = json.loads(warning.call_args.args[0])
+        logged_reason = logged_json["reason"]
+        # reason field: SSN, amounts, PII field names all redacted
+        self.assertNotIn("123-45-6789", logged_reason)
+        self.assertNotIn("120000", logged_reason)
+        self.assertNotIn("ssn", logged_reason.lower())
+        self.assertNotIn("income", logged_reason.lower())
+        self.assertIsNone(re.search(r"\d+\.\d{2}", logged_reason))
+        # engine_function: preserved as-is (code-level identifier, not user data)
+        self.assertEqual(logged_json["engine_function"], "income_tax_summary")
+        # check_code: preserved as-is
+        self.assertEqual(logged_json["check_code"], "amount_mismatch")
+
+    def test_request_human_review_strips_amounts_from_engine_function(self) -> None:
+        """engine_function strips SSN/amounts but keeps field names like 'income'."""
+        from backend.guardrail.escalation import EscalationLevel, request_human_review
+
+        with patch("backend.guardrail.escalation.logger.warning") as warning:
+            request_human_review(
+                reason="test",
+                severity=EscalationLevel.BLOCKED,
+                request_id="r3",
+                engine_function="income_999.99_123-45-6789",
+                check_code="test_123.45",
+            )
+
+        logged_json = json.loads(warning.call_args.args[0])
+        # "income" preserved (it's a legitimate function name component)
+        self.assertIn("income", logged_json["engine_function"])
+        # SSN and amounts stripped
+        self.assertNotIn("123-45-6789", logged_json["engine_function"])
+        self.assertNotIn("999.99", logged_json["engine_function"])
 
 
 class TestGuardrailMiddleware(unittest.TestCase):

@@ -54,8 +54,11 @@ def request_human_review(
     """Log a PII-safe guardrail escalation marker."""
 
     safe_reason = _sanitize_reason(reason)
-    safe_engine_function = _sanitize_reason(engine_function)
-    safe_check_code = _sanitize_reason(check_code)
+    # engine_function and check_code are code-level identifiers (not user data).
+    # Only strip amount/SSN patterns; do NOT apply PII field-name redaction
+    # (which would mangle legitimate names like "income_tax_summary").
+    safe_engine_function = _sanitize_amounts_only(engine_function)
+    safe_check_code = _sanitize_amounts_only(check_code)
     logger.warning(
         json.dumps(
             {
@@ -79,8 +82,18 @@ def request_human_review(
 def _sanitize_reason(reason: str) -> str:
     """Strip amount-like values and obvious PII field labels from audit reasons."""
 
-    safe = _SSN_PATTERN.sub("[redacted_pii]", reason)
+    safe = _sanitize_amounts_only(reason)
+    return _PII_FIELD_PATTERN.sub("[redacted_field]", safe)
+
+
+def _sanitize_amounts_only(value: str) -> str:
+    """Strip SSN patterns and amount-like numbers, but leave field names intact.
+
+    Use this for code-level identifiers (engine_function, check_code) that
+    should NOT have words like "income" redacted.
+    """
+
+    safe = _SSN_PATTERN.sub("[redacted_pii]", value)
     safe = _COMMA_AMOUNT_PATTERN.sub("[amount]", safe)
     safe = _MONEY_LIKE_PATTERN.sub("[amount]", safe)
-    safe = _LARGE_INTEGER_PATTERN.sub("[amount]", safe)
-    return _PII_FIELD_PATTERN.sub("[redacted_field]", safe)
+    return _LARGE_INTEGER_PATTERN.sub("[amount]", safe)

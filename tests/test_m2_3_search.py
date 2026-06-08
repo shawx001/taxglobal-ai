@@ -102,6 +102,20 @@ class TestVectorSearch(unittest.TestCase):
         self.assertIn({"$or": [{"jurisdiction": "CA"}, {"jurisdiction": "US"}]}, where["$and"])
         self.assertIn({"tax_year": 2026}, where["$and"])
 
+    def test_vector_search_normalizes_jurisdiction_to_uppercase(self):
+        collection = Mock()
+        collection.query.return_value = _mock_chroma_result()
+        with (
+            patch.object(search.vector_store, "is_chroma_available", return_value=True),
+            patch.object(search.vector_store, "get_collection", return_value=collection),
+            patch.object(search.embedder, "is_embedder_available", return_value=True),
+            patch.object(search.embedder, "embed_text", return_value=[0.1]),
+        ):
+            search.vector_search("California tax", filters={"jurisdiction": "ca"})
+
+        where = collection.query.call_args.kwargs["where"]
+        self.assertEqual(where, {"$or": [{"jurisdiction": "CA"}, {"jurisdiction": "US"}]})
+
 
 class TestGraphSearch(unittest.TestCase):
     def test_graph_search_returns_relationships(self):

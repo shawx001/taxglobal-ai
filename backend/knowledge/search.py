@@ -26,6 +26,8 @@ def _build_where(filters: dict[str, Any] | None) -> dict[str, Any] | None:
     for key, value in filters.items():
         if value is None:
             continue
+        if key == "jurisdiction":
+            value = str(value).upper()
         if key == "jurisdiction" and value != "US":
             clauses.append({"$or": [{"jurisdiction": value}, {"jurisdiction": "US"}]})
         else:

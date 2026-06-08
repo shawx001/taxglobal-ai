@@ -190,10 +190,14 @@ def _state_taxable_base(
     federal_tax_subtraction = tax_base.get("federal_tax_subtraction")
     if federal_tax_subtraction:
         steps = federal_tax_subtraction["phaseout_table"][filing]
-        limit = next(
-            _decimal_rule(step["limit"])
-            for step in steps
-            if step["agi_up_to"] is None or federal_agi <= _decimal_rule(step["agi_up_to"])
-        )
+        limit: Decimal | None = None
+        for step in steps:
+            # Some official tables use half-open ranges; data can encode those with cent-level upper caps.
+            agi_up_to = step["agi_up_to"]
+            if agi_up_to is None or federal_agi <= _decimal_rule(agi_up_to):
+                limit = _decimal_rule(step["limit"])
+                break
+        if limit is None:
+            raise ValueError("federal_tax_subtraction.phaseout_table must end with a catch-all step")
         base -= min(federal_income_tax, limit)
     return max(Decimal("0"), base)

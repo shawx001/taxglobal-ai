@@ -372,7 +372,8 @@ def income_tax_summary(
             "state-specific income categories, pension exclusions, classified-loss rules, deductions, credits, and "
             "resident/source allocation are not modeled."
         )
-    if state_block and state_block.get("tax_base", {}).get("federal_tax_subtraction"):
+    has_federal_tax_subtraction = bool(state_block and state_block.get("tax_base", {}).get("federal_tax_subtraction"))
+    if has_federal_tax_subtraction:
         assumptions.append(
             "State federal-tax subtraction uses federal ordinary income tax plus long-term capital gains tax as the "
             "MVP federal income tax liability proxy; federal credits, Oregon-specific additions/subtractions, kicker, "
@@ -415,11 +416,12 @@ def income_tax_summary(
         "state_income_tax": state_income_tax_result,
         "federal_income_tax": _money_decimal(federal_income_tax_amount),
         "long_term_capital_gains_tax": _money_decimal(long_term_capital_gains_tax),
-        "federal_income_tax_liability": _money_decimal(federal_income_tax_liability),
         "net_investment_income_tax": _money_decimal(net_investment_income_tax),
         "total_tax": _money_decimal(total_tax),
         "quarterly_estimate": _money_decimal(quarterly_estimate),
     }
+    if has_federal_tax_subtraction:
+        result["federal_income_tax_liability"] = _money_decimal(federal_income_tax_liability)
     if state_capital_gains_excise_result is not None:
         result["state_capital_gains_excise"] = _money_decimal(state_capital_gains_excise_tax)
 
@@ -442,7 +444,6 @@ def income_tax_summary(
         {"label": "ordinary_taxable_income", "amount": _money_decimal(ordinary_taxable_income)},
         {"label": "federal_income_tax", "amount": _money_decimal(federal_income_tax_amount)},
         {"label": "long_term_capital_gains_tax", "amount": _money_decimal(long_term_capital_gains_tax)},
-        {"label": "federal_income_tax_liability", "amount": _money_decimal(federal_income_tax_liability)},
         {"label": "net_investment_income_tax", "amount": _money_decimal(net_investment_income_tax)},
         {"label": "state_income_tax", "amount": _money_decimal(state_tax)},
     ]

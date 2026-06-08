@@ -701,10 +701,20 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["federal_income_tax"], 13_170.00)
         self.assertEqual(result["result"]["long_term_capital_gains_tax"], 0.00)
         self.assertEqual(result["result"]["federal_income_tax_liability"], 13_170.00)
+        self.assertNotIn(
+            "federal_income_tax_liability",
+            {line["label"] for line in result["breakdown"]},
+        )
         self.assertEqual(result["result"]["state_taxable_base"], 88_665.00)
         self.assertEqual(result["result"]["state_income_tax"]["tax"], 7_449.19)
         self.assertEqual(result["result"]["total_tax"], 28_269.19)
         self.assertIn("State federal-tax subtraction", "\n".join(result["assumptions"]))
+
+    def test_income_tax_summary_non_subtraction_state_does_not_emit_federal_tax_liability(self):
+        result = income_tax_summary(w2_wages=100_000, filing_status="single", state_code="CA")
+
+        self.assertEqual(result["status"], "ok")
+        self.assertNotIn("federal_income_tax_liability", result["result"])
 
     def test_income_tax_summary_or_phaseout_band(self):
         result = income_tax_summary(w2_wages=129_000, filing_status="single", state_code="OR")

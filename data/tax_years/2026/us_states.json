@@ -906,6 +906,58 @@
       "citation": "Nevada Department of Taxation Tax Notes states Nevada does not impose an individual income tax.",
       "state_parameter_year": 2025
     },
+    "AK": {
+      "name": "Alaska",
+      "income_tax_type": "none",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0,
+      "source_ids": ["ak_dor_no_income_tax"],
+      "citation": "Alaska Department of Revenue states Alaska does not impose a personal income tax.",
+      "state_parameter_year": 2025
+    },
+    "NH": {
+      "name": "New Hampshire",
+      "income_tax_type": "none",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0,
+      "source_ids": ["nh_dra_interest_dividends_repeal"],
+      "citation": "New Hampshire Department of Revenue Administration confirms the Interest and Dividends Tax was fully repealed effective January 1, 2025, per HB 2 (2023 session).",
+      "notes": "New Hampshire historically taxed interest and dividend income under RSA 77. The tax rate was phased down from 5% to 3% (2023), 2% (2024), and fully repealed effective 2025-01-01. For tax year 2025+, NH imposes no personal income tax.",
+      "state_parameter_year": 2025
+    },
+    "SD": {
+      "name": "South Dakota",
+      "income_tax_type": "none",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0,
+      "source_ids": ["sd_dor_no_income_tax"],
+      "citation": "South Dakota Department of Revenue states South Dakota does not have an individual income tax.",
+      "state_parameter_year": 2025
+    },
+    "TN": {
+      "name": "Tennessee",
+      "income_tax_type": "none",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0,
+      "source_ids": ["tn_dor_hall_tax_repeal"],
+      "citation": "Tennessee Department of Revenue confirms the Hall Income Tax on interest and dividends was fully repealed effective January 1, 2021.",
+      "notes": "Tennessee's Hall Income Tax (on interest and dividend income) was phased out per Public Chapter 3 (2016) and fully repealed effective 2021-01-01. For tax year 2021+, Tennessee imposes no state income tax.",
+      "state_parameter_year": 2025
+    },
+    "WY": {
+      "name": "Wyoming",
+      "income_tax_type": "none",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0,
+      "source_ids": ["wy_dor_no_income_tax"],
+      "citation": "Wyoming Department of Revenue states Wyoming does not have an individual income tax.",
+      "state_parameter_year": 2025
+    },
     "MA": {
       "name": "Massachusetts",
       "income_tax_type": "flat",
@@ -918,10 +970,11 @@
     "TX": {
       "name": "Texas",
       "income_tax_type": "none",
-      "status": "source_pending",
-      "effective_date": null,
-      "source_ids": [],
-      "notes": "No official individual income tax source has been archived yet. Treat Texas state income tax as not ready for calculation despite prototype assumptions.",
+      "status": "effective",
+      "effective_date": "2025-01-01",
+      "flat_rate": 0,
+      "source_ids": ["tx_comptroller_no_income_tax"],
+      "citation": "Texas Comptroller of Public Accounts states Texas has no state income tax, constitutionally prohibited by Article VIII Section 24-a.",
       "state_parameter_year": 2025
     }
   }

@@ -500,6 +500,54 @@
       "local_path": "data/sources/us/2025/raw/or_dor_estimated_income_tax_2025.pdf",
       "content_hash": "33959711C22665271135E4FD07F772227074558AA8728E955B3A74F043E38522",
       "status": "archived"
+    },
+    {
+      "source_id": "ak_dor_no_income_tax",
+      "source_url": "https://tax.alaska.gov/programs/programs/index.aspx?10001",
+      "publisher": "Alaska Department of Revenue",
+      "description": "Alaska Department of Revenue confirms Alaska has no personal income tax.",
+      "status": "not_archived",
+      "notes": "Alaska DOR general tax page. Alaska has never imposed a state personal income tax."
+    },
+    {
+      "source_id": "nh_dra_interest_dividends_repeal",
+      "source_url": "https://www.revenue.nh.gov/faq/interest-dividend-tax.htm",
+      "publisher": "New Hampshire Department of Revenue Administration",
+      "description": "NH DRA confirms the Interest and Dividends Tax was repealed effective January 1, 2025.",
+      "status": "not_archived",
+      "notes": "NH DRA FAQ page on Interest and Dividends Tax repeal. Per HB 2 (2023 session), the I&D tax (RSA 77) was fully repealed effective 2025-01-01. For tax year 2025+, NH has no personal income tax."
+    },
+    {
+      "source_id": "sd_dor_no_income_tax",
+      "source_url": "https://dor.sd.gov/individuals/taxes/",
+      "publisher": "South Dakota Department of Revenue",
+      "description": "South Dakota DOR confirms South Dakota does not have an individual income tax.",
+      "status": "not_archived",
+      "notes": "SD DOR individuals tax page. South Dakota has never imposed a state personal income tax."
+    },
+    {
+      "source_id": "tn_dor_hall_tax_repeal",
+      "source_url": "https://www.tn.gov/revenue/taxes/hall-income-tax.html",
+      "publisher": "Tennessee Department of Revenue",
+      "description": "Tennessee DOR confirms the Hall Income Tax was fully repealed effective January 1, 2021.",
+      "status": "not_archived",
+      "notes": "TN DOR Hall Income Tax page. The Hall Tax (on interest and dividend income) was fully repealed effective 2021-01-01 per Public Chapter 3 (2016). For tax year 2021+, Tennessee has no state income tax."
+    },
+    {
+      "source_id": "wy_dor_no_income_tax",
+      "source_url": "https://revenue.wyo.gov/tax-types",
+      "publisher": "Wyoming Department of Revenue",
+      "description": "Wyoming DOR confirms Wyoming does not have an individual income tax.",
+      "status": "not_archived",
+      "notes": "WY DOR tax types page. Wyoming has never imposed a state personal income tax."
+    },
+    {
+      "source_id": "tx_comptroller_no_income_tax",
+      "source_url": "https://comptroller.texas.gov/taxes/",
+      "publisher": "Texas Comptroller of Public Accounts",
+      "description": "Texas Comptroller confirms Texas has no state income tax.",
+      "status": "not_archived",
+      "notes": "TX Comptroller taxes overview page. Article VIII Section 24-a of the Texas Constitution prohibits an individual income tax unless approved by voters."
     }
   ],
   "failed_sources": [

@@ -157,7 +157,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(default["input"]["filing_status"], "single")
 
     def test_state_income_tax_blocks_source_pending_states(self):
-        result = state_income_tax("TX", 100_000, tax_year=2025)
+        result = state_income_tax("MA", 100_000, tax_year=2025)
 
         self.assertEqual(result["status"], "not_covered")
         self.assertIn("source_pending", result["reason"])

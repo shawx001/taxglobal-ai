@@ -500,6 +500,44 @@ if ($states.states.WA.capital_gains_excise.surtax_threshold -ne 1000000) {
 if ($states.states.WA.capital_gains_excise.long_term_only -ne $true) {
   throw "WA capital gains excise must be long-term only"
 }
+# C1: No-tax states spot checks
+if ($states.states.AK.income_tax_type -ne "none") {
+  throw "Alaska must be income_tax_type none"
+}
+if ($states.states.AK.status -ne "effective") {
+  throw "Alaska must be effective"
+}
+if ($states.states.NH.income_tax_type -ne "none") {
+  throw "New Hampshire must be income_tax_type none"
+}
+if ($states.states.NH.status -ne "effective") {
+  throw "New Hampshire must be effective"
+}
+if ($states.states.SD.income_tax_type -ne "none") {
+  throw "South Dakota must be income_tax_type none"
+}
+if ($states.states.SD.status -ne "effective") {
+  throw "South Dakota must be effective"
+}
+if ($states.states.TN.income_tax_type -ne "none") {
+  throw "Tennessee must be income_tax_type none"
+}
+if ($states.states.TN.status -ne "effective") {
+  throw "Tennessee must be effective"
+}
+if ($states.states.WY.income_tax_type -ne "none") {
+  throw "Wyoming must be income_tax_type none"
+}
+if ($states.states.WY.status -ne "effective") {
+  throw "Wyoming must be effective"
+}
+if ($states.states.TX.status -ne "effective") {
+  throw "Texas must be effective (no longer source_pending)"
+}
+if ($states.states.TX.income_tax_type -ne "none") {
+  throw "Texas must be income_tax_type none"
+}
+
 if ($states.states.CA.tax_base.standard_deduction.single -ne 5706) {
   throw "Unexpected CA single standard deduction"
 }
@@ -791,6 +829,35 @@ if ($states2026.states.OR.tax_base.federal_tax_subtraction.phaseout_table.single
 }
 if ($states2026.states.OR.tax_base.federal_tax_subtraction.phaseout_table.married_filing_separately[0].limit -ne 4250) {
   throw "Unexpected 2026 OR MFS federal tax subtraction full limit"
+}
+
+# C1: 2026 no-tax states spot checks
+if ($states2026.states.AK.income_tax_type -ne "none") {
+  throw "2026 Alaska must be income_tax_type none"
+}
+if ($states2026.states.AK.status -ne "effective") {
+  throw "2026 Alaska must be effective"
+}
+if ($states2026.states.NH.income_tax_type -ne "none") {
+  throw "2026 New Hampshire must be income_tax_type none"
+}
+if ($states2026.states.NH.status -ne "effective") {
+  throw "2026 New Hampshire must be effective"
+}
+if ($states2026.states.SD.income_tax_type -ne "none") {
+  throw "2026 South Dakota must be income_tax_type none"
+}
+if ($states2026.states.TN.income_tax_type -ne "none") {
+  throw "2026 Tennessee must be income_tax_type none"
+}
+if ($states2026.states.WY.income_tax_type -ne "none") {
+  throw "2026 Wyoming must be income_tax_type none"
+}
+if ($states2026.states.TX.status -ne "effective") {
+  throw "2026 Texas must be effective"
+}
+if ($states2026.states.TX.income_tax_type -ne "none") {
+  throw "2026 Texas must be income_tax_type none"
 }
 
 $nexus2026 = Read-Json "data/tax_years/2026/us_nexus.json"

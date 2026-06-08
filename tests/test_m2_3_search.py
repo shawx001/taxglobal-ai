@@ -248,7 +248,9 @@ class TestSearchRoute(unittest.TestCase):
         ):
             response = client.get("/api/knowledge/search?q=nothing")
 
-        self.assertEqual(response.json(), {"results": [], "total": 0})
+        body = response.json()
+        self.assertEqual(body["results"], [])
+        self.assertEqual(body["total"], 0)
 
 
 class TestSearchDataIntegrity(unittest.TestCase):

@@ -30,7 +30,11 @@ def init_neo4j() -> None:
     try:
         from neo4j import GraphDatabase
 
-        driver = GraphDatabase.driver(config.NEO4J_URI, auth=(config.NEO4J_USER, config.NEO4J_PASSWORD))
+        driver = GraphDatabase.driver(
+            config.NEO4J_URI,
+            auth=(config.NEO4J_USER, config.NEO4J_PASSWORD),
+            connection_timeout=5,
+        )
         driver.verify_connectivity()
         with driver.session() as session:
             for statement in _SCHEMA_STATEMENTS:

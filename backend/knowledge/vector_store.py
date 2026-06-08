@@ -30,7 +30,7 @@ def init_chroma() -> None:
         )
         _client = client
         _collection = collection
-        logger.info("Chroma initialized: collection=%s, count=%d", config.CHROMA_COLLECTION, collection.count())
+        logger.info("Chroma initialized: collection=%s", config.CHROMA_COLLECTION)
     except Exception:
         logger.exception("Chroma init failed; degrading gracefully")
         _client = None

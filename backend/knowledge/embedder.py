@@ -22,7 +22,17 @@ def init_embedder() -> None:
     try:
         from sentence_transformers import SentenceTransformer
 
-        _model = SentenceTransformer(config.EMBEDDING_MODEL, device=config.EMBEDDING_DEVICE)
+        import os
+
+        # Force local-only loading: never download from Hugging Face Hub at runtime.
+        # The model must be pre-cached (e.g. via `huggingface-cli download`).
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+        _model = SentenceTransformer(
+            config.EMBEDDING_MODEL,
+            device=config.EMBEDDING_DEVICE,
+            local_files_only=True,
+        )
         logger.info("Embedding model loaded: %s", config.EMBEDDING_MODEL)
     except Exception:
         logger.exception("Embedding model load failed; degrading gracefully")

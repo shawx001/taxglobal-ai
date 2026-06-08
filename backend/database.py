@@ -53,6 +53,7 @@ async def init_db() -> None:
             max_overflow=10,
             pool_pre_ping=True,
             echo=False,
+            connect_args={"timeout": 5},
         )
         session_factory = async_sessionmaker(engine, expire_on_commit=False)
         if text is None:

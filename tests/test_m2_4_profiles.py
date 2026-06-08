@@ -267,6 +267,19 @@ class TestProfileRoutes(unittest.TestCase):
         self.assertEqual(body["total"], 2)
         self.assertEqual([item["tax_year"] for item in body["profiles"]], [2026, 2025])
 
+    def test_list_profiles_with_tax_year_filter(self):
+        user_id = uuid.uuid4()
+        profiles = [_profile(user_id=user_id, tax_year=2026)]
+        with patch("backend.profiles.routes.get_profiles_by_user", return_value=profiles) as mock_service:
+            response = self.client.get(f"/api/profiles?user_id={user_id}&tax_year=2026")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["total"], 1)
+        mock_service.assert_called_once()
+        call_kwargs = mock_service.call_args
+        self.assertEqual(call_kwargs.args[1], user_id)
+        self.assertEqual(call_kwargs.args[2], 2026)
+
     def test_list_profiles_runtime_pg_failure_returns_503(self):
         from backend.profiles import service
 

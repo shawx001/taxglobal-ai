@@ -1,6 +1,6 @@
 # TaxGlobal AI 功能状态总表（实时打勾 + 可溯源）
 
-最后更新：2026-06-08（M2.2 merged）
+最后更新：2026-06-08（M2.3 merged）
 维护规则：每个 step 的 PR 经 Claude review 通过 / 合并后，更新本表"状态"列。每行可追溯到 **设计文档 + 实现 commit + 官方来源**。
 
 图例：✅ 已实现并测试 ｜ 🟡 已设计待实现 ｜ ⬜ 未开始
@@ -68,6 +68,7 @@
 | 前端 Nexus 监控接后端 | ✅ | 5.7 |
 | 前端合并计税总览（档案 → `/calc/income-summary`） | ✅ | REQ-002 |
 | 美国知识库 MVP（Neo4j 图谱 + Chroma 向量入库） | ✅ | M2.2 PR #47 |
+| GraphRAG 混合检索 API（向量+图谱搜索） | ✅ | M2.3 PR #49 |
 | 知识库驱动提醒系统 | ⬜ | 7 |
 | Copilot（检索+引擎+guardrail） | ⬜ | 8 |
 | 持久化 + 审计日志（PostgreSQL） | ⬜ | 9 |

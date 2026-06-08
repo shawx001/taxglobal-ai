@@ -120,7 +120,7 @@ M2 核心价值:①搭好基础设施(三库+知识+Skill+安全) ②实打实�
 |---|---|---|---|---|
 | M2.1 | 三库基础设施 | PostgreSQL + Neo4j + Chroma + embedding 模型 | — | ✅ PR #45 merged 2026-06-08 |
 | M2.2 | 知识图谱建模 + 数据入库 | Neo4j schema + Chroma embeddings + 入库脚本 | M2.1 | ✅ PR #47 merged 2026-06-08 |
-| M2.3 | GraphRAG 检索 API | `GET /api/knowledge/search`(图+向量混合) | M2.2 | ⬜ |
+| M2.3 | GraphRAG 检索 API | `GET /api/knowledge/search`(图+向量混合) | M2.2 | ✅ PR #49 merged 2026-06-08 |
 | M2.4 | 档案持久化 API | `POST/GET /api/profiles` | M2.1(PG) | ⬜ |
 | M2.5 | LangChain Skill 框架 + 5 引擎 Skills | LangChain Tool 封装 + 注册表 | — | ⬜ |
 | M2.6 | Guardrail 中间件 | 金额来源验证 + schema 校验 + 升级钩子 | M2.5 | ⬜ |

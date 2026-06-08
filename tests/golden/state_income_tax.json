@@ -24,6 +24,36 @@
       "expected": {"status": "ok", "rate": 0, "tax": 0.00}
     },
     {
+      "name": "ak_zero",
+      "input": {"state_code": "AK", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+    },
+    {
+      "name": "nh_zero",
+      "input": {"state_code": "NH", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+    },
+    {
+      "name": "sd_zero",
+      "input": {"state_code": "SD", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+    },
+    {
+      "name": "tn_zero",
+      "input": {"state_code": "TN", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+    },
+    {
+      "name": "wy_zero",
+      "input": {"state_code": "WY", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+    },
+    {
+      "name": "tx_zero",
+      "input": {"state_code": "TX", "taxable_income": 100000},
+      "expected": {"status": "ok", "rate": 0, "tax": 0.00}
+    },
+    {
       "name": "il_flat",
       "input": {"state_code": "IL", "taxable_income": 100000},
       "expected": {"status": "ok", "rate": 0.0495, "tax": 4950.00}
@@ -135,11 +165,6 @@
     {
       "name": "ma_blocked",
       "input": {"state_code": "MA", "taxable_income": 100000},
-      "expected": {"status": "not_covered", "reason_contains": "source_pending"}
-    },
-    {
-      "name": "tx_blocked",
-      "input": {"state_code": "TX", "taxable_income": 100000},
       "expected": {"status": "not_covered", "reason_contains": "source_pending"}
     },
     {

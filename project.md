@@ -18,7 +18,7 @@ US-first 报税计算/合规 MVP,真实上线导向(高并发、极敏 PII、数
 - **前端**:`frontend/index.html`(vanilla SPA)——profile 单一真相源(localStorage)+ 合并总览一次调 `/calc/income-summary`;根 `index.html` 冻结。
 
 ## 3. 当前进度 / 下一步
-- **M1 正式关闭（2026-06-07）**:PR #40 deepcopy→freeze 优化已合并；PR #41 前端 51 州动态下拉已合并；PR-C 文档更新。
+- **M1 正式关闭（2026-06-07）**:PR #40 deepcopy→freeze 优化已合并；PR #41 前端 50 州+DC 动态下拉已合并；PR-C 文档更新。
 - **州覆盖**:51 effective = 28 progressive + 14 flat + 9 none。全部 50 州 + DC 完成。
 - **50 州计划**:`docs/step_c_all_states_plan.md` 所有批次 C1–C4 完成。
 - **下一步**:→ **M2（LangChain Agent + 18 Skills + GraphRAG 知识库）**。

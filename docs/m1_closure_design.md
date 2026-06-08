@@ -31,10 +31,10 @@
 
 ---
 
-## PR-B: 前端州下拉 10→51 动态加载
+## PR-B: 前端州下拉动态加载（50 州 + DC）
 
 ### 现状
-`frontend/index.html` 的 3 个州下拉（`#tx-state`、`#se-state`、`#cr-state`）各硬编码 10 个州。引擎已覆盖 51 州但前端看不到 41 个。"德州 TX（暂未覆盖）""麻省 MA（暂未覆盖）"等标注已过时。
+`frontend/index.html` 的 3 个州下拉（`#tx-state`、`#se-state`、`#cr-state`）各硬编码 10 个州。引擎已覆盖 50 州 + DC（51 jurisdictions）但前端看不到 41 个。"德州 TX（暂未覆盖）""麻省 MA（暂未覆盖）"等标注已过时。
 
 ### 方案
 
@@ -76,6 +76,6 @@ Response: {
 ---
 
 ## PR-C: M1 关闭文档（Claude 直接更新，非代码）
-- `docs/feature_status.md`：更新 us_states 行为"51 州全覆盖"、添加 C1-C4 steps
+- `docs/feature_status.md`：更新 us_states 行为"50 州 + DC 全覆盖"、添加 C1-C4 steps
 - `docs/roadmap_skills_status.md`：M1 状态从"收尾完成"→"✅ 已完成并关闭"
 - `project.md`：当前进度更新、M1 正式关闭标记、下一步指向 M2

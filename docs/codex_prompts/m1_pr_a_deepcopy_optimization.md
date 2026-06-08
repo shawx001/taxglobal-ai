@@ -41,6 +41,9 @@ def load_rule_file(tax_year: int, filename: str) -> ...:
 保留可变副本行为供测试/极少数场景。因为缓存数据已是 `MappingProxyType`/`tuple`（`deepcopy()` 对 `MappingProxyType` 会 TypeError），需递归解冻：
 
 ```python
+from typing import Any
+from collections.abc import Mapping
+
 def _mutable_copy(obj: Any) -> Any:
     """Recursively thaw frozen data back into mutable dict/list."""
     if isinstance(obj, Mapping):

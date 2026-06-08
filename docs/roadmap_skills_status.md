@@ -15,7 +15,7 @@
 | **M4 训练闭环** | 第 7–8 周 | Trace 回流 + LoRA + Eval Harness | 🔲 未开始 |
 | **M5 合规与上线** | 第 9–10 周 | 安全/合规/可观测 + Demo 联调 | 🔲 未开始 |
 
-**M1 关闭总结（2026-06-07）**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);REQ-002 前端总览已接到单次 `income_tax_summary`;Step A 2026 税年数据;Step B 扩州(WA excise/NJ/PA/OR);Step C1–C4 全部 50 州+DC 覆盖(51 jurisdictions);PR #40 deepcopy→freeze 性能优化;PR #41 前端 51 州动态下拉。111 tests 全绿,M1 正式关闭。下一阶段进入 M2 Skills/Agent + 知识层。
+**M1 关闭总结（2026-06-07）**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);REQ-002 前端总览已接到单次 `income_tax_summary`;Step A 2026 税年数据;Step B 扩州(WA excise/NJ/PA/OR);Step C1–C4 全部 50 州+DC 覆盖(51 jurisdictions);PR #40 deepcopy→freeze 性能优化;PR #41 前端 50 州+DC 动态下拉。unittest + ruff 全绿,M1 正式关闭。下一阶段进入 M2 Skills/Agent + 知识层。
 
 ## 二、18 Skills 清单与现状
 

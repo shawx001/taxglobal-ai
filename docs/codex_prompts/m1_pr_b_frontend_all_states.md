@@ -1,10 +1,10 @@
-# Codex Prompt: PR-B 前端州下拉 10→51 动态加载
+# Codex Prompt: PR-B 前端州下拉动态加载（50 州 + DC，51 jurisdictions）
 
 > 先读：`/AGENTS.md`（铁律）→ `/ARCHITECTURE.md` → `docs/m1_closure_design.md` PR-B 节
 
 ## 任务
 
-前端 3 个州下拉（`#tx-state`、`#se-state`、`#cr-state`）当前硬编码 10 个州，引擎已覆盖 51 州。改为从后端 API 动态加载全部州。
+前端 3 个州下拉（`#tx-state`、`#se-state`、`#cr-state`）当前硬编码 10 个州，引擎已覆盖 50 州 + DC（51 jurisdictions）。改为从后端 API 动态加载全部州。
 
 ## 后端：新增 `/api/states` 端点
 
@@ -51,7 +51,7 @@ def get_available_states(tax_year: int = DEFAULT_TAX_YEAR):
 ### 新增测试
 
 `tests/test_api_states.py`：
-- `test_states_endpoint_returns_51`：GET `/api/states` 返回 51 个州
+- `test_states_endpoint_returns_51`：GET `/api/states` 返回 50 州 + DC（51 jurisdictions）
 - `test_states_have_required_fields`：每个州有 code, name, income_tax_type
 - `test_states_sorted_by_code`：结果按 code 字母序
 

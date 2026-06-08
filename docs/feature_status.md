@@ -55,7 +55,7 @@
 | 写码规范 + 评审清单 | ✅ | — | `coding_standards.md` / `code_review_checklist.md` |
 | 引擎模块化分层（`tax_engine.py` shim + 小模块） | ✅ | Step A.5 | 行为不变重构；公共 API 兼容；为扩州/扩税年防屎山 |
 | rules_loader deepcopy→freeze 优化 | ✅ | PR #40 | MappingProxyType+tuple 递归冻结；消除热路径 deepcopy |
-| 前端 51 州动态下拉 + `GET /api/states` | ✅ | PR #41 | 后端从 us_states.json 读取；前端动态加载+分组显示 |
+| 前端 50 州+DC 动态下拉 + `GET /api/states` | ✅ | PR #41 | 后端从 us_states.json 读取；前端动态加载+分组显示 |
 
 ## D. 后续大模块（未开始）
 
@@ -107,12 +107,12 @@
 | Step B1 WA capital gains excise 合并计税 | `step_b1_design_wa_capital_gains_excise.md` | `step_b1_wa_excise.md` |
 | Step B2 NJ + PA gross-income 州所得税 | `step_b2_design_nj_pa_states.md` | `step_b2_nj_pa.md` |
 | Step B2b OR federal-tax subtraction state income tax | `step_b2b_design_or_state.md` | `step_b2b_or.md` |
-| Step C1 扩州批次 1（AZ/CO/GA/ID/IL/IN/KY/MI/NC/UT flat） | `step_c_all_states_plan.md` | — |
-| Step C2 扩州批次 2（IA/LA/MA/MS/MT/NE/ND/OK/SC progressive） | `step_c_all_states_plan.md` | — |
-| Step C3 扩州批次 3（PA flat + 9 none 州） | `step_c_all_states_plan.md` | — |
-| Step C4 扩州批次 4（AL/CT/DC/MN/WI complex progressive） | `step_c_all_states_plan.md` | — |
-| PR #40 deepcopy→freeze 优化 | `m1_closure_design.md` PR-A | — |
-| PR #41 前端 51 州动态下拉 | `m1_closure_design.md` PR-B | — |
+| Step C1 扩州批次 1（AZ/CO/GA/ID/IL/IN/KY/MI/NC/UT flat） | `step_c_all_states_plan.md` | PR #31–#33 |
+| Step C2 扩州批次 2（IA/LA/MA/MS/MT/NE/ND/OK/SC progressive） | `step_c_all_states_plan.md` | PR #34–#36 |
+| Step C3 扩州批次 3（PA flat + 9 none 州） | `step_c_all_states_plan.md` | PR #37–#38 |
+| Step C4 扩州批次 4（AL/CT/DC/MN/WI complex progressive） | `step_c_all_states_plan.md` | PR #39 |
+| PR #40 deepcopy→freeze 优化 | `m1_closure_design.md` PR-A | PR #40 (`63b4305`) |
+| PR #41 前端 50 州+DC 动态下拉 | `m1_closure_design.md` PR-B | PR #41 (`06d52a3`) |
 
 流程/标准类：`engineering_process.md`、`phase1_define_us_mvp.md`、`coding_standards.md`、`code_review_checklist.md`、`feature_status.md`（本文件）。
 

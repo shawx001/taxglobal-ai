@@ -470,10 +470,10 @@ if ($states.states.OR.tax_base.standard_deduction.married_filing_jointly -ne 567
 if ($states.states.OR.tax_base.standard_deduction.head_of_household -ne 4560) {
   throw "Unexpected OR HOH standard deduction"
 }
-if ($states.states.OR.brackets.single[1].up_to -ne 11050) {
+if ($states.states.OR.brackets.single[1].up_to -ne 11100) {
   throw "Unexpected OR single second bracket cap"
 }
-if ($states.states.OR.brackets.married_filing_jointly[1].up_to -ne 22100) {
+if ($states.states.OR.brackets.married_filing_jointly[1].up_to -ne 22200) {
   throw "Unexpected OR MFJ second bracket cap"
 }
 if ($states.states.OR.tax_base.federal_tax_subtraction.phaseout_table.single[0].limit -ne 8500) {
@@ -783,7 +783,7 @@ if ($states2026.states.OR.tax_base.start_from -ne "federal_agi") {
 if ($states2026.states.OR.tax_base.standard_deduction.single -ne 2835) {
   throw "Unexpected 2026 OR single standard deduction"
 }
-if ($states2026.states.OR.brackets.single[1].up_to -ne 11050) {
+if ($states2026.states.OR.brackets.single[1].up_to -ne 11100) {
   throw "Unexpected 2026 OR single second bracket cap"
 }
 if ($states2026.states.OR.tax_base.federal_tax_subtraction.phaseout_table.single[0].limit -ne 8500) {

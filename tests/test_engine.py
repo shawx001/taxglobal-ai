@@ -706,8 +706,8 @@ class EngineTests(unittest.TestCase):
             {line["label"] for line in result["breakdown"]},
         )
         self.assertEqual(result["result"]["state_taxable_base"], 88_665.00)
-        self.assertEqual(result["result"]["state_income_tax"]["tax"], 7_449.19)
-        self.assertEqual(result["result"]["total_tax"], 28_269.19)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 7_448.19)
+        self.assertEqual(result["result"]["total_tax"], 28_268.19)
         self.assertIn("State federal-tax subtraction", "\n".join(result["assumptions"]))
 
     def test_income_tax_summary_non_subtraction_state_does_not_emit_federal_tax_liability(self):
@@ -722,8 +722,8 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["federal_income_tax_liability"], 19_694.00)
         self.assertEqual(result["result"]["state_taxable_base"], 119_365.00)
-        self.assertEqual(result["result"]["state_income_tax"]["tax"], 10_135.44)
-        self.assertEqual(result["result"]["total_tax"], 39_697.94)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 10_134.44)
+        self.assertEqual(result["result"]["total_tax"], 39_696.94)
 
     def test_nexus_ca_equal_threshold_uses_strict_greater_than(self):
         result = nexus_estimate("CA", 500_000, tax_year=2025)

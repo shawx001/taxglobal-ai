@@ -127,7 +127,7 @@
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
-        "tax": 7449.19,
+        "tax": 7448.19,
         "citation_source_ids": ["or_dor_or40_instructions_2025", "or_dor_pub_or17_2025", "or_dor_estimated_income_tax_2025"],
         "assumption_contains": "kicker"
       }

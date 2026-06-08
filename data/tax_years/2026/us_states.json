@@ -742,31 +742,31 @@
       "brackets": {
         "single": [
           {"up_to": "4400", "rate": "0.0475"},
-          {"up_to": "11050", "rate": "0.0675"},
+          {"up_to": "11100", "rate": "0.0675"},
           {"up_to": "125000", "rate": "0.0875"},
           {"up_to": null, "rate": "0.099"}
         ],
         "married_filing_separately": [
           {"up_to": "4400", "rate": "0.0475"},
-          {"up_to": "11050", "rate": "0.0675"},
+          {"up_to": "11100", "rate": "0.0675"},
           {"up_to": "125000", "rate": "0.0875"},
           {"up_to": null, "rate": "0.099"}
         ],
         "married_filing_jointly": [
           {"up_to": "8800", "rate": "0.0475"},
-          {"up_to": "22100", "rate": "0.0675"},
+          {"up_to": "22200", "rate": "0.0675"},
           {"up_to": "250000", "rate": "0.0875"},
           {"up_to": null, "rate": "0.099"}
         ],
         "head_of_household": [
           {"up_to": "8800", "rate": "0.0475"},
-          {"up_to": "22100", "rate": "0.0675"},
+          {"up_to": "22200", "rate": "0.0675"},
           {"up_to": "250000", "rate": "0.0875"},
           {"up_to": null, "rate": "0.099"}
         ],
         "qualifying_surviving_spouse": [
           {"up_to": "8800", "rate": "0.0475"},
-          {"up_to": "22100", "rate": "0.0675"},
+          {"up_to": "22200", "rate": "0.0675"},
           {"up_to": "250000", "rate": "0.0875"},
           {"up_to": null, "rate": "0.099"}
         ]

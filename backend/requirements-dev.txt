@@ -1,1 +1,4 @@
 httpx==0.28.1
+
+# M2 test utilities
+testcontainers==4.12.0

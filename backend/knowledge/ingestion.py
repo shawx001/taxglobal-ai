@@ -131,7 +131,14 @@ def ingest_to_neo4j(items: list[dict[str, Any]], sources: dict[str, dict[str, An
         )
 
         for source_id in item["source_ids"]:
-            source = source_map[source_id]
+            source = source_map.get(source_id)
+            if source is None:
+                logger.warning(
+                    "source_id %s not in manifest; skipping CITED_FROM for %s",
+                    source_id,
+                    item["knowledge_id"],
+                )
+                continue
             neo4j_client.run_query(
                 """
                 MATCH (r:TaxRule {id: $id})

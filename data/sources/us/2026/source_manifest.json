@@ -50,7 +50,7 @@
         "credits"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_17.html",
+      "local_path": "data/sources/us/2026/raw/irs_pub_17.html",
       "content_hash": "09159C14F1BE00B8D2E14B6684FEF0DFA8C3D8AA3FC38E0ACF33D1C27D5389A3"
     },
     {
@@ -67,7 +67,7 @@
         "dependents"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_501.html",
+      "local_path": "data/sources/us/2026/raw/irs_pub_501.html",
       "content_hash": "2D66F4A593A56DAD15BE57A0DA960CD84C95F43559FCC125AADE24CE78A285E4"
     },
     {
@@ -84,7 +84,7 @@
         "foreign_tax_credit"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_54.html",
+      "local_path": "data/sources/us/2026/raw/irs_pub_54.html",
       "content_hash": "46412C33B184A1975DBDB4D95EA0532674585A50AE78A347EFAE108F4BA68A9B"
     },
     {
@@ -100,7 +100,7 @@
         "housing_exclusion"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_form_2555.html",
+      "local_path": "data/sources/us/2026/raw/irs_form_2555.html",
       "content_hash": "003F0307D34D3953A1F3BE8F3E4C2A82119F8E8D2B81D294B06F828A054F2A51"
     },
     {
@@ -115,7 +115,7 @@
         "foreign_tax_credit"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_form_1116.html",
+      "local_path": "data/sources/us/2026/raw/irs_form_1116.html",
       "content_hash": "3C0EC0A726390E7C67A2A5825DB184B04EC47EE69A9F46A2D4C7E34C9F548111"
     },
     {
@@ -132,7 +132,7 @@
         "deadlines"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_505.html",
+      "local_path": "data/sources/us/2026/raw/irs_pub_505.html",
       "content_hash": "FD716D576377D064F24E53E9E999439779B319A93DC6A682B04E8B8950B98C48"
     },
     {
@@ -148,7 +148,7 @@
         "deadlines"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_form_4868.html",
+      "local_path": "data/sources/us/2026/raw/irs_form_4868.html",
       "content_hash": "14F4CDE3AD3785AC8CEFECF71A705A1CCE97D5D63187A56F1736E221A46624F1"
     },
     {
@@ -164,7 +164,7 @@
         "deadlines"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_w2_w3.html",
+      "local_path": "data/sources/us/2026/raw/irs_w2_w3.html",
       "content_hash": "0E5C5EAF4FD387213549CB98BD29D408BA0B83670F9844805BEB94BA7F9B9648"
     },
     {
@@ -180,7 +180,7 @@
         "deadlines"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_1099_general.html",
+      "local_path": "data/sources/us/2026/raw/irs_1099_general.html",
       "content_hash": "7C67FE4ACA988234840BDE777C89C3E983595C77F5E1B77D013CBA0EB1B69E2D"
     },
     {
@@ -195,7 +195,7 @@
         "capital_gains"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_topic_409.html",
+      "local_path": "data/sources/us/2026/raw/irs_topic_409.html",
       "content_hash": "4488CC585BD122A8C85ED2FEFFDBF159B6FF4A819CC175BC269F541EA3CB3951"
     },
     {
@@ -210,7 +210,7 @@
         "additional_medicare_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_topic_560.html",
+      "local_path": "data/sources/us/2026/raw/irs_topic_560.html",
       "content_hash": "0DF332F6AF4F9440EE670C2D5AFF7F65A1B1B420DD3E69F39E1F35353244E184"
     },
     {
@@ -226,7 +226,7 @@
         "payroll"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_topic_751.html",
+      "local_path": "data/sources/us/2026/raw/irs_topic_751.html",
       "content_hash": "DBA917AA2E301BDCC3E96E95E359109D66C1F786F65C165A124602802B6059B2"
     },
     {
@@ -242,7 +242,7 @@
         "student_loan_interest"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_970.html",
+      "local_path": "data/sources/us/2026/raw/irs_pub_970.html",
       "content_hash": "85CDD965A91DFD220816335CF947D66230C642056F59953A85D01DA55F9D79A0"
     },
     {
@@ -258,7 +258,7 @@
         "retirement"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_590a.html",
+      "local_path": "data/sources/us/2026/raw/irs_pub_590a.html",
       "content_hash": "5AA0A4784CEFB3859BF965DC4AF69B6F8AADC2EAFDEAE660F0588BD124CFF4BC"
     },
     {
@@ -273,7 +273,7 @@
         "eitc"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_596.html",
+      "local_path": "data/sources/us/2026/raw/irs_pub_596.html",
       "content_hash": "50EE7738CC46846692D13F3CDD4A87042C42515550208FAD0A9BF6D51FFF1FA0"
     },
     {
@@ -290,7 +290,7 @@
         "stock_compensation"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_pub_525.html",
+      "local_path": "data/sources/us/2026/raw/irs_pub_525.html",
       "content_hash": "9DDCDF999FDDEF9790A1F4E40D61F01B1F9389FE62E5B9EDB7FAB99439A875AB"
     },
     {
@@ -305,7 +305,7 @@
         "self_employment_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_schedule_se_instructions.html",
+      "local_path": "data/sources/us/2026/raw/irs_schedule_se_instructions.html",
       "content_hash": "A6072610BA05BE36CADD0FF790B6E3BCA397929F12CDA2A5EB48CFBDACD26CF1"
     },
     {
@@ -321,7 +321,7 @@
         "digital_assets"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_digital_assets.html",
+      "local_path": "data/sources/us/2026/raw/irs_digital_assets.html",
       "content_hash": "707CE446ECACF833F7E252BB847FF89C210DADF53BC0244148C38B95C8A7633A"
     },
     {
@@ -337,14 +337,14 @@
         "information_returns"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\irs_form_1099_da.html",
+      "local_path": "data/sources/us/2026/raw/irs_form_1099_da.html",
       "content_hash": "CC6B95540EDB818B0944D67BDCCD35C9FB816FDE1D74FE4166570E975CA0F793"
     },
     {
       "source_id": "ca_2025_540_tax_rate_schedules",
       "title": "California 2025 Form 540 Tax Rate Schedules",
       "source_url": "https://www.ftb.ca.gov/forms/2025/2025-540-tax-rate-schedules.pdf",
-      "source_type": "html",
+      "source_type": "pdf",
       "publisher": "California Franchise Tax Board",
       "tax_year": 2025,
       "jurisdiction": "CA",
@@ -367,7 +367,7 @@
         "state_income_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\ny_2025_it201_instructions.html",
+      "local_path": "data/sources/us/2026/raw/ny_2025_it201_instructions.html",
       "content_hash": "DFA21A339B492114AAA5BD307A6D3E725B7C997127BE36756E8D964E9437166E"
     },
     {
@@ -383,7 +383,7 @@
         "surtax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\ma_dor_millionaire_surtax.html",
+      "local_path": "data/sources/us/2026/raw/ma_dor_millionaire_surtax.html",
       "content_hash": "FAFFB40B2FBDA0ECAFDE366FF55D848F776F392E08C13DFA7F3F276E0B7FB330"
     },
     {
@@ -399,7 +399,7 @@
         "gross_income"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\nj_dor_tax_rate_schedules_2025.html",
+      "local_path": "data/sources/us/2026/raw/nj_dor_tax_rate_schedules_2025.html",
       "content_hash": "C300B4C7E8ED5FCECF5D3A7B00639AD2FAD1926F1EC29F6C6D82A5F8EC0BED8B"
     },
     {
@@ -415,7 +415,7 @@
         "state_excise"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\wa_dor_capital_gains_excise.html",
+      "local_path": "data/sources/us/2026/raw/wa_dor_capital_gains_excise.html",
       "content_hash": "E86BC6EA635DE6BC40C31666E1C86A241BA718CCE44ABF57AC6A445312433AA3"
     },
     {
@@ -431,7 +431,7 @@
         "federal_tax_subtraction"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\or_dor_or40_2025.pdf",
+      "local_path": "data/sources/us/2026/raw/or_dor_or40_2025.pdf",
       "content_hash": "4EE45BAD719499E2B69977B0DB15DE75ED063AC631B151FDEFE3DB081FA1EAEB"
     },
     {
@@ -462,7 +462,7 @@
         "state_income_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\pa_dor_pit_rate.html",
+      "local_path": "data/sources/us/2026/raw/pa_dor_pit_rate.html",
       "content_hash": "DA78A9EAD816A1988F00F8C05AA0263D8CAD2F822DC2D983A6F95661ACD82248"
     },
     {
@@ -477,7 +477,7 @@
         "state_income_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\tx_comptroller_no_income_tax.html",
+      "local_path": "data/sources/us/2026/raw/tx_comptroller_no_income_tax.html",
       "content_hash": "79FF52E80CF1C95A0000612E16D0F340C08EE23D48C2250FF7043E5E62E914B6"
     },
     {
@@ -492,7 +492,7 @@
         "state_income_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\fl_dor_no_personal_income_tax.html",
+      "local_path": "data/sources/us/2026/raw/fl_dor_no_personal_income_tax.html",
       "content_hash": "7316F93ACE8546AC13A39E5D5FCE2E309C1CB6DF1AE15D5A01F560F1683D7B68"
     },
     {
@@ -507,7 +507,7 @@
         "state_income_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\nv_dor_no_personal_income_tax.html",
+      "local_path": "data/sources/us/2026/raw/nv_dor_no_personal_income_tax.html",
       "content_hash": "4611ECAF423C1F05CCD649890558FAE5A3DF48A0C774AC32473E499E616831AC"
     },
     {
@@ -522,7 +522,7 @@
         "state_income_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\wy_dor_no_personal_income_tax.html",
+      "local_path": "data/sources/us/2026/raw/wy_dor_no_personal_income_tax.html",
       "content_hash": "1688DD8C96A322BA637A1B89CE8EBC88C9D7E5D8AAFB241FFEBCEB2F589DE0DF"
     },
     {
@@ -537,7 +537,7 @@
         "state_income_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\ct_drs_income_tax.html",
+      "local_path": "data/sources/us/2026/raw/ct_drs_income_tax.html",
       "content_hash": "97D45281D205C93540920B00B7540CD8ADF0B57CE6A21A13FDB10B5093A9EF0F"
     },
     {
@@ -552,7 +552,7 @@
         "state_income_tax"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\hi_dor_income_tax.html",
+      "local_path": "data/sources/us/2026/raw/hi_dor_income_tax.html",
       "content_hash": "E1989E60107A1E6E94C7FC691DF13EFECF69FEBC7D08F9F18CF8C7D79847E73F"
     },
     {
@@ -568,7 +568,7 @@
         "multistate"
       ],
       "status": "archived",
-      "local_path": "data\\sources\\us\\2026\\raw\\ny_dtf_residency.html",
+      "local_path": "data/sources/us/2026/raw/ny_dtf_residency.html",
       "content_hash": "F17D07EC4503BCCEA6AE004557DB7F308B15E34197C6CABAD3AE21573031A125"
     }
   ]

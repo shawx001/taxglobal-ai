@@ -46,8 +46,32 @@
       });
   }
 
+  function getJson(path) {
+    return window.fetch(API_BASE_URL + path)
+      .catch(function (error) {
+        throw makeApiError("Backend service is unavailable.", {
+          code: "service_unavailable",
+          details: [String(error && error.message ? error.message : error)],
+        });
+      })
+      .then(function (response) {
+        return response.json().catch(function () {
+          return null;
+        }).then(function (body) {
+          if (!response.ok) {
+            throw makeApiError("Backend request failed.", {
+              code: "request_failed",
+              status: response.status,
+            });
+          }
+          return body;
+        });
+      });
+  }
+
   window.TaxGlobalApi = {
     postCalc: postCalc,
+    getStates: function () { return getJson("/api/states"); },
     federalIncome: function (payload) { return postCalc("/calc/federal-income", payload); },
     fica: function (payload) { return postCalc("/calc/fica", payload); },
     stateIncome: function (payload) { return postCalc("/calc/state-income", payload); },

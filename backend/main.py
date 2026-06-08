@@ -6,6 +6,7 @@ import os
 import time
 import uuid
 from collections.abc import Callable, Mapping
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -126,8 +127,29 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
                 response.headers["X-Request-ID"] = request_id
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize optional M2 stores without making calc routes depend on them."""
+
+    from backend.database import close_db, init_db
+    from backend.knowledge.embedder import init_embedder
+    from backend.knowledge.neo4j_client import close_neo4j, init_neo4j
+    from backend.knowledge.vector_store import close_chroma, init_chroma
+
+    await init_db()
+    init_neo4j()
+    init_chroma()
+    init_embedder()
+    try:
+        yield
+    finally:
+        close_chroma()
+        close_neo4j()
+        await close_db()
+
+
 def create_app() -> FastAPI:
-    app = FastAPI(title="TaxGlobal AI API", version="0.1.0")
+    app = FastAPI(title="TaxGlobal AI API", version="0.1.0", lifespan=lifespan)
     # Dev default allows local frontend origins; production should set TAXGLOBAL_CORS_ORIGINS explicitly.
     app.add_middleware(
         CORSMiddleware,
@@ -172,6 +194,25 @@ def create_app() -> FastAPI:
                 }
             )
         return {"tax_year": tax_year, "states": result}
+
+    @app.get("/api/health")
+    def health_check() -> dict[str, Any]:
+        """Return service health including optional M2 storage status."""
+
+        from backend.database import is_pg_available
+        from backend.knowledge.embedder import is_embedder_available
+        from backend.knowledge.neo4j_client import is_neo4j_available
+        from backend.knowledge.vector_store import is_chroma_available
+
+        return {
+            "status": "ok",
+            "stores": {
+                "postgresql": is_pg_available(),
+                "neo4j": is_neo4j_available(),
+                "chroma": is_chroma_available(),
+                "embedder": is_embedder_available(),
+            },
+        }
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:

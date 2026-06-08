@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Query
 
 from backend.knowledge.search import DEFAULT_TOP_K, MAX_TOP_K, hybrid_search
 
@@ -13,7 +13,6 @@ router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 
 @router.get("/search")
 def search_knowledge(
-    request: Request,
     q: str = Query(..., min_length=1, max_length=500, description="Search query"),
     jurisdiction: str | None = Query(None, max_length=10, description="Filter by jurisdiction code"),
     topic: str | None = Query(None, max_length=100, description="Filter by topic"),

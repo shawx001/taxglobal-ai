@@ -28,8 +28,10 @@ def _build_where(filters: dict[str, Any] | None) -> dict[str, Any] | None:
             continue
         if key == "jurisdiction":
             value = str(value).upper()
-        if key == "jurisdiction" and value != "US":
-            clauses.append({"$or": [{"jurisdiction": value}, {"jurisdiction": "US"}]})
+            if value != "US":
+                clauses.append({"$or": [{"jurisdiction": value}, {"jurisdiction": "US"}]})
+            else:
+                clauses.append({"jurisdiction": value})
         else:
             clauses.append({key: value})
 
@@ -102,7 +104,7 @@ def _node_value(node: Any, key: str) -> Any:
         return node.get(key)
     try:
         return node[key]
-    except Exception:
+    except (TypeError, KeyError, IndexError):
         return getattr(node, key, None)
 
 
@@ -284,9 +286,10 @@ def hybrid_search(
             }
         )
 
+    capped = results[:clamped_top_k]
     return {
-        "results": results[:clamped_top_k],
-        "total": len(results[:clamped_top_k]),
+        "results": capped,
+        "total": len(capped),
         "query_metadata": {
             "vector_hits": len(vector_hits),
             "graph_expansions": len(graph_expansions),

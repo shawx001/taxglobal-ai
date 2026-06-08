@@ -212,13 +212,25 @@ class TestHybridSearch(unittest.TestCase):
         self.assertEqual(vector_search.call_args.kwargs["top_k"], search.MAX_TOP_K)
 
 
+def _empty_search_response() -> dict[str, object]:
+    return {
+        "results": [],
+        "total": 0,
+        "query_metadata": {
+            "vector_hits": 0,
+            "graph_expansions": 0,
+            "retrieval_method": "none",
+        },
+    }
+
+
 class TestSearchRoute(unittest.TestCase):
     def test_search_endpoint_returns_200(self):
         with (
             patch("backend.config.ENABLE_POSTGRES", False),
             patch("backend.config.ENABLE_NEO4J", False),
             patch("backend.config.ENABLE_CHROMA", False),
-            patch("backend.knowledge.search_routes.hybrid_search", return_value={"results": [], "total": 0}),
+            patch("backend.knowledge.search_routes.hybrid_search", return_value=_empty_search_response()),
             TestClient(create_app()) as client,
         ):
             response = client.get("/api/knowledge/search?q=FEIE")
@@ -242,7 +254,7 @@ class TestSearchRoute(unittest.TestCase):
             patch("backend.config.ENABLE_POSTGRES", False),
             patch("backend.config.ENABLE_NEO4J", False),
             patch("backend.config.ENABLE_CHROMA", False),
-            patch("backend.knowledge.search_routes.hybrid_search", return_value={"results": [], "total": 0}) as hs,
+            patch("backend.knowledge.search_routes.hybrid_search", return_value=_empty_search_response()) as hs,
             TestClient(create_app()) as client,
         ):
             client.get("/api/knowledge/search?q=FEIE&jurisdiction=US&tax_year=2026&top_k=7")
@@ -257,7 +269,7 @@ class TestSearchRoute(unittest.TestCase):
             patch("backend.config.ENABLE_POSTGRES", False),
             patch("backend.config.ENABLE_NEO4J", False),
             patch("backend.config.ENABLE_CHROMA", False),
-            patch("backend.knowledge.search_routes.hybrid_search", return_value={"results": [], "total": 0}),
+            patch("backend.knowledge.search_routes.hybrid_search", return_value=_empty_search_response()),
             TestClient(create_app()) as client,
         ):
             response = client.get("/api/knowledge/search?q=nothing")

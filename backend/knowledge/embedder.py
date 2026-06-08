@@ -20,9 +20,9 @@ def init_embedder() -> None:
         logger.warning("Chroma/Embedder disabled via ENABLE_CHROMA=false")
         return
     try:
-        from sentence_transformers import SentenceTransformer
-
         import os
+
+        from sentence_transformers import SentenceTransformer
 
         # Force local-only loading: never download from Hugging Face Hub at runtime.
         # The model must be pre-cached (e.g. via `huggingface-cli download`).

@@ -821,6 +821,69 @@
       "description": "Nebraska DOR 2025 individual income tax booklet with rate schedules and standard deduction amounts per LB 754 (2023) phased reduction.",
       "status": "not_archived",
       "notes": "Nebraska DOR individual income tax forms page. LB 754 phased rate reduction; 2025 top rate 5.20%. Standard deduction $8,600/$17,200/$12,600."
+    },
+    {
+      "source_id": "nm_trd_income_tax_2025",
+      "description": "New Mexico Taxation & Revenue Dept — 2025 PIT rates per HB 252",
+      "url": "https://www.tax.newmexico.gov/all-nm-taxes/current-historic-tax-rates-overview/personal-income-tax-rates/",
+      "status": "not_archived",
+      "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "nd_tax_income_tax_2025",
+      "description": "North Dakota Tax Commissioner — 2025 individual income tax tables (HB 1158)",
+      "url": "https://www.tax.nd.gov/individual-income-tax",
+      "status": "not_archived",
+      "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "oh_tax_income_tax_2025",
+      "description": "Ohio Dept of Taxation — 2025 IT 1040 income tax rates and exemptions",
+      "url": "https://tax.ohio.gov/individual/resources/annual-tax-rates",
+      "status": "not_archived",
+      "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "ok_tax_income_tax_2025",
+      "description": "Oklahoma Tax Commission — 2025 Form 511 income tax rates and deductions",
+      "url": "https://oklahoma.gov/tax/individuals/income-tax.html",
+      "status": "not_archived",
+      "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "ri_dor_income_tax_2025",
+      "description": "Rhode Island Dept of Revenue — 2025 tax rate schedules and deductions",
+      "url": "https://tax.ri.gov/tax-sections/personal-income-tax",
+      "status": "not_archived",
+      "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "sc_dor_income_tax_2025",
+      "description": "South Carolina Dept of Revenue — 2025 individual income tax rates",
+      "url": "https://dor.sc.gov/iit",
+      "status": "not_archived",
+      "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "va_tax_income_tax_2025",
+      "description": "Virginia Dept of Taxation — 2025 income tax rates and deductions",
+      "url": "https://www.tax.virginia.gov/individual-income-tax",
+      "status": "not_archived",
+      "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "vt_tax_income_tax_2025",
+      "description": "Vermont Dept of Taxes — 2025 income tax rate schedules",
+      "url": "https://tax.vermont.gov/individuals/personal-income-tax/rates",
+      "status": "not_archived",
+      "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
+    },
+    {
+      "source_id": "wv_tax_income_tax_2025",
+      "description": "West Virginia State Tax Division — 2025 personal income tax rates (SB 2033)",
+      "url": "https://tax.wv.gov/Individuals/Pages/PersonalIncomeTax.aspx",
+      "status": "not_archived",
+      "notes": "Official state DOR/tax authority source for 2025 tax year rates and brackets."
     }
   ],
   "failed_sources": [

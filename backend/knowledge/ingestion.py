@@ -224,8 +224,13 @@ def _load_items(knowledge_dir: Path) -> list[dict[str, Any]]:
 
 
 def _load_sources(source_manifest_path: Path) -> dict[str, dict[str, Any]]:
+    if not source_manifest_path.is_file():
+        raise ValueError(f"Source manifest does not exist: {source_manifest_path}")
     manifest = _read_json(source_manifest_path)
-    return {source["source_id"]: source for source in manifest.get("sources", [])}
+    sources = manifest.get("sources", [])
+    if not sources:
+        raise ValueError(f"Source manifest contains no sources: {source_manifest_path}")
+    return {source["source_id"]: source for source in sources}
 
 
 def ingest_all(knowledge_dir: str | Path, source_manifest_path: str | Path) -> dict[str, Any]:

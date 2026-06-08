@@ -398,9 +398,10 @@
         "state_income_tax",
         "gross_income"
       ],
-      "status": "archived",
+      "status": "archived_redacted",
       "local_path": "data/sources/us/2026/raw/nj_dor_tax_rate_schedules_2025.html",
-      "content_hash": "C300B4C7E8ED5FCECF5D3A7B00639AD2FAD1926F1EC29F6C6D82A5F8EC0BED8B"
+      "content_hash": "B32C8A9C2076416E650E4D151D94963896E265950DAC6D80E1E1520D3DC090AF",
+      "notes": "Redacted suspicious injected script tag from HTML head."
     },
     {
       "source_id": "wa_dor_capital_gains_excise",
@@ -536,9 +537,10 @@
       "topics": [
         "state_income_tax"
       ],
-      "status": "archived",
+      "status": "archived_redacted",
       "local_path": "data/sources/us/2026/raw/ct_drs_income_tax.html",
-      "content_hash": "97D45281D205C93540920B00B7540CD8ADF0B57CE6A21A13FDB10B5093A9EF0F"
+      "content_hash": "39C42696EA2BA0C25E186AFB82434BE0D76700842EA70D1A6DC1A619525B8031",
+      "notes": "Redacted embedded analytics apiKey from inline JS."
     },
     {
       "source_id": "hi_dor_income_tax",

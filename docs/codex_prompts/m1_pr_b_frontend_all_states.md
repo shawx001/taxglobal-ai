@@ -1,0 +1,190 @@
+# Codex Prompt: PR-B 前端州下拉动态加载（50 州 + DC，51 jurisdictions）
+
+> 先读：`/AGENTS.md`（铁律）→ `/ARCHITECTURE.md` → `docs/m1_closure_design.md` PR-B 节
+
+## 任务
+
+前端 3 个州下拉（`#tx-state`、`#se-state`、`#cr-state`）当前硬编码 10 个州，引擎已覆盖 50 州 + DC（51 jurisdictions）。改为从后端 API 动态加载全部州。
+
+## 后端：新增 `/api/states` 端点
+
+### 文件：`backend/main.py`
+
+新增路由：
+
+```python
+from collections.abc import Mapping
+from engine.rules_loader import load_rule_file
+
+# 模块级常量——不要在请求函数内重建
+STATE_NAMES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "DC": "District of Columbia", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii",
+    "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa",
+    "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine",
+    "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota",
+    "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska",
+    "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico",
+    "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio",
+    "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island",
+    "SC": "South Carolina", "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas",
+    "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington",
+    "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
+}
+
+@app.get("/api/states")
+def get_available_states(tax_year: int = DEFAULT_TAX_YEAR):
+    """Return all available states for the given tax year."""
+    states_data = load_rule_file(tax_year, "us_states.json")
+    
+    states_block = states_data.get("states", {})
+    if not isinstance(states_block, Mapping):
+        states_block = {}
+    result = []
+    for code in sorted(states_block):
+        state = states_block[code]
+        if not isinstance(state, Mapping):
+            state = {}
+        state_name = state.get("name")
+        if not isinstance(state_name, str) or not state_name:
+            state_name = STATE_NAMES.get(code, code)
+        result.append({
+            "code": code,
+            "name": state_name,
+            "income_tax_type": state.get("income_tax_type", "unknown"),
+        })
+    
+    return {"tax_year": tax_year, "states": result}
+```
+
+### 新增测试
+
+`tests/test_api_states.py`：
+- `test_states_endpoint_returns_51`：GET `/api/states` 返回 50 州 + DC（51 jurisdictions）
+- `test_states_have_required_fields`：每个州有 code, name, income_tax_type
+- `test_states_sorted_by_code`：结果按 code 字母序
+
+## 前端：动态加载
+
+### 文件：`frontend/index.html`
+
+#### 1. 移除硬编码 `<option>`
+
+三个 `<select>` 改为只保留占位：
+
+```html
+<!-- #tx-state -->
+<select class="sel" id="tx-state" onchange="calcTax()">
+  <option value="">不计州税</option>
+  <!-- 动态填充 -->
+</select>
+
+<!-- #se-state -->
+<select class="sel" id="se-state" onchange="calcSE()">
+  <option value="">选择州</option>
+  <!-- 动态填充 -->
+</select>
+
+<!-- #cr-state -->
+<select class="sel" id="cr-state" onchange="calcCrypto()">
+  <option value="">（不计州税）</option>
+  <!-- 动态填充 -->
+</select>
+```
+
+#### 2. 新增 `populateStateDropdowns()` 函数
+
+```javascript
+async function populateStateDropdowns() {
+  try {
+    const resp = await fetch(API_BASE_URL + '/api/states');
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const states = data.states || [];
+    
+    // 分组：有税 vs 无税
+    const withTax = states.filter(s => s.income_tax_type !== 'none');
+    const noTax = states.filter(s => s.income_tax_type === 'none');
+    
+    function buildOptions(selectId) {
+      const sel = document.getElementById(selectId);
+      // 保留第一个 option（空值占位）
+      while (sel.options.length > 1) sel.remove(1);
+      
+      // 有州税的州
+      withTax.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.code;
+        opt.textContent = s.name + ' ' + s.code;
+        sel.appendChild(opt);
+      });
+      
+      // 分隔线
+      if (noTax.length) {
+        const sep = document.createElement('option');
+        sep.disabled = true;
+        sep.textContent = '── 无州所得税 ──';
+        sel.appendChild(sep);
+      }
+      
+      // 无州税的州
+      noTax.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.code;
+        let label = s.name + ' ' + s.code + '（无州所得税）';
+        // WA 特殊标注（crypto 下拉用）
+        if (s.code === 'WA' && selectId === 'cr-state') {
+          label = s.name + ' ' + s.code + '（长期 excise）';
+        }
+        opt.textContent = label;
+        sel.appendChild(opt);
+      });
+    }
+    
+    buildOptions('tx-state');
+    buildOptions('se-state');
+    buildOptions('cr-state');
+  } catch (e) {
+    console.warn('Failed to load states:', e);
+    // 降级：下拉保持空或显示错误提示
+  }
+}
+```
+
+#### 3. 在页面初始化时调用
+
+在现有的 `DOMContentLoaded` 或 `init()` 函数末尾加入：
+
+```javascript
+populateStateDropdowns();
+```
+
+## 验收门禁
+
+```powershell
+python -m unittest discover -s tests
+python -m ruff check engine backend tests
+git diff --check
+# 根 index.html hash 不变（改的是 frontend/index.html）
+```
+
+## 验收场景
+
+1. 打开 http://127.0.0.1:3000/index.html → 税务计算 → 州下拉显示 50 州 + DC（51 jurisdictions）
+2. 选 AL（Alabama）→ 州税正确计算
+3. 选 TX（Texas）→ 州税 = $0（无州税）
+4. 选 MA（Massachusetts）→ MA 4% surtax 对 $1M+ 收入生效
+5. 3 个下拉全部正常（#tx-state, #se-state, #cr-state）
+
+## Commit 格式
+
+```
+feat(frontend+api): dynamic state dropdown for 50 states + DC
+
+Add GET /api/states endpoint returning all 51 jurisdictions (50 states
++ DC) from rule data. Frontend now dynamically populates all three
+state dropdowns on page load instead of hardcoding 10 states.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+```

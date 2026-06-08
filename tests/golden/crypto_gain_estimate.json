@@ -322,7 +322,7 @@
       }
     },
     {
-      "name": "state_ma_not_covered",
+      "name": "state_xx_not_covered",
       "input": {
         "lots": [
           {"asset": "BTC", "date": "2023-01-10", "quantity": 1.0, "cost_basis": 20000},
@@ -334,12 +334,12 @@
         "method": "FIFO",
         "filing_status": "single",
         "other_taxable_income": 100000,
-        "state_code": "MA"
+        "state_code": "XX"
       },
       "expected": {
         "status": "ok",
         "state": {
-          "state": "MA",
+          "state": "XX",
           "status": "not_covered",
           "tax": 0.00
         },

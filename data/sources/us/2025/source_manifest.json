@@ -548,6 +548,94 @@
       "description": "Texas Comptroller confirms Texas has no state income tax.",
       "status": "not_archived",
       "notes": "TX Comptroller taxes overview page. Article VIII Section 24-a of the Texas Constitution prohibits an individual income tax unless approved by voters."
+    },
+    {
+      "source_id": "az_dor_income_tax_2025",
+      "source_url": "https://azdor.gov/individual-income-tax",
+      "publisher": "Arizona Department of Revenue",
+      "description": "Arizona DOR confirms the 2025 individual income tax rate is a flat 2.5%.",
+      "status": "not_archived",
+      "notes": "Arizona DOR individual income tax page. AZ flat rate of 2.5% effective since 2023."
+    },
+    {
+      "source_id": "id_tax_commission_2025",
+      "source_url": "https://tax.idaho.gov/pressrelease/whats-new-for-2025-income-tax-returns/",
+      "publisher": "Idaho State Tax Commission",
+      "description": "Idaho Tax Commission 2025 tax year changes including rate reduction to 5.3% per HB 40.",
+      "status": "not_archived",
+      "notes": "Idaho Tax Commission press release. HB 40 (signed March 2025) reduced the rate from 5.695% to 5.3% retroactive to January 1, 2025."
+    },
+    {
+      "source_id": "in_dor_individual_income_tax",
+      "source_url": "https://www.in.gov/dor/individual-income-taxes/",
+      "publisher": "Indiana Department of Revenue",
+      "description": "Indiana DOR confirms the 2025 adjusted gross income tax rate is 3.00%.",
+      "status": "not_archived",
+      "notes": "Indiana DOR individual income tax page. Rate phasing down from 3.15% (2023) to 3.00% (2025), scheduled 2.95% (2026)."
+    },
+    {
+      "source_id": "ia_dor_individual_income_tax_2025",
+      "source_url": "https://revenue.iowa.gov/taxes/tax-guidance/individual-income-tax",
+      "publisher": "Iowa Department of Revenue",
+      "description": "Iowa DOR confirms the 2025 individual income tax rate is a flat 3.8%.",
+      "status": "not_archived",
+      "notes": "Iowa DOR individual income tax guidance. Iowa consolidated progressive brackets into a flat 3.8% rate effective 2025."
+    },
+    {
+      "source_id": "ky_dor_standard_deduction_2025",
+      "source_url": "https://revenue.ky.gov/News/pages/kentucky-dor-announces-2025-standard-deduction.aspx",
+      "publisher": "Kentucky Department of Revenue",
+      "description": "Kentucky DOR announces the 2025 standard deduction of $3,270 and confirms the 4.0% individual income tax rate.",
+      "status": "not_archived",
+      "notes": "Kentucky DOR 2025 announcement. Standard deduction is $3,270 for all filing statuses. Rate scheduled to drop to 3.5% in 2026."
+    },
+    {
+      "source_id": "la_dor_income_tax_reform_2025",
+      "source_url": "https://revenue.louisiana.gov/tax-education-and-faqs/faqs/income-tax-reform/",
+      "publisher": "Louisiana Department of Revenue",
+      "description": "Louisiana DOR FAQ on income tax reform: flat 3% rate effective 2025, standard deduction $12,500/$25,000.",
+      "status": "not_archived",
+      "notes": "Louisiana DOR income tax reform FAQ and RIB No. 25-012. Act 11 of 2024 3rd Extraordinary Session converted from progressive (2/4/6%) to flat 3%."
+    },
+    {
+      "source_id": "mi_treasury_2025_tax_info",
+      "source_url": "https://www.michigan.gov/taxes/iit/tax-guidance/tax-year-info/tax-year-2025-guidance",
+      "publisher": "Michigan Department of Treasury",
+      "description": "Michigan Treasury confirms the 2025 individual income tax rate is 4.25% with a $5,800 personal exemption.",
+      "status": "not_archived",
+      "notes": "Michigan Treasury 2025 tax year guidance. Rate unchanged at 4.25%. Personal exemption increased from $5,600 (2024) to $5,800 (2025)."
+    },
+    {
+      "source_id": "ms_dor_individual_income_tax",
+      "source_url": "https://www.dor.ms.gov/individual-income-tax",
+      "publisher": "Mississippi Department of Revenue",
+      "description": "Mississippi DOR confirms the 2025 income tax rate is 4.4% on taxable income above $10,000.",
+      "status": "not_archived",
+      "notes": "Mississippi DOR individual income tax page. Rate reduced from 4.7% (2024) to 4.4% (2025). First $10,000 taxed at 0%. Income tax being phased out under Build-Up Mississippi Act."
+    },
+    {
+      "source_id": "nc_dor_standard_deduction_2025",
+      "source_url": "https://www.ncdor.gov/taxes-forms/individual-income-tax/filing-topics/north-carolina-standard-deduction-or-north-carolina-itemized-deductions",
+      "publisher": "North Carolina Department of Revenue",
+      "description": "NCDOR states the 2025 NC standard deduction and confirms the 4.25% rate.",
+      "status": "not_archived",
+      "notes": "NC DOR standard deduction page. 2025 amounts: $12,750 (single/MFS), $25,500 (MFJ/QSS), $19,125 (HOH). Rate reduced from 4.5% (2024) to 4.25% (2025)."
+    },
+    {
+      "source_id": "ut_tax_commission_2025",
+      "source_url": "https://incometax.utah.gov/",
+      "publisher": "Utah State Tax Commission",
+      "description": "Utah Tax Commission confirms the 2025 individual income tax rate is 4.5% per HB 106.",
+      "status": "not_archived",
+      "notes": "Utah Tax Commission income tax page. HB 106 (signed May 2025) reduced rate from 4.55% to 4.5% retroactive to January 1, 2025."
+    },
+    {
+      "source_id": "ma_dor_income_tax_rates_2025",
+      "source_url": "https://www.mass.gov/info-details/massachusetts-tax-rates",
+      "publisher": "Massachusetts Department of Revenue",
+      "description": "Massachusetts DOR states the 2025 Part B income tax rate is 5% plus 4% surtax on income above $1,083,150.",
+      "status": "not_archived",
+      "notes": "Massachusetts DOR tax rates page. 5% flat rate on Part B income. 4% surtax (voter-approved Nov 2022) on taxable income above $1,000,000 (2025 CPI-adjusted threshold: $1,083,150). Personal exemptions: $4,400 (single), $8,800 (MFJ), $6,800 (HOH)."
     }
   ],
   "failed_sources": [
@@ -556,12 +644,6 @@
       "source_url": "https://www.ssa.gov/news/en/cola/factsheets/2025.html",
       "publisher": "Social Security Administration",
       "reason": "PowerShell Invoke-WebRequest returned 403 Forbidden on 2026-06-02. Use IRS Publication 15 archived source for 2025 Social Security wage base until SSA source can be ingested through another approved path."
-    },
-    {
-      "source_id": "ma_tax_rates",
-      "source_url": "https://www.mass.gov/info-details/massachusetts-tax-rates",
-      "publisher": "Massachusetts Department of Revenue",
-      "reason": "PowerShell Invoke-WebRequest returned 403 Forbidden on 2026-06-02. Massachusetts income tax rule remains pending official source ingestion."
     }
   ]
 }

@@ -538,6 +538,71 @@ if ($states.states.TX.income_tax_type -ne "none") {
   throw "Texas must be income_tax_type none"
 }
 
+# C2: Flat-tax states spot checks
+if ($states.states.AZ.flat_rate -ne 0.025) {
+  throw "Unexpected AZ flat_rate"
+}
+if ($states.states.AZ.status -ne "effective") {
+  throw "Arizona must be effective"
+}
+if ($states.states.ID.flat_rate -ne 0.053) {
+  throw "Unexpected ID flat_rate"
+}
+if ($states.states.IN.flat_rate -ne 0.03) {
+  throw "Unexpected IN flat_rate"
+}
+if ($states.states.IN.tax_base.start_from -ne "federal_agi") {
+  throw "Indiana tax_base must start from federal_agi"
+}
+if ($states.states.IA.flat_rate -ne 0.038) {
+  throw "Unexpected IA flat_rate"
+}
+if ($states.states.KY.flat_rate -ne 0.04) {
+  throw "Unexpected KY flat_rate"
+}
+if ($states.states.KY.tax_base.standard_deduction.single -ne 3270) {
+  throw "Unexpected KY standard deduction"
+}
+if ($states.states.LA.flat_rate -ne 0.03) {
+  throw "Unexpected LA flat_rate"
+}
+if ($states.states.LA.tax_base.standard_deduction.single -ne 12500) {
+  throw "Unexpected LA single standard deduction"
+}
+if ($states.states.MI.flat_rate -ne 0.0425) {
+  throw "Unexpected MI flat_rate"
+}
+if ($states.states.MS.income_tax_type -ne "progressive") {
+  throw "Mississippi must be income_tax_type progressive"
+}
+if ($states.states.MS.brackets.single[0].rate -ne 0) {
+  throw "Unexpected MS first bracket rate (should be 0)"
+}
+if ($states.states.MS.brackets.single[0].up_to -ne 10000) {
+  throw "Unexpected MS zero-bracket cap"
+}
+if ($states.states.NC.flat_rate -ne 0.0425) {
+  throw "Unexpected NC flat_rate"
+}
+if ($states.states.NC.tax_base.standard_deduction.single -ne 12750) {
+  throw "Unexpected NC single standard deduction"
+}
+if ($states.states.UT.flat_rate -ne 0.045) {
+  throw "Unexpected UT flat_rate"
+}
+if ($states.states.MA.flat_rate -ne 0.05) {
+  throw "Unexpected MA flat_rate"
+}
+if ($states.states.MA.status -ne "effective") {
+  throw "Massachusetts must be effective (no longer source_pending)"
+}
+if ($states.states.MA.surtax.rate -ne 0.04) {
+  throw "Unexpected MA surtax rate"
+}
+if ($states.states.MA.surtax.threshold -ne 1083150) {
+  throw "Unexpected MA surtax threshold"
+}
+
 if ($states.states.CA.tax_base.standard_deduction.single -ne 5706) {
   throw "Unexpected CA single standard deduction"
 }
@@ -858,6 +923,32 @@ if ($states2026.states.TX.status -ne "effective") {
 }
 if ($states2026.states.TX.income_tax_type -ne "none") {
   throw "2026 Texas must be income_tax_type none"
+}
+
+# C2: 2026 flat-tax states spot checks
+if ($states2026.states.AZ.flat_rate -ne 0.025) {
+  throw "2026 Unexpected AZ flat_rate"
+}
+if ($states2026.states.ID.flat_rate -ne 0.053) {
+  throw "2026 Unexpected ID flat_rate"
+}
+if ($states2026.states.IN.flat_rate -ne 0.03) {
+  throw "2026 Unexpected IN flat_rate"
+}
+if ($states2026.states.KY.flat_rate -ne 0.04) {
+  throw "2026 Unexpected KY flat_rate"
+}
+if ($states2026.states.NC.flat_rate -ne 0.0425) {
+  throw "2026 Unexpected NC flat_rate"
+}
+if ($states2026.states.MA.flat_rate -ne 0.05) {
+  throw "2026 Unexpected MA flat_rate"
+}
+if ($states2026.states.MA.status -ne "effective") {
+  throw "2026 Massachusetts must be effective"
+}
+if ($states2026.states.MA.surtax.rate -ne 0.04) {
+  throw "2026 Unexpected MA surtax rate"
 }
 
 $nexus2026 = Read-Json "data/tax_years/2026/us_nexus.json"

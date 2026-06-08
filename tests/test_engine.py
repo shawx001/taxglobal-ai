@@ -156,12 +156,25 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(default["result"]["tax"], explicit["result"]["tax"])
         self.assertEqual(default["input"]["filing_status"], "single")
 
-    def test_state_income_tax_blocks_source_pending_states(self):
+    def test_state_income_tax_flat_with_surtax_below_threshold(self):
         result = state_income_tax("MA", 100_000, tax_year=2025)
 
-        self.assertEqual(result["status"], "not_covered")
-        self.assertIn("source_pending", result["reason"])
-        self.assertIsNone(result["result"])
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["tax"], 5_000.00)
+        self.assertEqual(result["result"]["rate"], 0.05)
+        self.assertEqual(result["result"]["surtax_rate"], 0.04)
+        self.assertEqual(result["result"]["surtax_threshold"], 1_083_150.0)
+
+    def test_state_income_tax_flat_with_surtax_above_threshold(self):
+        result = state_income_tax("MA", 2_000_000, tax_year=2025)
+
+        self.assertEqual(result["status"], "ok")
+        # 2,000,000 * 0.05 = 100,000 base + (2,000,000 - 1,083,150) * 0.04 = 36,674 surtax = 136,674
+        self.assertEqual(result["result"]["tax"], 136_674.00)
+        # Verify surtax appears in breakdown
+        surtax_items = [b for b in result["breakdown"] if b["label"] == "surtax"]
+        self.assertEqual(len(surtax_items), 1)
+        self.assertEqual(surtax_items[0]["amount"], 36_674.00)
 
     def test_state_income_tax_blocks_unknown_states(self):
         result = state_income_tax("ZZ", 100_000, tax_year=2025)

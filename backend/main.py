@@ -5,7 +5,8 @@ import logging
 import os
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -16,6 +17,7 @@ from starlette.responses import Response
 
 from backend.errors import error_response
 from backend.routes.calc import router as calc_router
+from engine.rules_loader import RuleLoadError, load_rule_file
 
 logger = logging.getLogger("taxglobal.api")
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -30,6 +32,61 @@ DEFAULT_DEV_CORS_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8000",
 ]
+
+DEFAULT_TAX_YEAR = 2026
+STATE_NAMES = {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "DC": "District of Columbia",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PA": "Pennsylvania",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming",
+}
 
 
 def _cors_origins() -> list[str]:
@@ -80,6 +137,36 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(RequestIdMiddleware)
     app.include_router(calc_router)
+
+    @app.get("/api/states", response_model=None)
+    def get_available_states(request: Request, tax_year: int = DEFAULT_TAX_YEAR) -> dict[str, Any] | JSONResponse:
+        """Return all available states for the given tax year."""
+
+        try:
+            states_data = load_rule_file(tax_year, "us_states.json")
+        except RuleLoadError:
+            return JSONResponse(
+                status_code=422,
+                content=error_response(
+                    code="unsupported_tax_year",
+                    message=f"Tax year {tax_year} is not supported yet.",
+                    request_id=str(getattr(request.state, "request_id", "unknown")),
+                ),
+            )
+        states_block = states_data.get("states", {})
+        if not isinstance(states_block, Mapping):
+            states_block = {}
+        result = []
+        for code in sorted(states_block):
+            state = states_block[code]
+            result.append(
+                {
+                    "code": code,
+                    "name": STATE_NAMES.get(code, code),
+                    "income_tax_type": state.get("income_tax_type", "unknown"),
+                }
+            )
+        return {"tax_year": tax_year, "states": result}
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:

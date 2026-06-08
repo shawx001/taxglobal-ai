@@ -565,16 +565,6 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
           <div class="field" id="tx-state-wrap"><label class="flabel">所在州（可选，决定州所得税）</label>
             <select class="sel" id="tx-state" onchange="calcTax()">
               <option value="">不计州税</option>
-              <option value="CA">加州 CA</option>
-              <option value="NY">纽约 NY</option>
-              <option value="GA">乔治亚 GA</option>
-              <option value="IL">伊利诺伊 IL</option>
-              <option value="CO">科罗拉多 CO</option>
-              <option value="FL">佛州 FL（无个人所得税）</option>
-              <option value="WA">华盛顿 WA（无个人所得税）</option>
-              <option value="NV">内华达 NV（无个人所得税）</option>
-              <option value="TX">德州 TX（暂未覆盖）</option>
-              <option value="MA">麻省 MA（暂未覆盖）</option>
             </select>
           </div>
           <div class="txbar">普通收入 General<span>W-2 工资等普通收入 → 联邦 + 州税</span></div>
@@ -656,16 +646,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
         <div class="field"><label class="flabel">SEP-IRA 供款</label><input class="inp mono" type="number" id="se-sep" value="20000" oninput="calcSE()"></div>
         <div class="field"><label class="flabel">所在州（决定州所得税）</label>
           <select class="sel" id="se-state" onchange="calcSE()">
-            <option value="CA">加州 CA</option>
-            <option value="NY">纽约 NY</option>
-            <option value="GA">乔治亚 GA</option>
-            <option value="IL">伊利诺伊 IL</option>
-            <option value="CO">科罗拉多 CO</option>
-            <option value="TX">德州 TX（暂未覆盖）</option>
-            <option value="FL">佛州 FL（无所得税）</option>
-            <option value="WA">华盛顿 WA（无所得税）</option>
-            <option value="NV">内华达 NV（无所得税）</option>
-            <option value="MA">马萨诸塞 MA（暂未覆盖）</option>
+            <option value="">选择州</option>
           </select></div>
         <div class="field"><label class="flabel">申报状态</label>
           <select class="sel" id="se-filing" onchange="calcSE()">
@@ -866,16 +847,6 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
       <div class="field"><label class="flabel">所在州（资本利得州税）</label>
         <select class="sel" id="cr-state" onchange="calcCrypto()">
           <option value="">（不计州税）</option>
-          <option value="CA">加州 CA</option>
-          <option value="NY">纽约 NY</option>
-          <option value="GA">乔治亚 GA</option>
-          <option value="IL">伊利诺伊 IL</option>
-          <option value="CO">科罗拉多 CO</option>
-          <option value="WA">华盛顿 WA（长期 excise）</option>
-          <option value="FL">佛州 FL（无所得税）</option>
-          <option value="NV">内华达 NV（无所得税）</option>
-          <option value="TX">德州 TX（暂未覆盖）</option>
-          <option value="MA">马萨诸塞 MA（暂未覆盖）</option>
         </select></div>
       <div class="field"><label class="flabel">其他普通应税收入</label><input class="inp mono" type="number" min="0" id="cr-other" value="0" oninput="calcCrypto()"></div>
       <div class="field"><label class="flabel">Modified AGI（可留空）</label><input class="inp mono" type="number" min="0" id="cr-magi" placeholder="填后 NIIT 更精确" oninput="calcCrypto()"></div>
@@ -1727,12 +1698,13 @@ async function calcSE(){
   const exp=+document.getElementById('se-exp').value||0;
   const sep=+document.getElementById('se-sep').value||0;
   const result=document.getElementById('seResult');
+  const selectedState=String(document.getElementById('se-state').value||'').trim();
   const payload={
     net_self_employment_profit:Math.max(0, net-exp),
     retirement_contributions:Math.max(0, sep),
     filing_status:document.getElementById('se-filing').value,
-    state_code:document.getElementById('se-state').value,
   };
+  if(selectedState) payload.state_code=selectedState;
   result.innerHTML='<div class="rrow"><span class="rl">'+taxText('calculating')+'</span><span class="rv">...</span></div>';
   try{
     const summary=await TaxGlobalApi.incomeSummary(payload);
@@ -1740,11 +1712,14 @@ async function calcSE(){
     const r=summary.result;
     const state=r.state_income_tax||{};
     const stateCovered=state.status==='ok';
+    const stateSelected=!!payload.state_code;
     const statePrefix=String(payload.state_code||'').toLowerCase()+'_';
-    const statePayload={citations:(summary.citations||[]).filter(c=>String(c.source_id||'').toLowerCase().startsWith(statePrefix))};
-    const stateHtml=stateCovered
-      ? taxBlock('州所得税', Number(state.tax)||0, statePayload)
-      : taxBlock('州所得税', 0, statePayload, {notCovered:true, reason:state.reason});
+    const statePayload={citations:stateSelected?(summary.citations||[]).filter(c=>String(c.source_id||'').toLowerCase().startsWith(statePrefix)):[]};
+    const stateHtml=stateSelected
+      ? (stateCovered
+        ? taxBlock('州所得税', Number(state.tax)||0, statePayload)
+        : taxBlock('州所得税', 0, statePayload, {notCovered:true, reason:state.reason}))
+      : taxBlock('州所得税', 0, statePayload);
     let html =
       '<div class="rrow"><span class="rl">净营业利润 '+taxCitations(summary.citations)+'</span><span class="rv">'+taxMoney(payload.net_self_employment_profit)+'</span></div>'+
       '<div class="rrow"><span class="rl">自雇税 §1401</span><span class="rv">'+taxMoney(r.self_employment_tax)+'</span></div>';
@@ -2510,8 +2485,56 @@ function sendMsg(){const v=document.getElementById('cpInp').value.trim();if(!v)r
 function askCopilot(q){ if(!chatOpen) toggleChat(); setTimeout(()=>handleQ(q),chatOpen?0:350); }
 
 /* ════════ INIT ════════ */
+
+async function populateStateDropdowns(){
+  if(!window.TaxGlobalApi || typeof TaxGlobalApi.getStates!=='function') return;
+  try{
+    const data=await TaxGlobalApi.getStates();
+    const states=data.states||[];
+    const withTax=states.filter(s=>s.income_tax_type!=='none');
+    const noTax=states.filter(s=>s.income_tax_type==='none');
+    function buildOptions(selectId){
+      const sel=document.getElementById(selectId);
+      if(!sel) return;
+      const desired=(selectId==='tx-state'&&profile&&profile.state)?profile.state:sel.value;
+      while(sel.options.length>1) sel.remove(1);
+      withTax.forEach(s=>{
+        const opt=document.createElement('option');
+        opt.value=s.code;
+        opt.textContent=s.name+' '+s.code;
+        sel.appendChild(opt);
+      });
+      if(noTax.length){
+        const sep=document.createElement('option');
+        sep.value='';
+        sep.disabled=true;
+        sep.textContent='── 无州所得税 ──';
+        sel.appendChild(sep);
+      }
+      noTax.forEach(s=>{
+        const opt=document.createElement('option');
+        opt.value=s.code;
+        let label=s.name+' '+s.code+'（无州所得税）';
+        if(s.code==='WA'&&selectId==='cr-state') label=s.name+' '+s.code+'（长期 excise）';
+        opt.textContent=label;
+        sel.appendChild(opt);
+      });
+      if(desired&&Array.from(sel.options).some(opt=>opt.value===desired)) sel.value=desired;
+    }
+    buildOptions('tx-state');
+    buildOptions('se-state');
+    buildOptions('cr-state');
+    if(typeof calcTax==='function') calcTax();
+    if(typeof calcSE==='function') calcSE();
+    if(typeof calcCrypto==='function') calcCrypto();
+  }catch(e){
+    console.warn('Failed to load states:',e);
+  }
+}
+
 renderObTypes('obTypes', true);
 showObStep();
+populateStateDropdowns();
 // 已有持久化档案 → 直接进入应用并恢复数据（刷新/重开不丢失）。
 if(loadPersistedProfile() && selectedTypes.length){ enterApp({restored:true}); }
 </script>

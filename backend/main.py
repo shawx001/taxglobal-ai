@@ -16,6 +16,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
+from backend.audit.middleware import AuditMiddleware
+from backend.audit.routes import router as audit_router
 from backend.errors import error_response
 from backend.knowledge.search_routes import router as search_router
 from backend.knowledge.tips_routes import router as tips_router
@@ -161,8 +163,9 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=_cors_origins(),
         allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["Content-Type"],
+        allow_headers=["Content-Type", "X-Admin-Token"],
     )
+    app.add_middleware(AuditMiddleware)
     app.add_middleware(RequestIdMiddleware)
     app.include_router(calc_router)
     app.include_router(search_router)
@@ -170,6 +173,7 @@ def create_app() -> FastAPI:
     app.include_router(profiles_router)
     app.include_router(skills_router)
     app.include_router(orchestrator_router)
+    app.include_router(audit_router)
 
     @app.get("/api/states", response_model=None)
     def get_available_states(request: Request, tax_year: int = DEFAULT_TAX_YEAR) -> dict[str, Any] | JSONResponse:

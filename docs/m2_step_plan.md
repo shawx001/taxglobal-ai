@@ -125,8 +125,8 @@ M2 核心价值:①搭好基础设施(三库+知识+Skill+安全) ②实打实�
 | M2.5 | LangChain Skill 框架 + 5 引擎 Skills | LangChain Tool 封装 + 注册表 | — | ✅ PR #53 merged 2026-06-08 |
 | M2.6 | Guardrail 中间件 | 金额来源验证 + schema 校验 + 升级钩子 | M2.5 | ✅ PR #55 merged 2026-06-09 |
 | M2.7 | LangGraph Workflow 编排器 | 意图路由 → KB + Skill 调度 → 结构化响应 | M2.3, M2.5, M2.6 | ✅ PR #57 merged 2026-06-09 |
-| M2.8 | KB 驱动税务提醒 + 截止日 | `GET /api/tips` + 档案关联提醒 | M2.3, M2.4 | 🟡 Prompt ready — `docs/codex_prompts/m2_8_kb_driven_tips_deadlines.md` |
-| M2.9 | 审计日志 | 全链路追踪:计算/查询/档案访问 + PII 脱敏 | M2.1(PG) | ⬜ |
+| M2.8 | KB 驱动税务提醒 + 截止日 | `GET /api/tips` + 档案关联提醒 | M2.3, M2.4 | ✅ PR #59 merged 2026-06-08 |
+| M2.9 | 审计日志 | 全链路追踪:计算/查询/档案访问 + PII 脱敏 | M2.1(PG) | 🟡 PR #61 open |
 | M2.10 | 集成测试 + M2 关闭 | 端到端验证 + 文档更新 | 全部 | ⬜ |
 
 ```
@@ -539,7 +539,7 @@ langgraph>=0.1
 
 ---
 
-### M2.8: KB 驱动税务提醒 + 截止日
+### M2.8: KB 驱动税务提醒 + 截止日 ✅ (PR #59 merged 2026-06-08)
 
 **目标**:根据用户档案,从知识图谱查询相关提醒和即将到来的截止日。
 
@@ -573,7 +573,7 @@ langgraph>=0.1
 
 ---
 
-### M2.9: 审计日志
+### M2.9: 审计日志 🟡 (PR #61 open 2026-06-09)
 
 **目标**:全链路追踪(计算/查询/档案访问),满足合规可追溯;PII 脱敏。
 

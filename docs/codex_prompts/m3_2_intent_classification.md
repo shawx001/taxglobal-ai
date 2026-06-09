@@ -25,7 +25,7 @@ Upgrade the orchestrator's intent classification from keyword-only to LLM-enhanc
 
 ## File 1: `backend/orchestrator/intent.py` — ADD `llm_classify_intent()`
 
-Keep ALL existing code untouched. Only ADD new functions at the bottom of the file.
+Keep the `classify_intent()` implementation unchanged. Append the new LLM code below it.
 
 ```python
 import json
@@ -161,16 +161,9 @@ import json
 import unittest
 from unittest.mock import patch
 
-from backend.llm.provider import LLMMessage, LLMResponse, MockProvider
-from backend.orchestrator.intent import (
-    INTENT_CLARIFY,
-    INTENT_FEIE,
-    INTENT_INCOME_TAX,
-    INTENT_KNOWLEDGE,
-    ClassifyResult,
-    classify_intent,
-    llm_classify_intent,
-)
+import backend.config as cfg
+from backend.llm.provider import MockProvider
+from backend.orchestrator.intent import classify_intent, llm_classify_intent
 
 
 class TestLLMClassifyIntent(unittest.TestCase):
@@ -182,7 +175,7 @@ class TestLLMClassifyIntent(unittest.TestCase):
             model="mock",
         )
 
-    @patch("backend.orchestrator.intent.get_provider")
+    @patch("backend.llm.client.get_provider")
     def test_returns_llm_result_on_success(self, mock_get_provider):
         provider = MockProvider()
         provider.enqueue(json.dumps({"intent": "income_tax", "confidence": 0.95}))
@@ -193,20 +186,20 @@ class TestLLMClassifyIntent(unittest.TestCase):
         self.assertEqual(result.intent, "income_tax")
         self.assertEqual(result.confidence, "llm:0.95")
 
-    @patch("backend.orchestrator.intent.get_provider")
+    @patch("backend.llm.client.get_provider")
     def test_returns_none_when_provider_unavailable(self, mock_get_provider):
         mock_get_provider.return_value = None
         result = llm_classify_intent("some query")
         self.assertIsNone(result)
 
-    @patch("backend.orchestrator.intent.get_provider")
+    @patch("backend.llm.client.get_provider")
     def test_returns_none_on_invalid_json(self, mock_get_provider):
         provider = MockProvider(default_response="I think this is about income tax")
         mock_get_provider.return_value = provider
         result = llm_classify_intent("test query")
         self.assertIsNone(result)
 
-    @patch("backend.orchestrator.intent.get_provider")
+    @patch("backend.llm.client.get_provider")
     def test_returns_none_on_invalid_intent(self, mock_get_provider):
         provider = MockProvider()
         provider.enqueue(json.dumps({"intent": "mortgage", "confidence": 0.9}))
@@ -214,7 +207,7 @@ class TestLLMClassifyIntent(unittest.TestCase):
         result = llm_classify_intent("how do I refinance")
         self.assertIsNone(result)
 
-    @patch("backend.orchestrator.intent.get_provider")
+    @patch("backend.llm.client.get_provider")
     def test_returns_none_on_low_confidence(self, mock_get_provider):
         provider = MockProvider()
         provider.enqueue(json.dumps({"intent": "feie", "confidence": 0.3}))
@@ -222,7 +215,7 @@ class TestLLMClassifyIntent(unittest.TestCase):
         result = llm_classify_intent("something about travel")
         self.assertIsNone(result)
 
-    @patch("backend.orchestrator.intent.get_provider")
+    @patch("backend.llm.client.get_provider")
     def test_feie_classification(self, mock_get_provider):
         provider = MockProvider()
         provider.enqueue(json.dumps({"intent": "feie", "confidence": 0.88}))
@@ -231,7 +224,7 @@ class TestLLMClassifyIntent(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result.intent, "feie")
 
-    @patch("backend.orchestrator.intent.get_provider")
+    @patch("backend.llm.client.get_provider")
     def test_knowledge_classification(self, mock_get_provider):
         provider = MockProvider()
         provider.enqueue(json.dumps({"intent": "knowledge", "confidence": 0.91}))
@@ -244,38 +237,47 @@ class TestLLMClassifyIntent(unittest.TestCase):
 class TestClassifyNodeFallback(unittest.TestCase):
     """Test that classify_node falls back to keyword when LLM is unavailable."""
 
-    @patch("backend.orchestrator.nodes.config")
-    def test_keyword_fallback_when_llm_disabled(self, mock_config):
-        mock_config.ENABLE_LLM = False
-        from backend.orchestrator.nodes import classify_node
-        state = {"query": "我的所得税是多少", "nodes_visited": []}
-        result = classify_node(state)
-        self.assertEqual(result["intent"], "income_tax")
-        self.assertEqual(result["confidence"], "keyword_match")
+    def test_keyword_fallback_when_llm_disabled(self):
+        original = cfg.ENABLE_LLM
+        try:
+            cfg.ENABLE_LLM = False
+            from backend.orchestrator.nodes import classify_node
+            state = {"query": "我的所得税是多少", "nodes_visited": []}
+            result = classify_node(state)
+            self.assertEqual(result["intent"], "income_tax")
+            self.assertEqual(result["confidence"], "keyword_match")
+        finally:
+            cfg.ENABLE_LLM = original
 
-    @patch("backend.orchestrator.intent.get_provider")
-    @patch("backend.orchestrator.nodes.config")
-    def test_keyword_fallback_when_llm_fails(self, mock_config, mock_get_provider):
-        mock_config.ENABLE_LLM = True
-        mock_get_provider.return_value = None  # LLM unavailable
-        from backend.orchestrator.nodes import classify_node
-        state = {"query": "我的所得税是多少", "nodes_visited": []}
-        result = classify_node(state)
-        self.assertEqual(result["intent"], "income_tax")
-        self.assertEqual(result["confidence"], "keyword_match")
+    @patch("backend.llm.client.get_provider")
+    def test_keyword_fallback_when_llm_fails(self, mock_get_provider):
+        original = cfg.ENABLE_LLM
+        try:
+            cfg.ENABLE_LLM = True
+            mock_get_provider.return_value = None  # LLM unavailable
+            from backend.orchestrator.nodes import classify_node
+            state = {"query": "我的所得税是多少", "nodes_visited": []}
+            result = classify_node(state)
+            self.assertEqual(result["intent"], "income_tax")
+            self.assertEqual(result["confidence"], "keyword_match")
+        finally:
+            cfg.ENABLE_LLM = original
 
-    @patch("backend.orchestrator.intent.get_provider")
-    @patch("backend.orchestrator.nodes.config")
-    def test_llm_result_used_when_available(self, mock_config, mock_get_provider):
-        mock_config.ENABLE_LLM = True
-        provider = MockProvider()
-        provider.enqueue(json.dumps({"intent": "nexus", "confidence": 0.85}))
-        mock_get_provider.return_value = provider
-        from backend.orchestrator.nodes import classify_node
-        state = {"query": "我在多个州有销售，需要注册吗", "nodes_visited": []}
-        result = classify_node(state)
-        self.assertEqual(result["intent"], "nexus")
-        self.assertIn("llm:", result["confidence"])
+    @patch("backend.llm.client.get_provider")
+    def test_llm_result_used_when_available(self, mock_get_provider):
+        original = cfg.ENABLE_LLM
+        try:
+            cfg.ENABLE_LLM = True
+            provider = MockProvider()
+            provider.enqueue(json.dumps({"intent": "nexus", "confidence": 0.85}))
+            mock_get_provider.return_value = provider
+            from backend.orchestrator.nodes import classify_node
+            state = {"query": "我在多个州有销售，需要注册吗", "nodes_visited": []}
+            result = classify_node(state)
+            self.assertEqual(result["intent"], "nexus")
+            self.assertIn("llm:", result["confidence"])
+        finally:
+            cfg.ENABLE_LLM = original
 
 
 class TestKeywordClassifierUnchanged(unittest.TestCase):

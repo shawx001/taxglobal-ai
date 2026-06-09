@@ -11,7 +11,7 @@ from .filing import _normalize_filing_status
 from .money import _decimal_input, _decimal_rule, _money_decimal, _money_quantized
 from .payroll import _combined_payroll
 from .qbi import qbi_deduction
-from .responses import _citations, _invalid_input, _merge_citations, _response
+from .responses import _citations, _invalid_input, _merge_citations, _not_covered, _response
 from .rules_loader import (
     load_capital_gains_rules,
     load_federal_rules,
@@ -242,25 +242,42 @@ def income_tax_summary(
             and state_block.get("status") == "effective"
             and state_block.get("income_tax_type") in {"flat", "progressive"}
         ):
-            try:
-                state_taxable_base = _state_taxable_base(
-                    state_block,
-                    gross_income=gross_income,
-                    federal_agi=adjusted_gross_income,
-                    federal_taxable_income=taxable_income,
-                    federal_qbi_deduction=qbi_deduction_amount,
-                    filing=filing,
-                    federal_income_tax=federal_income_tax_liability,
+            if state_block.get("tax_base", {}).get("start_from") == "state_specific":
+                state_result = _not_covered(
+                    input_data={
+                        "state": normalized_state_code,
+                        "taxable_income": _money_decimal(taxable_income),
+                        "filing_status": filing,
+                        "tax_year": tax_year,
+                    },
+                    rule_version=state_rules["rule_version"],
+                    citations=_citations(state_block),
+                    reason=(
+                        f"State {normalized_state_code} uses an independent state-specific income computation "
+                        "that is not modeled in the combined income summary."
+                    ),
                 )
-            except ValueError as exc:
-                return _invalid_input(
-                    input_data={**raw_input, "filing_status": filing},
-                    rule_version=rule_version,
-                    reason=str(exc),
-                    citations=summary_citations,
-                )
+            else:
+                try:
+                    state_taxable_base = _state_taxable_base(
+                        state_block,
+                        gross_income=gross_income,
+                        federal_agi=adjusted_gross_income,
+                        federal_taxable_income=taxable_income,
+                        federal_qbi_deduction=qbi_deduction_amount,
+                        filing=filing,
+                        federal_income_tax=federal_income_tax_liability,
+                    )
+                except ValueError as exc:
+                    return _invalid_input(
+                        input_data={**raw_input, "filing_status": filing},
+                        rule_version=rule_version,
+                        reason=str(exc),
+                        citations=summary_citations,
+                    )
 
-        state_result = state_income_tax(normalized_state_code, state_taxable_base, filing, tax_year)
+        if state_result is None:
+            state_result = state_income_tax(normalized_state_code, state_taxable_base, filing, tax_year)
         state_citations = _merge_citations(state_result["citations"], state_tax_base_citations)
         if state_result["status"] == "ok":
             state_tax = _decimal_rule(state_result["result"]["tax"])
@@ -383,15 +400,30 @@ def income_tax_summary(
             "State standard deductions with filing-status-specific spouse/itemization exceptions are approximated from "
             "the stored filing status because this MVP does not collect spouse itemization inputs."
         )
+    has_state_specific_base = bool(
+        state_block and state_block.get("tax_base", {}).get("start_from") == "state_specific"
+    )
+    if has_state_specific_base:
+        assumptions.append(
+            "State-specific independent income computation is not modeled in this combined summary; no state income "
+            "tax is included for that state unless a caller separately provides a supported state taxable income."
+        )
     if normalized_state_code == "IL":
         assumptions.append(
             "Illinois exemption allowance assumes MFJ has two exemptions and all other filing statuses have one."
         )
-    if normalized_state_code == "CO" and state_result is not None and state_result["status"] == "ok":
+    has_qbi_addback = bool(state_block and state_block.get("tax_base", {}).get("qbi_addback"))
+    if has_qbi_addback and state_result is not None and state_result["status"] == "ok":
         assumptions.append(
-            "Colorado QBI addback is applied from stored tax_base data, but Colorado-specific statutory conditions "
-            "for that addback are not fully modeled in this summary."
+            "State QBI addback is applied from stored tax_base data when configured, but state-specific "
+            "statutory conditions for that addback are not fully modeled in this summary."
         )
+
+    reported_state_taxable_base = (
+        _money_decimal(state_taxable_base)
+        if normalized_state_code is not None and state_result is not None and state_result["status"] == "ok"
+        else None
+    )
 
     result = {
         "w2_wages": _money_decimal(w2),
@@ -412,7 +444,7 @@ def income_tax_summary(
         "qbi_deduction": _money_decimal(qbi_deduction_amount),
         "taxable_income": _money_decimal(taxable_income),
         "ordinary_taxable_income": _money_decimal(ordinary_taxable_income),
-        "state_taxable_base": None if normalized_state_code is None else _money_decimal(state_taxable_base),
+        "state_taxable_base": reported_state_taxable_base,
         "state_income_tax": state_income_tax_result,
         "federal_income_tax": _money_decimal(federal_income_tax_amount),
         "long_term_capital_gains_tax": _money_decimal(long_term_capital_gains_tax),

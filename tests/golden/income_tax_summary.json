@@ -5,57 +5,92 @@
   "cases": [
     {
       "name": "self_employment_100k_fl",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "FL"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single",
+        "state_code": "FL"
+      },
       "expected": {
         "status": "ok",
         "self_employment_tax": 14129.55,
-        "additional_medicare_tax": 0.00,
+        "additional_medicare_tax": 0.0,
         "deductible_half_se_tax": 7064.78,
         "adjusted_gross_income": 92935.22,
-        "deduction_used": 15000.00,
+        "deduction_used": 15000.0,
         "taxable_before_qbi": 77935.22,
         "qbi_deduction": 15587.04,
         "taxable_income": 62348.18,
-        "federal_income_tax": 8630.60,
+        "federal_income_tax": 8630.6,
         "state_taxable_base": 62348.18,
-        "state_income_tax": {"status": "ok", "state": "FL", "tax": 0.00, "rate": 0.00},
+        "state_income_tax": {
+          "status": "ok",
+          "state": "FL",
+          "tax": 0.0,
+          "rate": 0.0
+        },
         "total_tax": 22760.15,
         "quarterly_estimate": 5690.04,
-        "citation_source_ids": ["irs_rp_2024_40", "irs_qbi_deduction", "fl_personal_income_tax_faq"],
+        "citation_source_ids": [
+          "irs_rp_2024_40",
+          "irs_qbi_deduction",
+          "fl_personal_income_tax_faq"
+        ],
         "assumption_contains": "State taxable bases use stored tax_base data"
       }
     },
     {
       "name": "self_employment_100k_wa",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "WA"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single",
+        "state_code": "WA"
+      },
       "expected": {
         "status": "ok",
-        "state_income_tax": {"status": "ok", "state": "WA", "tax": 0.00, "rate": 0.00},
+        "state_income_tax": {
+          "status": "ok",
+          "state": "WA",
+          "tax": 0.0,
+          "rate": 0.0
+        },
         "total_tax": 22760.15
       }
     },
     {
       "name": "self_employment_100k_nv",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "NV"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single",
+        "state_code": "NV"
+      },
       "expected": {
         "status": "ok",
-        "state_income_tax": {"status": "ok", "state": "NV", "tax": 0.00, "rate": 0.00},
+        "state_income_tax": {
+          "status": "ok",
+          "state": "NV",
+          "tax": 0.0,
+          "rate": 0.0
+        },
         "total_tax": 22760.15
       }
     },
     {
       "name": "self_employment_100k_ca",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "CA"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single",
+        "state_code": "CA"
+      },
       "expected": {
         "status": "ok",
-        "state_taxable_base": 87229.22,
+        "state_taxable_base": 87395.22,
         "state_income_tax": {
           "status": "ok",
           "state": "CA",
-          "tax": 4550.96,
+          "tax": 4670.04,
           "income_tax_type": "progressive"
         },
-        "total_tax": 27311.11,
+        "total_tax": 27430.19,
         "citation_source_ids": [
           "ca_2025_540_tax_rate_schedules",
           "ca_2025_540_instructions",
@@ -65,7 +100,11 @@
     },
     {
       "name": "self_employment_100k_ny",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "NY"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single",
+        "state_code": "NY"
+      },
       "expected": {
         "status": "ok",
         "state_taxable_base": 84935.22,
@@ -76,75 +115,125 @@
           "income_tax_type": "progressive"
         },
         "total_tax": 27288.01,
-        "citation_source_ids": ["ny_2025_it201_instructions", "ny_2025_tax_tables"]
+        "citation_source_ids": [
+          "ny_2025_it201_instructions",
+          "ny_2025_tax_tables"
+        ]
       }
     },
     {
       "name": "self_employment_100k_ga",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "GA"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single",
+        "state_code": "GA"
+      },
       "expected": {
         "status": "ok",
         "state_taxable_base": 80935.22,
-        "state_income_tax": {"status": "ok", "state": "GA", "tax": 4200.54, "rate": 0.0519},
+        "state_income_tax": {
+          "status": "ok",
+          "state": "GA",
+          "tax": 4200.54,
+          "rate": 0.0519
+        },
         "total_tax": 26960.69
       }
     },
     {
       "name": "self_employment_100k_il",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "IL"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single",
+        "state_code": "IL"
+      },
       "expected": {
         "status": "ok",
-        "state_taxable_base": 90085.22,
-        "state_income_tax": {"status": "ok", "state": "IL", "tax": 4459.22, "rate": 0.0495},
-        "total_tax": 27219.37,
+        "state_taxable_base": 90310.22,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "IL",
+          "tax": 4470.36,
+          "rate": 0.0495
+        },
+        "total_tax": 27230.51,
         "assumption_contains": "Illinois exemption allowance assumes MFJ has two exemptions"
       }
     },
     {
       "name": "self_employment_100k_co",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "CO"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single",
+        "state_code": "CO"
+      },
       "expected": {
         "status": "ok",
-        "state_taxable_base": 77935.22,
-        "state_income_tax": {"status": "ok", "state": "CO", "tax": 3429.15, "rate": 0.044},
-        "total_tax": 26189.30
+        "state_taxable_base": 62348.18,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "CO",
+          "tax": 2743.32,
+          "rate": 0.044
+        },
+        "total_tax": 25503.47
       }
     },
     {
       "name": "self_employment_100k_xx_not_covered",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single", "state_code": "XX"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single",
+        "state_code": "XX"
+      },
       "expected": {
         "status": "ok",
-        "state_income_tax": {"status": "not_covered", "not_covered": true, "tax": 0.00},
+        "state_income_tax": {
+          "status": "not_covered",
+          "not_covered": true,
+          "tax": 0.0
+        },
         "total_tax": 22760.15,
         "assumption_contains": "State income tax is not covered"
       }
     },
     {
       "name": "self_employment_10k_fl",
-      "input": {"net_self_employment_profit": 10000, "filing_status": "single", "state_code": "FL"},
+      "input": {
+        "net_self_employment_profit": 10000,
+        "filing_status": "single",
+        "state_code": "FL"
+      },
       "expected": {
         "status": "ok",
         "self_employment_tax": 1412.96,
-        "additional_medicare_tax": 0.00,
+        "additional_medicare_tax": 0.0,
         "deductible_half_se_tax": 706.48,
         "adjusted_gross_income": 9293.52,
-        "taxable_income": 0.00,
-        "federal_income_tax": 0.00,
-        "state_income_tax": {"status": "ok", "state": "FL", "tax": 0.00},
+        "taxable_income": 0.0,
+        "federal_income_tax": 0.0,
+        "state_income_tax": {
+          "status": "ok",
+          "state": "FL",
+          "tax": 0.0
+        },
         "total_tax": 1412.96,
         "quarterly_estimate": 353.24
       }
     },
     {
       "name": "combined_w2_150k_self_employment_50k_single",
-      "input": {"w2_wages": 150000, "net_self_employment_profit": 50000, "filing_status": "single"},
+      "input": {
+        "w2_wages": 150000,
+        "net_self_employment_profit": 50000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
-        "w2_wages": 150000.00,
-        "w2_fica_tax": 11475.00,
+        "w2_wages": 150000.0,
+        "w2_fica_tax": 11475.0,
         "self_employment_tax": 4575.48,
-        "additional_medicare_tax": 0.00,
+        "additional_medicare_tax": 0.0,
         "deductible_half_se_tax": 2287.74,
         "total_payroll_tax": 16050.48,
         "adjusted_gross_income": 197712.26,
@@ -157,17 +246,21 @@
     },
     {
       "name": "combined_w2_250k_self_employment_60k_single",
-      "input": {"w2_wages": 250000, "net_self_employment_profit": 60000, "filing_status": "single"},
+      "input": {
+        "w2_wages": 250000,
+        "net_self_employment_profit": 60000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
-        "w2_wages": 250000.00,
-        "w2_fica_tax": 14543.20,
+        "w2_wages": 250000.0,
+        "w2_fica_tax": 14543.2,
         "self_employment_tax": 1606.89,
         "additional_medicare_tax": 948.69,
         "deductible_half_se_tax": 803.45,
         "total_payroll_tax": 17098.78,
         "adjusted_gross_income": 309196.55,
-        "qbi_deduction": 0.00,
+        "qbi_deduction": 0.0,
         "taxable_income": 294196.55,
         "federal_income_tax": 72516.04,
         "total_tax": 89614.82
@@ -175,38 +268,48 @@
     },
     {
       "name": "combined_w2_default_zero_self_employment_regression_single",
-      "input": {"net_self_employment_profit": 100000, "filing_status": "single"},
+      "input": {
+        "net_self_employment_profit": 100000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
-        "w2_wages": 0.00,
-        "w2_fica_tax": 0.00,
+        "w2_wages": 0.0,
+        "w2_fica_tax": 0.0,
         "self_employment_tax": 14129.55,
-        "additional_medicare_tax": 0.00,
+        "additional_medicare_tax": 0.0,
         "deductible_half_se_tax": 7064.78,
         "total_payroll_tax": 14129.55,
         "adjusted_gross_income": 92935.22,
         "qbi_deduction": 15587.04,
         "taxable_income": 62348.18,
-        "federal_income_tax": 8630.60,
+        "federal_income_tax": 8630.6,
         "total_tax": 22760.15
       }
     },
     {
       "name": "combined_w2_200k_long_term_gain_50k_single",
-      "input": {"w2_wages": 200000, "long_term_capital_gain": 50000, "filing_status": "single"},
+      "input": {
+        "w2_wages": 200000,
+        "long_term_capital_gain": 50000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
-        "w2_wages": 200000.00,
-        "long_term_capital_gain": 50000.00,
-        "adjusted_gross_income": 250000.00,
-        "taxable_income": 235000.00,
-        "ordinary_taxable_income": 185000.00,
-        "federal_income_tax": 37247.00,
-        "long_term_capital_gains_tax": 7500.00,
-        "net_investment_income_tax": 1900.00,
-        "total_payroll_tax": 13818.20,
-        "total_tax": 60465.20,
-        "citation_source_ids": ["irs_topic_409", "irs_topic_559"],
+        "w2_wages": 200000.0,
+        "long_term_capital_gain": 50000.0,
+        "adjusted_gross_income": 250000.0,
+        "taxable_income": 235000.0,
+        "ordinary_taxable_income": 185000.0,
+        "federal_income_tax": 37247.0,
+        "long_term_capital_gains_tax": 7500.0,
+        "net_investment_income_tax": 1900.0,
+        "total_payroll_tax": 13818.2,
+        "total_tax": 60465.2,
+        "citation_source_ids": [
+          "irs_topic_409",
+          "irs_topic_559"
+        ],
         "assumption_contains": "modified_agi was not provided"
       }
     },
@@ -224,7 +327,7 @@
         "taxable_income": 218019.71,
         "ordinary_taxable_income": 178019.71,
         "federal_income_tax": 35571.73,
-        "long_term_capital_gains_tax": 6000.00,
+        "long_term_capital_gains_tax": 6000.0,
         "net_investment_income_tax": 1433.07,
         "total_payroll_tax": 16050.48,
         "total_tax": 59055.28
@@ -232,12 +335,16 @@
     },
     {
       "name": "combined_capital_gains_default_zero_block1_regression_single",
-      "input": {"w2_wages": 150000, "net_self_employment_profit": 50000, "filing_status": "single"},
+      "input": {
+        "w2_wages": 150000,
+        "net_self_employment_profit": 50000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
         "federal_income_tax": 34407.75,
-        "long_term_capital_gains_tax": 0.00,
-        "net_investment_income_tax": 0.00,
+        "long_term_capital_gains_tax": 0.0,
+        "net_investment_income_tax": 0.0,
         "ordinary_taxable_income": 173169.81,
         "taxable_income": 173169.81,
         "total_tax": 50458.23
@@ -245,7 +352,11 @@
     },
     {
       "name": "combined_self_employment_50k_long_term_gain_30k_single",
-      "input": {"net_self_employment_profit": 50000, "long_term_capital_gain": 30000, "filing_status": "single"},
+      "input": {
+        "net_self_employment_profit": 50000,
+        "long_term_capital_gain": 30000,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
         "qbi_deduction": 6293.52,
@@ -253,25 +364,32 @@
         "ordinary_taxable_income": 25174.09,
         "federal_income_tax": 2782.39,
         "long_term_capital_gains_tax": 1023.61,
-        "net_investment_income_tax": 0.00,
+        "net_investment_income_tax": 0.0,
         "total_tax": 10870.78
       }
     },
     {
       "name": "combined_feie_200k_330_days_single",
-      "input": {"foreign_earned_income": 200000, "days_abroad": 330, "filing_status": "single"},
+      "input": {
+        "foreign_earned_income": 200000,
+        "days_abroad": 330,
+        "filing_status": "single"
+      },
       "expected": {
         "status": "ok",
-        "foreign_earned_income": 200000.00,
-        "feie_excluded_income": 130000.00,
+        "foreign_earned_income": 200000.0,
+        "feie_excluded_income": 130000.0,
         "foreign_tax_rate_stacking_applied": true,
-        "adjusted_gross_income": 70000.00,
-        "ordinary_taxable_income": 55000.00,
-        "federal_income_tax": 13200.00,
-        "long_term_capital_gains_tax": 0.00,
-        "net_investment_income_tax": 0.00,
-        "total_tax": 13200.00,
-        "citation_source_ids": ["irs_feie_figuring_exclusion", "irs_i2555_2025"],
+        "adjusted_gross_income": 70000.0,
+        "ordinary_taxable_income": 55000.0,
+        "federal_income_tax": 13200.0,
+        "long_term_capital_gains_tax": 0.0,
+        "net_investment_income_tax": 0.0,
+        "total_tax": 13200.0,
+        "citation_source_ids": [
+          "irs_feie_figuring_exclusion",
+          "irs_i2555_2025"
+        ],
         "assumption_contains": "FEIE rate stacking"
       }
     },
@@ -286,14 +404,14 @@
       },
       "expected": {
         "status": "ok",
-        "feie_excluded_income": 130000.00,
-        "adjusted_gross_income": 150000.00,
-        "ordinary_taxable_income": 105000.00,
-        "federal_income_tax": 28216.00,
-        "long_term_capital_gains_tax": 4500.00,
-        "net_investment_income_tax": 1140.00,
-        "total_payroll_tax": 3825.00,
-        "total_tax": 37681.00
+        "feie_excluded_income": 130000.0,
+        "adjusted_gross_income": 150000.0,
+        "ordinary_taxable_income": 105000.0,
+        "federal_income_tax": 28216.0,
+        "long_term_capital_gains_tax": 4500.0,
+        "net_investment_income_tax": 1140.0,
+        "total_payroll_tax": 3825.0,
+        "total_tax": 37681.0
       }
     },
     {
@@ -306,12 +424,12 @@
       },
       "expected": {
         "status": "ok",
-        "federal_income_tax": 37247.00,
-        "long_term_capital_gains_tax": 7500.00,
-        "net_investment_income_tax": 1900.00,
-        "feie_excluded_income": 0.00,
+        "federal_income_tax": 37247.0,
+        "long_term_capital_gains_tax": 7500.0,
+        "net_investment_income_tax": 1900.0,
+        "feie_excluded_income": 0.0,
         "foreign_tax_rate_stacking_applied": false,
-        "total_tax": 60465.20
+        "total_tax": 60465.2
       }
     },
     {
@@ -325,13 +443,13 @@
       },
       "expected": {
         "status": "ok",
-        "feie_excluded_income": 100000.00,
+        "feie_excluded_income": 100000.0,
         "qbi_deduction": 8152.23,
-        "taxable_income": 72608.90,
-        "ordinary_taxable_income": 32608.90,
+        "taxable_income": 72608.9,
+        "ordinary_taxable_income": 32608.9,
         "federal_income_tax": 7759.14,
-        "long_term_capital_gains_tax": 6000.00,
-        "net_investment_income_tax": 0.00,
+        "long_term_capital_gains_tax": 6000.0,
+        "net_investment_income_tax": 0.0,
         "total_payroll_tax": 8477.73,
         "total_tax": 22236.87
       }

@@ -163,7 +163,7 @@ class CalcApiTests(unittest.TestCase):
         body = self.assert_engine_payload(response)
         self.assertEqual(body["status"], "ok")
         self.assertEqual(body["result"]["income_tax_type"], "progressive")
-        self.assertEqual(body["result"]["tax"], 4768.10)
+        self.assertEqual(body["result"]["tax"], 4920.48)
 
     def test_income_summary_endpoint_calculates_ca_total(self):
         response = self.client.post(
@@ -178,8 +178,8 @@ class CalcApiTests(unittest.TestCase):
 
         body = self.assert_engine_payload(response)
         self.assertEqual(body["status"], "ok")
-        self.assertEqual(body["result"]["total_tax"], 27311.11)
-        self.assertEqual(body["result"]["state_income_tax"]["tax"], 4550.96)
+        self.assertEqual(body["result"]["total_tax"], 27430.19)
+        self.assertEqual(body["result"]["state_income_tax"]["tax"], 4670.04)
         self.assertEqual(body["result"]["federal_income_tax"], 8630.60)
 
     def test_income_summary_endpoint_calculates_zero_tax_state(self):

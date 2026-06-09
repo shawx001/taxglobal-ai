@@ -151,7 +151,7 @@ $requiredQbiFilingStatuses = @(
 $expectedQbiPhaseInWindows = @{
   single = 50000
   head_of_household = 50000
-  married_filing_separately = 50000
+  married_filing_separately = 25000
   qualifying_surviving_spouse = 50000
   married_filing_jointly = 100000
 }
@@ -280,7 +280,7 @@ function Assert-FederalTaxSubtractionShape($TaxBase, $Path) {
     }
   }
 }
-$allowedStateTaxBaseStarts = @("federal_agi", "federal_taxable_income", "gross_income")
+$allowedStateTaxBaseStarts = @("federal_agi", "federal_taxable_income", "gross_income", "state_specific")
 foreach ($stateProp in $states.states.PSObject.Properties) {
   $state = $stateProp.Value
   $hasTaxBase = $state.PSObject.Properties.Name -contains "tax_base"
@@ -426,8 +426,8 @@ foreach ($stateProp in $states.states.PSObject.Properties) {
 if ($states.states.CO.tax_base.start_from -ne "federal_taxable_income") {
   throw "Colorado tax_base must start from federal_taxable_income"
 }
-if ($states.states.CO.tax_base.qbi_addback -ne $true) {
-  throw "Colorado tax_base must include qbi_addback"
+if ($states.states.CO.tax_base.qbi_addback -ne $false) {
+  throw "Colorado tax_base must not include a QBI addback"
 }
 foreach ($stateCode in @("CA", "NY", "GA", "IL", "CO", "NJ", "PA")) {
   if ($states.states.$stateCode.tax_base.capital_gains_treatment -ne "ordinary_income") {
@@ -458,8 +458,8 @@ if ($states.states.PA.tax_base.start_from -ne "gross_income") {
 if ($states.states.PA.flat_rate -ne 0.0307) {
   throw "Unexpected PA flat_rate"
 }
-if ($states.states.OR.tax_base.start_from -ne "federal_agi") {
-  throw "Oregon tax_base must start from federal_agi"
+if ($states.states.OR.tax_base.start_from -ne "federal_taxable_income") {
+  throw "Oregon tax_base must start from federal_taxable_income"
 }
 if ($states.states.OR.tax_base.standard_deduction.single -ne 2835) {
   throw "Unexpected OR single standard deduction"
@@ -548,7 +548,7 @@ if ($states.states.AZ.status -ne "effective") {
 if ($states.states.ID.flat_rate -ne 0.053) {
   throw "Unexpected ID flat_rate"
 }
-if ($states.states.IN.flat_rate -ne 0.03) {
+if ($states.states.IN.flat_rate -ne 0.0305) {
   throw "Unexpected IN flat_rate"
 }
 if ($states.states.IN.tax_base.start_from -ne "federal_agi") {
@@ -655,7 +655,10 @@ if ($states.states.KS.tax_base.standard_deduction.single -ne 12765) {
 if ($states.states.ME.income_tax_type -ne "progressive") {
   throw "Maine must be income_tax_type progressive"
 }
-if ($states.states.ME.brackets.single[-1].rate -ne 0.0715) {
+if ($states.states.ME.brackets.single[-2].up_to -ne 1000000) {
+  throw "Unexpected ME surcharge threshold"
+}
+if ($states.states.ME.brackets.single[-1].rate -ne 0.0915) {
   throw "Unexpected ME top rate"
 }
 if ($states.states.ME.tax_base.standard_deduction.single -ne 20150) {
@@ -729,7 +732,7 @@ if ($states.states.OH.brackets.single[0].rate -ne 0) {
 if ($states.states.OH.brackets.single[-1].rate -ne 0.03125) {
   throw "Unexpected OH top rate (should be 3.125%)"
 }
-if ($states.states.OH.tax_base.standard_deduction.single -ne 1850) {
+if ($states.states.OH.tax_base.standard_deduction.single -ne 1900) {
   throw "Unexpected OH single standard deduction (personal exemption >80k tier)"
 }
 if ($states.states.OK.income_tax_type -ne "progressive") {
@@ -768,7 +771,7 @@ if ($states.states.VA.brackets.single[-1].rate -ne 0.0575) {
 if ($states.states.VA.brackets.single[0].up_to -ne 3000) {
   throw "Unexpected VA first bracket cap"
 }
-if ($states.states.VA.tax_base.standard_deduction.single -ne 9680) {
+if ($states.states.VA.tax_base.standard_deduction.single -ne 9430) {
   throw "Unexpected VA single standard deduction (incl personal exemption)"
 }
 if ($states.states.VT.income_tax_type -ne "progressive") {
@@ -777,8 +780,8 @@ if ($states.states.VT.income_tax_type -ne "progressive") {
 if ($states.states.VT.brackets.single[-1].rate -ne 0.0875) {
   throw "Unexpected VT top rate"
 }
-if ($states.states.VT.tax_base.standard_deduction.single -ne 12950) {
-  throw "Unexpected VT single standard deduction (incl personal exemption)"
+if ($states.states.VT.tax_base.PSObject.Properties.Name -contains "standard_deduction") {
+  throw "VT must not define a separate standard_deduction when starting from federal taxable income"
 }
 if ($states.states.WV.income_tax_type -ne "progressive") {
   throw "West Virginia must be income_tax_type progressive"
@@ -852,19 +855,19 @@ if ($states.states.WI.tax_base.standard_deduction.single -ne 14260) {
   throw "Unexpected WI single standard deduction (incl personal exemption)"
 }
 
-if ($states.states.CA.tax_base.standard_deduction.single -ne 5706) {
+if ($states.states.CA.tax_base.standard_deduction.single -ne 5540) {
   throw "Unexpected CA single standard deduction"
 }
-if ($states.states.CA.tax_base.standard_deduction.married_filing_separately -ne 5706) {
+if ($states.states.CA.tax_base.standard_deduction.married_filing_separately -ne 5540) {
   throw "Unexpected CA MFS standard deduction"
 }
-if ($states.states.CA.tax_base.standard_deduction.married_filing_jointly -ne 11412) {
+if ($states.states.CA.tax_base.standard_deduction.married_filing_jointly -ne 11080) {
   throw "Unexpected CA MFJ standard deduction"
 }
-if ($states.states.CA.tax_base.standard_deduction.qualifying_surviving_spouse -ne 11412) {
+if ($states.states.CA.tax_base.standard_deduction.qualifying_surviving_spouse -ne 11080) {
   throw "Unexpected CA QSS standard deduction"
 }
-if ($states.states.CA.tax_base.standard_deduction.head_of_household -ne 11412) {
+if ($states.states.CA.tax_base.standard_deduction.head_of_household -ne 11080) {
   throw "Unexpected CA HOH standard deduction"
 }
 if ($states.states.NY.tax_base.standard_deduction.single -ne 8000) {
@@ -890,7 +893,7 @@ foreach ($filingStatus in @("single", "married_filing_separately", "qualifying_s
     throw "Unexpected GA standard deduction for $filingStatus"
   }
 }
-if ($states.states.IL.tax_base.exemption_allowance_per_person -ne 2850) {
+if ($states.states.IL.tax_base.exemption_allowance_per_person -ne 2625) {
   throw "Unexpected IL exemption allowance per person"
 }
 if ($states.states.IL.tax_base.exemption_phaseout_agi.married_filing_jointly -ne 500000) {

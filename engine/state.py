@@ -149,6 +149,25 @@ def state_capital_gains_excise(
         "surtax_threshold": threshold,
     }
 
+def _federal_tax_subtraction(
+    tax_base: dict[str, Any],
+    *,
+    filing: str,
+    federal_agi: Decimal,
+    federal_income_tax: Decimal,
+) -> Decimal:
+    federal_tax_subtraction = tax_base.get("federal_tax_subtraction")
+    if not federal_tax_subtraction:
+        return Decimal("0")
+
+    steps = federal_tax_subtraction["phaseout_table"][filing]
+    for step in steps:
+        # Some official tables use half-open ranges; data can encode those with cent-level upper caps.
+        agi_up_to = step["agi_up_to"]
+        if agi_up_to is None or federal_agi <= _decimal_rule(agi_up_to):
+            return min(federal_income_tax, _decimal_rule(step["limit"]))
+    raise ValueError("federal_tax_subtraction.phaseout_table must end with a catch-all step")
+
 def _state_taxable_base(
     state_block: dict[str, Any],
     *,
@@ -185,7 +204,14 @@ def _state_taxable_base(
 
     if start_from == "federal_taxable_income":
         addback = federal_qbi_deduction if tax_base.get("qbi_addback") else Decimal("0")
-        return max(Decimal("0"), federal_taxable_income + addback)
+        base = federal_taxable_income + addback
+        base -= _federal_tax_subtraction(
+            tax_base,
+            filing=filing,
+            federal_agi=federal_agi,
+            federal_income_tax=federal_income_tax,
+        )
+        return max(Decimal("0"), base)
 
     if start_from != "federal_agi":
         raise ValueError(f"Unsupported state tax_base start_from: {start_from}")
@@ -202,17 +228,10 @@ def _state_taxable_base(
 
     standard_deduction = _decimal_rule(tax_base["standard_deduction"][filing])
     base = federal_agi - standard_deduction
-    federal_tax_subtraction = tax_base.get("federal_tax_subtraction")
-    if federal_tax_subtraction:
-        steps = federal_tax_subtraction["phaseout_table"][filing]
-        limit: Decimal | None = None
-        for step in steps:
-            # Some official tables use half-open ranges; data can encode those with cent-level upper caps.
-            agi_up_to = step["agi_up_to"]
-            if agi_up_to is None or federal_agi <= _decimal_rule(agi_up_to):
-                limit = _decimal_rule(step["limit"])
-                break
-        if limit is None:
-            raise ValueError("federal_tax_subtraction.phaseout_table must end with a catch-all step")
-        base -= min(federal_income_tax, limit)
+    base -= _federal_tax_subtraction(
+        tax_base,
+        filing=filing,
+        federal_agi=federal_agi,
+        federal_income_tax=federal_income_tax,
+    )
     return max(Decimal("0"), base)

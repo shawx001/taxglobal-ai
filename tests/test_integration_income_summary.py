@@ -45,10 +45,10 @@ OVERVIEW_SCENARIOS = [
         "name": "D_self_employment_with_ca_state",
         "payload": {"filing_status": "single", "net_self_employment_profit": 100000, "state_code": "CA"},
         "expected": {
-            "total_tax": 27311.11,
+            "total_tax": 27430.19,
             "federal_income_tax": 8630.60,
             "total_payroll_tax": 14129.55,
-            "state_income_tax": 4550.96,
+            "state_income_tax": 4670.04,
         },
     },
 ]

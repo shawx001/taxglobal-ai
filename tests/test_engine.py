@@ -136,7 +136,7 @@ class EngineTests(unittest.TestCase):
 
         self.assertEqual(set(result.keys()), EXPECTED_RESPONSE_KEYS)
         self.assertEqual(result["status"], "ok")
-        self.assertEqual(result["result"]["tax"], 15_038.64)
+        self.assertEqual(result["result"]["tax"], 15_142.28)
         self.assertEqual(result["result"]["income_tax_type"], "progressive")
         self.assertEqual(result["rule_version"], "us-2025-states-v0.1")
         self.assertEqual(result["citations"][0]["source_id"], "ca_2025_540_tax_rate_schedules")
@@ -265,6 +265,7 @@ class EngineTests(unittest.TestCase):
         result = income_tax_summary(100_000, filing_status="single", state_code="ZZ", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
+        self.assertIsNone(result["result"]["state_taxable_base"])
         self.assertEqual(result["result"]["state_income_tax"]["status"], "not_covered")
         self.assertTrue(result["result"]["state_income_tax"]["not_covered"])
         self.assertEqual(result["result"]["state_income_tax"]["tax"], 0.00)
@@ -307,15 +308,15 @@ class EngineTests(unittest.TestCase):
         self.assertNotIn("state_capital_gains_excise", result["result"])
         self.assertEqual(result["result"]["total_tax"], 22_760.15)
 
-    def test_income_tax_summary_co_adds_back_qbi_to_state_base(self):
+    def test_income_tax_summary_co_does_not_add_back_qbi_to_state_base(self):
         result = income_tax_summary(100_000, filing_status="single", state_code="CO", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["taxable_income"], 62_348.18)
         self.assertEqual(result["result"]["qbi_deduction"], 15_587.04)
-        self.assertEqual(result["result"]["state_taxable_base"], 77_935.22)
-        self.assertEqual(result["result"]["state_income_tax"]["tax"], 3_429.15)
-        self.assertIn("Colorado QBI addback", "\n".join(result["assumptions"]))
+        self.assertEqual(result["result"]["state_taxable_base"], 62_348.18)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 2_743.32)
+        self.assertNotIn("Colorado QBI addback", "\n".join(result["assumptions"]))
 
     def test_income_tax_summary_invalid_filing_status(self):
         result = income_tax_summary(100_000, filing_status="unsupported", state_code="FL", tax_year=2025)
@@ -711,6 +712,22 @@ class EngineTests(unittest.TestCase):
             92_915,
         )
 
+    def test_state_taxable_base_federal_tax_subtraction_from_federal_taxable_income(self):
+        oregon = load_state_rules(2025)["states"]["OR"]
+
+        self.assertEqual(
+            _state_taxable_base(
+                oregon,
+                gross_income=100_000,
+                federal_agi=100_000,
+                federal_taxable_income=85_000,
+                federal_qbi_deduction=0,
+                filing="single",
+                federal_income_tax=13_614,
+            ),
+            76_500,
+        )
+
     def test_income_tax_summary_or_w2_uses_federal_tax_subtraction(self):
         result = income_tax_summary(w2_wages=100_000, filing_status="single", state_code="OR")
 
@@ -726,6 +743,25 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["state_income_tax"]["tax"], 7_448.19)
         self.assertEqual(result["result"]["total_tax"], 28_268.19)
         self.assertIn("State federal-tax subtraction", "\n".join(result["assumptions"]))
+
+    def test_income_tax_summary_or_2025_subtracts_federal_tax_from_federal_taxable_income(self):
+        result = income_tax_summary(w2_wages=100_000, filing_status="single", state_code="OR", tax_year=2025)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["federal_income_tax_liability"], 13_614.00)
+        self.assertEqual(result["result"]["state_taxable_base"], 76_500.00)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 6_383.75)
+        self.assertEqual(result["result"]["total_tax"], 27_647.75)
+
+    def test_income_tax_summary_state_specific_base_is_not_covered(self):
+        result = income_tax_summary(w2_wages=100_000, filing_status="single", state_code="MS", tax_year=2025)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["result"]["state_income_tax"]["status"], "not_covered")
+        self.assertTrue(result["result"]["state_income_tax"]["not_covered"])
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 0.00)
+        self.assertEqual(result["result"]["total_tax"], 21_264.00)
+        self.assertIn("independent income computation is not modeled", "\n".join(result["assumptions"]))
 
     def test_income_tax_summary_non_subtraction_state_does_not_emit_federal_tax_liability(self):
         result = income_tax_summary(w2_wages=100_000, filing_status="single", state_code="CA")

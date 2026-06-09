@@ -147,9 +147,27 @@ def _missing_params(intent: str, params: dict[str, Any], query: str = "") -> lis
 
 
 def classify_node(state: AssistantState) -> dict[str, Any]:
-    """Classify user intent from query keywords."""
+    """Classify user intent — LLM-enhanced when available, keyword fallback."""
 
-    result = classify_intent(state["query"])
+    query = state["query"]
+
+    # Try LLM classification first (returns None if ENABLE_LLM=false or LLM fails)
+    from backend import config
+
+    if config.ENABLE_LLM:
+        from backend.orchestrator.intent import llm_classify_intent
+
+        llm_result = llm_classify_intent(query)
+        if llm_result is not None:
+            return {
+                "intent": llm_result.intent,
+                "confidence": llm_result.confidence,
+                "matched_keyword": llm_result.matched_keyword,
+                "nodes_visited": _visited(state, "classify"),
+            }
+
+    # Fallback: M2 keyword classification (always available)
+    result = classify_intent(query)
     return {
         "intent": result.intent,
         "confidence": result.confidence,

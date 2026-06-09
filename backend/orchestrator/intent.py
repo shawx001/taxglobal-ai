@@ -1,7 +1,9 @@
-"""Deterministic keyword-based intent classifier for M2."""
+"""Deterministic keyword-based intent classifier for M2, with optional LLM enhancement (M3.2)."""
 
 from __future__ import annotations
 
+import json
+import logging
 from dataclasses import dataclass
 
 INTENT_INCOME_TAX = "income_tax"
@@ -137,3 +139,87 @@ def classify_intent(query: str) -> ClassifyResult:
             if keyword.lower() in query_lower:
                 return ClassifyResult(intent=intent, confidence="keyword_match", matched_keyword=keyword)
     return ClassifyResult(intent=INTENT_CLARIFY, confidence="fallback", matched_keyword="")
+
+
+# ---------------------------------------------------------------------------
+# M3.2: LLM-enhanced intent classification
+# ---------------------------------------------------------------------------
+
+logger = logging.getLogger("taxglobal.orchestrator")
+
+_VALID_INTENTS = frozenset({
+    INTENT_INCOME_TAX, INTENT_FEIE, INTENT_RSU, INTENT_CRYPTO,
+    INTENT_NEXUS, INTENT_KNOWLEDGE, INTENT_CLARIFY,
+})
+
+_LLM_CONFIDENCE_THRESHOLD = 0.6
+
+_INTENT_SYSTEM_PROMPT = """\
+You are a tax query intent classifier for TaxGlobal AI.
+Classify the user's query into exactly ONE of these intents:
+
+- income_tax: Federal/state income tax calculation, tax rates, filing status, W-2, self-employment, FICA
+- feie: Foreign Earned Income Exclusion, working abroad, 330-day rule, Form 2555, bona fide residence
+- rsu: Restricted Stock Units, vesting, equity compensation
+- crypto: Cryptocurrency tax, capital gains/losses, cost basis, NFT, wash sales
+- nexus: Economic nexus, sales tax obligations, remote selling, Wayfair
+- knowledge: General tax knowledge questions (what is X, how does Y work, deadlines, deductions, credits, rules)
+- clarify: Cannot determine intent, or query is off-topic / too vague
+
+Respond with ONLY a JSON object, no markdown, no explanation:
+{"intent": "<intent>", "confidence": <0.0-1.0>}
+"""
+
+
+def llm_classify_intent(query: str) -> ClassifyResult | None:
+    """Classify intent using the LLM provider.
+
+    Returns ``ClassifyResult`` on success, ``None`` on any failure so the
+    caller can fall back to keyword classification.
+    """
+
+    from backend.llm.client import get_provider
+    from backend.llm.provider import LLMMessage
+
+    provider = get_provider()
+    if provider is None:
+        return None
+
+    messages = [
+        LLMMessage(role="system", content=_INTENT_SYSTEM_PROMPT),
+        LLMMessage(role="user", content=query),
+    ]
+
+    response = provider.complete(messages, temperature=0.0, max_tokens=64)
+    if response is None:
+        return None
+
+    try:
+        parsed = json.loads(response.content.strip())
+    except (json.JSONDecodeError, ValueError):
+        logger.warning("LLM intent response not valid JSON: %s", response.content[:200])
+        return None
+
+    intent = str(parsed.get("intent", "")).strip().lower()
+    try:
+        confidence = float(parsed.get("confidence", 0.0))
+    except (TypeError, ValueError):
+        confidence = 0.0
+
+    if intent not in _VALID_INTENTS:
+        logger.warning("LLM returned invalid intent: %s", intent)
+        return None
+
+    if confidence < _LLM_CONFIDENCE_THRESHOLD:
+        logger.info(
+            "LLM confidence %.2f below threshold %.2f, falling back",
+            confidence,
+            _LLM_CONFIDENCE_THRESHOLD,
+        )
+        return None
+
+    return ClassifyResult(
+        intent=intent,
+        confidence=f"llm:{confidence:.2f}",
+        matched_keyword="",
+    )

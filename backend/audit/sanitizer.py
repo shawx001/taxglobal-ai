@@ -100,7 +100,14 @@ def _mask_ssn(text: str) -> str:
     return _LABELED_UNDASHED_SSN_PATTERN.sub(_labeled_undashed_replacer, masked)
 
 
+_ALREADY_MASKED_SSN = re.compile(r"^\*{3}-\*{2}-\d{4}$")
+
+
 def _mask_ssn_field(text: str) -> str:
+    # Idempotency: already-masked values (***-**-1234) pass through unchanged
+    # so defense-in-depth re-sanitization on read doesn't lose the last4.
+    if _ALREADY_MASKED_SSN.match(text):
+        return text
     normalized = text.replace("-", "")
     if normalized.isdigit() and len(normalized) == 9:
         return f"***-**-{normalized[-4:]}"

@@ -77,6 +77,15 @@ class AuditSanitizerTests(TestCase):
         self.assertEqual(sanitized["access_token"], "[redacted]")
         self.assertEqual(sanitized["refresh_token"], "[redacted]")
 
+    def test_sanitize_is_idempotent_for_masked_ssn(self) -> None:
+        """Re-sanitizing already-masked SSN preserves ***-**-XXXX format."""
+        already_masked = {"ssn": "***-**-6789", "name": "[redacted]"}
+
+        double_sanitized = sanitize_payload(already_masked)
+
+        self.assertEqual(double_sanitized["ssn"], "***-**-6789")
+        self.assertEqual(double_sanitized["name"], "[redacted]")
+
 
 class AuditLoggerTests(IsolatedAsyncioTestCase):
     async def test_log_action_noops_when_postgres_unavailable(self) -> None:

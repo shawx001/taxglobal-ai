@@ -221,6 +221,20 @@ class TestWorkflow(unittest.TestCase):
         self.assertEqual(response["answer"]["type"], "error")
         self.assertFalse(response["answer"]["guardrail_passed"])
 
+    def test_unexpected_skill_error_returns_structured_response(self) -> None:
+        """Unexpected Skill exception → structured error, not 500."""
+        from backend.orchestrator.graph import run_assistant_query
+
+        class CrashingSkill:
+            def invoke(self, _: dict[str, object]) -> dict[str, object]:
+                raise RuntimeError("unexpected boom")
+
+        with patch("backend.orchestrator.nodes.get_skill", return_value=CrashingSkill()):
+            response = run_assistant_query("income tax 100000", request_id="r-crash")
+
+        self.assertEqual(response["answer"]["type"], "error")
+        self.assertIn("skill_route", response["trace"]["nodes_visited"])
+
     def test_trace_records_nodes(self) -> None:
         from backend.orchestrator.graph import run_assistant_query
 

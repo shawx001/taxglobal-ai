@@ -184,6 +184,10 @@ def skill_route_node(state: AssistantState) -> dict[str, Any]:
         update["skill_output"] = skill.invoke(params)
     except (RuleLoadError, ValidationError) as exc:
         update["error"] = exc.__class__.__name__
+    except Exception:
+        # Catch-all: unexpected Skill failures become structured errors
+        # instead of propagating as 500s.
+        update["error"] = "skill_error"
     return update
 
 

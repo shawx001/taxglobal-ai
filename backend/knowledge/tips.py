@@ -182,7 +182,10 @@ def _jurisdiction_matches(item: dict[str, Any], ctx: TipContext) -> bool:
 
 def _condition_matches(key: str, value: Any, ctx: TipContext) -> bool:
     if key == "tax_year":
-        return int(value) == ctx.tax_year
+        try:
+            return int(value) == ctx.tax_year
+        except (ValueError, TypeError):
+            return False
     if key == "state":
         return str(value).upper() == ctx.state
     if key == "filing_status":
@@ -210,6 +213,9 @@ def _condition_matches(key: str, value: Any, ctx: TipContext) -> bool:
         return _amount_over_threshold(income, value, ctx.filing_status)
     if key == "net_self_employment_income_over":
         return _amount_over_threshold(ctx.self_employment_income, value, ctx.filing_status)
+    if key == "city":
+        # City-level filtering deferred; pass through so item is not silently blocked.
+        return True
     if key in {"deadline_type", "estimated_tax_installment", "extension_requested", "information_return"}:
         return True
     if key in {"days_abroad_required", "foreign_housing_expenses", "foreign_taxes_paid"}:

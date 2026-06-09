@@ -215,6 +215,14 @@ class TestTipMatcher(unittest.TestCase):
 
         self.assertFalse(any("wa" in knowledge_id and "capital" in knowledge_id for knowledge_id in ids))
 
+    def test_ny_city_tax_note_reachable(self) -> None:
+        from backend.knowledge.tips import TipContext, get_tips
+
+        tips = get_tips(TipContext(state="NY", income_types=("w2",)))
+        ids = [tip["knowledge_id"] for tip in tips]
+
+        self.assertIn("ny_2026_city_tax_note", ids)
+
     def test_empty_context_gets_generic_tips(self) -> None:
         from backend.knowledge.tips import TipContext, get_tips
 

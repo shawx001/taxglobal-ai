@@ -54,6 +54,11 @@ class TestIntentClassifier(unittest.TestCase):
 
         self.assertEqual(classify_intent("what is FEIE").intent, INTENT_KNOWLEDGE)
 
+    def test_explanatory_feie_chinese_suffix_routes_to_knowledge(self) -> None:
+        from backend.orchestrator.intent import INTENT_KNOWLEDGE, classify_intent
+
+        self.assertEqual(classify_intent("FEIE是什么").intent, INTENT_KNOWLEDGE)
+
     def test_explanatory_nexus_routes_to_knowledge(self) -> None:
         from backend.orchestrator.intent import INTENT_KNOWLEDGE, classify_intent
 

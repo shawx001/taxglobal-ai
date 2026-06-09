@@ -97,6 +97,7 @@ INTENT_KEYWORDS: dict[str, list[str]] = {
         "rule",
         "是什么意思",
         "什么意思",
+        "是什么",
     ],
 }
 
@@ -108,7 +109,10 @@ INTENT_SKILL_MAP: dict[str, str] = {
     INTENT_NEXUS: "detect_nexus",
 }
 
-_KNOWLEDGE_PREFIXES = ("what is", "how does", "how do", "explain", "怎么", "什么是", "解释", "是什么意思", "什么意思")
+_KNOWLEDGE_PREFIXES = (
+    "what is", "how does", "how do", "explain",
+    "怎么", "什么是", "解释", "是什么意思", "什么意思", "是什么",
+)
 
 
 @dataclass(frozen=True)

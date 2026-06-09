@@ -15,24 +15,62 @@
 - **正确性 SLO**：金额到分零容差 + 每个数可溯官方源 + golden 回归不可回退。
 - **可用性**：税季截止窗口按高可用对待(冗余 + 自动扩缩 + 熔断降级)。
 
-## 2. 当前架构（M1，**现在真实存在**——当前 PR 审查以此为边界）
-- **API**：FastAPI，**无状态**请求处理（`create_app()` 纯净）；CORS 仅本地 dev origins；请求中间件已注入 `request_id` + 结构化 JSON 日志。
-- **计算引擎**：纯函数 + Decimal（Step A.5 后已模块化：`money/brackets/payroll/qbi/feie/state/crypto/rsu/nexus/summary` + 门面）；**无共享可变状态** → 天然水平扩展。
-- **规则数据**：版本化 JSON `data/tax_years/YYYY/`（2025+2026），`@lru_cache` + deepcopy 隔离；**热路径无磁盘/网络 IO**。
-- **前端**：vanilla SPA 原型（`frontend/index.html` + `api.js`）；profile 持久化在浏览器 localStorage。
-- **当前无**：数据库、Redis/缓存、消息队列、鉴权/会话、外部 API 调用、LLM。→ **SQLi/N+1/死锁/缓存击穿/越权/连接池/重试风暴 等当前不适用**（审查勿臆造）。当前真实攻击面 = 请求体/参数畸形(已 422/invalid_input)、请求体大小、CORS 配置。
+## 2. 当前架构（M2 完成，**现在真实存在**——当前 PR 审查以此为边界）
 
-## 3. 生产目标架构（M2–M5，**计划中**——前瞻审查 + 解锁矩阵全项）
+### 2.1 API 层
+- **FastAPI**，**无状态**请求处理；CORS 白名单（`TAXGLOBAL_CORS_ORIGINS` 或 dev 默认）；`X-Admin-Token` HMAC 认证（审计管理端点）。
+- **中间件栈**：RequestIdMiddleware（request_id + 结构化 JSON 日志）→ AuditMiddleware（ASGI 级，异步 fire-and-forget 审计写入）→ CORSMiddleware。
+- **端点**：
+  - `/calc/*`（8 个计算端点，M1 纯引擎，无外部依赖）
+  - `/api/skills`（列出）/ `/api/skills/{name}`（调用 5 个 LangChain Skill）
+  - `/api/assistant/query`（LangGraph 编排器入口：意图分类→Skill/KB路由→Guardrail→响应组装）
+  - `/api/knowledge/search`（GraphRAG 混合检索：Neo4j 图查询 + Chroma 向量语义搜索）
+  - `/api/profiles`（档案 CRUD，PostgreSQL，幂等 upsert）
+  - `/api/tips`（KB 驱动个性化税务提醒 + 截止日）
+  - `/api/admin/audit`（审计日志查询 + 哈希链验证，需 admin token）
+  - `/api/states`（51 jurisdictions 动态列表）、`/api/health`（含三库连接状态）
+
+### 2.2 计算引擎（M1，不变）
+- 纯函数 + Decimal（模块化 `engine/` 包：money/brackets/payroll/qbi/feie/state/crypto/rsu/nexus/summary + 门面）。
+- **无共享可变状态** → 天然水平扩展。
+- 规则数据：版本化 JSON `data/tax_years/YYYY/`（2025+2026），`@lru_cache` + `MappingProxyType` 冻结缓存；**热路径无磁盘/网络 IO**。
+
+### 2.3 Agent + 知识层（M2 新增）
+- **LangChain Skill 框架**（`backend/skills/`）：5 个引擎 Skill（income_tax / feie / rsu / crypto / nexus），LangChain `BaseTool` 接口，统一注册表。
+- **LangGraph Workflow 编排器**（`backend/orchestrator/`）：确定性状态机（关键词意图分类→Skill/KB路由→Guardrail检查→响应组装）。M3 升级为 Qwen 模型分类。
+- **Guardrail 中间件**（`backend/guardrail/`）：金额来源验证（必须出自规则引擎）+ schema 校验 + 4 级升级（INFO/WARNING/NEEDS_REVIEW/BLOCKED）+ PII 检测。
+- **GraphRAG 检索**（`backend/knowledge/`）：Neo4j 知识图谱（TaxRule/Jurisdiction/Topic/Source/Deadline 5 类节点 + 6 种关系）+ Chroma 向量库（`BAAI/bge-small-zh-v1.5` 本地 embedding）→ 混合检索（α×向量分 + β×图分）。
+- **KB 驱动提醒**（`backend/knowledge/tips.py`）：根据档案（州/收入类型/报税身份）从知识图谱匹配个性化税务提醒 + 截止日排序。
+
+### 2.4 存储层（M2 新增，全部可选——关闭后 /calc/* 不受影响）
+- **PostgreSQL**（`backend/database.py`）：用户档案 `profiles` + 审计日志 `audit_log`；SQLAlchemy 2.0 async + Alembic 迁移；feature flag `ENABLE_POSTGRES`。
+- **Neo4j**（`backend/knowledge/neo4j_client.py`）：税法知识图谱；driver 单例；feature flag `ENABLE_NEO4J`。
+- **Chroma**（`backend/knowledge/vector_store.py`）：语义向量检索；本地持久化 `data/chroma/`；feature flag `ENABLE_CHROMA`。
+- **Embedding**（`backend/knowledge/embedder.py`）：`sentence-transformers` 本地推理，CPU 可跑，数据不出境。
+
+### 2.5 审计与合规（M2 新增）
+- **审计日志**（`backend/audit/`）：ASGI 中间件自动捕获 Skill/Assistant/Tips/Admin 请求响应；异步写入 PostgreSQL；SHA-256 哈希链防篡改（`pg_advisory_xact_lock` 序列化）。
+- **PII 脱敏**（`backend/audit/sanitizer.py`）：SSN→`***-**-1234`（含整数/无横杠/已掩码幂等处理）；姓名/邮箱/银行/密码→`[redacted]`；收入金额保留（审计需要）。
+- **Admin 认证**：`TAXGLOBAL_ADMIN_AUDIT_TOKEN` 环境变量 + `X-Admin-Token` 请求头 + `hmac.compare_digest` 时间安全比较。
+
+### 2.6 前端（M1，不变）
+- vanilla SPA 原型（`frontend/index.html` + `api.js`）；profile 暂仍 localStorage（M3 接服务端档案）。
+
+### 2.7 当前真实攻击面
+- 请求体/参数畸形（已 422/invalid_input）、请求体大小、CORS 配置。
+- M2 新增：PG SQL 注入（SQLAlchemy 参数化查询防御）、admin token 泄露、审计日志 PII 泄露（sanitizer 防御）。
+- **当前无**：Redis/缓存、消息队列、外部 API 调用、LLM。
+
+## 3. 生产目标架构（M3–M5，**计划中**——前瞻审查 + 解锁矩阵全项）
 - 前端 Next.js 14 + Tailwind；API FastAPI + WebSocket(流式 Copilot)。
-- **Agent Runtime**：LangChain 编排 18 Skills；guardrail = 金额必出自规则引擎、答复检索自知识库、命中敏感/越权走拒答。
-- **知识层**：Neo4j 知识图谱 + GraphRAG + 向量库(OpenSearch/Chroma)；文档摄取流水线(chunk→embed→store)。
-- **存储**：PostgreSQL(档案/trace/审计)——需连接池 + 索引 + 事务 + **写入幂等(幂等键/upsert/dedup)**。
-- **模型**：自部署 Qwen 基座 + LoRA + vLLM(热加载 adapter)；Qwen-VL 做 W-2 OCR。**全部自部署,数据不出境。**
-- **连接器(外部强依赖)**：Google/Apple/微信 OAuth；Shopify/Amazon(电商 Nexus 真连)。→ 届时需超时/重试风暴控制/熔断降级/限流;对外依赖故障不得拖垮核心计算链路。
+- **M3 模型层**：自部署 Qwen 基座 + LoRA + vLLM(热加载 adapter)；Qwen-VL 做 W-2 OCR。**全部自部署,数据不出境。** 编排器意图分类从关键词匹配升级为模型分类。
+- **M3 连接器**：Google/Apple/微信 OAuth；Shopify/Amazon(电商 Nexus 真连)。→ 需超时/重试风暴控制/熔断降级/限流;对外依赖故障不得拖垮核心计算链路。
+- **M4 训练闭环**：Trace 回流 + LoRA 微调 + Eval Harness。
+- **M5 合规上线**：PII 列级加密、HTTPS、生产部署、安全审计。
 
-## 4. 外部强依赖
-- **当前：无**（完全自包含、无状态、可纯水平扩展）。
-- **目标：** PostgreSQL、Neo4j+向量库、自部署模型服务(vLLM)、OAuth 提供方、Shopify/Amazon API。每项落地时本文件更新 + 审查矩阵安全/性能/SRE 全项对其生效。
+## 4. 外部依赖
+- **当前（M2）**：PostgreSQL（档案+审计，可选）、Neo4j（知识图谱，可选）、Chroma（向量库，可选，本地文件）、sentence-transformers（本地 embedding，可选）。**全部可选——关闭后核心计算不受影响。**
+- **目标（M3+）**：自部署模型服务(vLLM)、OAuth 提供方、Shopify/Amazon API。每项落地时本文件更新 + 审查矩阵安全/性能/SRE 全项对其生效。
 
 ## 5. 跨切面工业级约束（审查恒查）
 - **PII 安全**：SSN/收入等传输+存储加密、最小权限、审计可追溯;日志/错误信息**不得泄露 PII**。

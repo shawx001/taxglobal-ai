@@ -2,7 +2,7 @@
 
 > 目的:让"我们现在在哪、18 Skills 做到哪"始终可见,不再"看不到"。
 > 依据:`TaxGlobal_AI_项目计划书_v3.1.md`(M0–M5 里程碑 + 18 Skills 架构)。
-> 维护:每完成一步由 Claude 更新本表 + `feature_status.md`。最后更新:2026-06-09（M2.9 Audit Logging PR #61 open）。
+> 维护:每完成一步由 Claude 更新本表 + `feature_status.md`。最后更新:2026-06-09（M2.10 Integration Test + M2 正式关闭）。
 
 ## 一、里程碑路线图(M0–M5)与当前位置
 
@@ -10,12 +10,14 @@
 |---|---|---|---|
 | **M0 原型** | — | 高保真可交互原型,全流程可点可算 | ✅ 已完成 |
 | **M1 引擎硬化** | 第 1–3 周 | tax-engine 后端服务 + 黄金测试集 + CI;前后端结果一致 | ✅ **已完成并正式关闭（2026-06-07）** |
-| **M2 Agent + 知识层** | 第 3–5 周 | **18 Skills**(LangChain 编排)+ GraphRAG(MVP) | 🟡 **进行中**(步骤计划 `docs/m2_step_plan.md`,10 步) |
+| **M2 Agent + 知识层** | 第 3–5 周 | **18 Skills**(LangChain 编排)+ GraphRAG(MVP) | ✅ **已完成并正式关闭（2026-06-09）** |
 | **M3 连接器 + 多模态** | 第 5–7 周 | OAuth、Shopify/Amazon 真连、Qwen-VL W-2 识别、自有 Copilot 模型 | 🔲 未开始 |
 | **M4 训练闭环** | 第 7–8 周 | Trace 回流 + LoRA + Eval Harness | 🔲 未开始 |
 | **M5 合规与上线** | 第 9–10 周 | 安全/合规/可观测 + Demo 联调 | 🔲 未开始 |
 
 **M1 关闭总结（2026-06-07）**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);REQ-002 前端总览已接到单次 `income_tax_summary`;Step A 2026 税年数据;Step B 扩州(WA excise/NJ/PA/OR);Step C1–C4 全部 50 州+DC 覆盖(51 jurisdictions);PR #40 deepcopy→freeze 性能优化;PR #41 前端 50 州+DC 动态下拉。unittest + ruff 全绿。M1 正式关闭。下一阶段进入 M2 Skills/Agent + 知识层。
+
+**M2 关闭总结（2026-06-09）**:M2.1 三库基础设施(PG+Neo4j+Chroma+embedding);M2.2 知识图谱建模+入库;M2.3 GraphRAG 混合检索 API;M2.4 档案持久化 API;M2.5 LangChain Skill 框架(5 引擎 Skills);M2.6 Guardrail 中间件(金额验证+schema+4级升级+PII);M2.7 LangGraph Workflow 编排器(意图→Skill/KB→Guardrail→响应);M2.8 KB 驱动税务提醒+截止日;M2.9 审计日志(ASGI middleware+SHA-256 哈希链+PII 脱敏);M2.10 集成验收测试(7项验收标准全绿)。共 PR #45–#63,新增 233 M2 测试+13 集成验收测试,全套 369 tests + ruff 全绿。ARCHITECTURE.md §2 更新为 M2 完整架构。下一阶段进入 M3 连接器+多模态。
 
 ## 二、18 Skills 清单与现状
 

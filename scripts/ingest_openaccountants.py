@@ -75,7 +75,7 @@ def _safe_load_frontmatter(frontmatter: str) -> dict[str, Any]:
 def parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     """Extract YAML frontmatter and return metadata plus remaining markdown."""
 
-    match = re.match(r"\A---\s*\n(.*?)\n---\s*(?:\n|\Z)", text, flags=re.DOTALL)
+    match = re.match(r"\A---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|\Z)", text, flags=re.DOTALL)
     if not match:
         return {}, text
     metadata = _safe_load_frontmatter(match.group(1))

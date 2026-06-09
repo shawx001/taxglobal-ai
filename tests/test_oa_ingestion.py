@@ -30,6 +30,13 @@ class TestFrontmatterParsing(unittest.TestCase):
         self.assertIn("# Title", body)
         self.assertNotIn("name: test-skill", body)
 
+    def test_parse_with_crlf_frontmatter(self) -> None:
+        text = "---\r\nname: windows-skill\r\nversion: 0.1\r\n---\r\n\r\n# Title\r\n\r\nContent"
+        meta, body = parse_frontmatter(text)
+        self.assertEqual(meta["name"], "windows-skill")
+        self.assertIn("# Title", body)
+        self.assertNotIn("name: windows-skill", body)
+
     def test_parse_without_frontmatter(self) -> None:
         text = "# Just a title\n\nSome content here"
         meta, body = parse_frontmatter(text)

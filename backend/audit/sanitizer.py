@@ -80,7 +80,11 @@ def _sanitize(obj: Any) -> Any:
 def _sanitize_value(key: str, value: Any) -> Any:
     lower = key.lower()
     if lower in {"ssn", "social_security_number"} or "ssn" in lower:
-        return _mask_ssn_field(value) if isinstance(value, str) else "[redacted]"
+        if isinstance(value, str):
+            return _mask_ssn_field(value)
+        if isinstance(value, int) and not isinstance(value, bool):
+            return _mask_ssn_field(str(value))
+        return "[redacted]"
     if lower in _REDACT_FIELDS:
         return "[redacted]"
     if any(token in lower for token in _PII_SUBSTRINGS):

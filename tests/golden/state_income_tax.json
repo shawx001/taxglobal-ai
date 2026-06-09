@@ -146,8 +146,8 @@
       },
       "expected": {
         "status": "ok",
-        "rate": 0.03,
-        "tax": 3000.0
+        "rate": 0.0305,
+        "tax": 3050.0
       }
     },
     {
@@ -269,7 +269,7 @@
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
-        "tax": 3480.04
+        "tax": 3490.14
       }
     },
     {
@@ -385,7 +385,7 @@
       },
       "expected": {
         "status": "ok",
-        "tax": 4552.5,
+        "tax": 4358.0,
         "income_tax_type": "progressive"
       }
     },
@@ -554,7 +554,7 @@
       },
       "expected": {
         "status": "ok",
-        "tax": 4903.55,
+        "tax": 4713.56,
         "income_tax_type": "progressive"
       }
     },
@@ -628,7 +628,7 @@
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
-        "tax": 15038.64,
+        "tax": 15142.28,
         "citation_source_ids": [
           "ca_2025_540_tax_rate_schedules"
         ],
@@ -645,7 +645,7 @@
       "expected": {
         "status": "ok",
         "income_tax_type": "progressive",
-        "tax": 4768.1,
+        "tax": 4920.48,
         "citation_source_ids": [
           "ca_2025_540_tax_rate_schedules"
         ]

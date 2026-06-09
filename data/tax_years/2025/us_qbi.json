@@ -5,12 +5,18 @@
   "jurisdiction": "US",
   "status": "effective",
   "effective_date": "2025-01-01",
-  "source_ids": ["irs_rp_2024_40", "irs_qbi_deduction"],
+  "source_ids": [
+    "irs_rp_2024_40",
+    "irs_qbi_deduction"
+  ],
   "qbi_deduction": {
     "rate": 0.2,
     "citation": "IRS Qualified Business Income Deduction page describes the Section 199A deduction as up to 20% of QBI and subject to taxable-income, W-2 wage, UBIA, and business-type limitations. Rev. Proc. 2024-40 sets 2025 taxable-income thresholds and upper phase-in range amounts for Section 199A.",
     "effective_date": "2025-01-01",
-    "source_ids": ["irs_rp_2024_40", "irs_qbi_deduction"],
+    "source_ids": [
+      "irs_rp_2024_40",
+      "irs_qbi_deduction"
+    ],
     "taxable_income_threshold": {
       "single": 197300,
       "head_of_household": 197300,
@@ -21,7 +27,7 @@
     "phase_in_window": {
       "single": 50000,
       "head_of_household": 50000,
-      "married_filing_separately": 50000,
+      "married_filing_separately": 25000,
       "qualifying_surviving_spouse": 50000,
       "married_filing_jointly": 100000
     },
@@ -30,12 +36,14 @@
       "quarter_w2_wages_rate": 0.25,
       "ubia_rate": 0.025,
       "citation": "IRS Qualified Business Income Deduction guidance describes the W-2 wage and unadjusted basis immediately after acquisition (UBIA) limitations that can apply to Section 199A deductions above the taxable-income threshold.",
-      "source_ids": ["irs_qbi_deduction"]
+      "source_ids": [
+        "irs_qbi_deduction"
+      ]
     },
     "upper_limit": {
       "single": 247300,
       "head_of_household": 247300,
-      "married_filing_separately": 247300,
+      "married_filing_separately": 222300,
       "qualifying_surviving_spouse": 247300,
       "married_filing_jointly": 494600
     },

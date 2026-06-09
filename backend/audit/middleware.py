@@ -146,7 +146,7 @@ def _schedule_log(
         task = asyncio.create_task(
             log_action(
                 request_id=request_id,
-                user_id=_extract_user_id(request_payload),
+                user_id=_extract_user_id(request_payload, path),
                 action=_extract_action(method, path),
                 request_payload=request_payload,
                 response_payload=response_payload,
@@ -181,8 +181,13 @@ def _response_payload(path: str, response_body: bytes) -> dict[str, Any] | None:
     return payload
 
 
-def _extract_user_id(payload: dict[str, Any] | None) -> str | None:
+def _extract_user_id(payload: dict[str, Any] | None, path: str = "") -> str | None:
     if not payload:
+        return None
+    # Admin audit endpoints pass user_id as a query *filter* (the target of
+    # the search), not as the acting user.  Extracting it would misattribute
+    # the admin's query as user activity.
+    if path.startswith("/api/admin/"):
         return None
     user_id = payload.get("user_id")
     if isinstance(user_id, str) and user_id:

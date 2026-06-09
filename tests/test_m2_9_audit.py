@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from backend.audit.middleware import (
     _append_limited,
     _extract_action,
+    _extract_user_id,
     _request_payload,
     _response_payload,
     _should_audit,
@@ -272,6 +273,16 @@ class AuditMiddlewareUnitTests(TestCase):
         self.assertEqual(len(b"".join(chunks)), 65_536)
         self.assertEqual(chunks[-1], b"b" * 6)
 
+    def test_admin_audit_user_id_filter_not_extracted_as_actor(self) -> None:
+        """user_id in /api/admin/audit query is a search filter, not the acting user."""
+        payload = {"user_id": "d3f1a2b4-5678-4c9e-a012-3456789abcde", "action": "skill:income_tax_summary"}
+        self.assertIsNone(_extract_user_id(payload, "/api/admin/audit"))
+
+    def test_extract_user_id_works_for_non_admin_paths(self) -> None:
+        uid = "d3f1a2b4-5678-4c9e-a012-3456789abcde"
+        payload = {"user_id": uid}
+        self.assertEqual(_extract_user_id(payload, "/api/skills/calc"), uid)
+
 
 class AuditRouteIntegrationTests(TestCase):
     def setUp(self) -> None:
@@ -459,7 +470,10 @@ class AuditAdminRouteTests(TestCase):
             ),
         ]
 
-        self.assertEqual(audit_routes._verify_records(records), {"status": "ok", "verified": 2, "broken_at": None})
+        result = audit_routes._verify_records(records)
+        self.assertEqual(
+            result, {"status": "ok", "verified": 2, "skipped_legacy": 0, "broken_at": None},
+        )
 
     def test_verify_records_detects_broken_chain(self) -> None:
         from backend.audit import logger as audit_logger
@@ -494,3 +508,33 @@ class AuditAdminRouteTests(TestCase):
         ]
 
         self.assertEqual(audit_routes._verify_records(records), {"status": "tampered", "verified": 1, "broken_at": 2})
+
+    def test_verify_records_skips_legacy_rows_without_entry_hash(self) -> None:
+        """Legacy rows (before hash-chain migration) have NULL entry_hash — they
+        should be skipped as unverifiable, not falsely flagged as tampered."""
+        from backend.audit import logger as audit_logger
+        from backend.audit import routes as audit_routes
+
+        hashed_entry = audit_logger._compute_entry_hash(
+            request_id="r2",
+            action="skill:b",
+            request_payload={},
+            response_payload={},
+            prev_hash=audit_logger.GENESIS_HASH,
+        )
+        records = [
+            Mock(id=1, request_id="r1", action="skill:a",
+                 request_payload={}, response_payload={},
+                 prev_hash=None, entry_hash=None),  # legacy row
+            Mock(id=2, request_id="r2", action="skill:b",
+                 request_payload={}, response_payload={},
+                 prev_hash=audit_logger.GENESIS_HASH,
+                 entry_hash=hashed_entry),
+        ]
+
+        result = audit_routes._verify_records(records)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["verified"], 1)
+        self.assertEqual(result["skipped_legacy"], 1)
+        self.assertIsNone(result["broken_at"])

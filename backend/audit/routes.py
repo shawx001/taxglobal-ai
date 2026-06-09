@@ -147,10 +147,20 @@ def _serialize_record(record: Any) -> dict[str, Any]:
 def _verify_records(records: list[Any]) -> dict[str, Any]:
     previous_entry_hash: str | None = None
     verified = 0
+    skipped_legacy = 0
     for record in records:
         record_id = getattr(record, "id", None)
-        prev_hash = getattr(record, "prev_hash", None) or GENESIS_HASH
         entry_hash = getattr(record, "entry_hash", None)
+
+        # Legacy rows written before the hash-chain migration have NULL
+        # entry_hash.  These are unverifiable — skip them rather than
+        # reporting a false "tampered" result.
+        if entry_hash is None:
+            skipped_legacy += 1
+            previous_entry_hash = None  # reset chain — next hashed row starts fresh
+            continue
+
+        prev_hash = getattr(record, "prev_hash", None) or GENESIS_HASH
         if previous_entry_hash is not None and prev_hash != previous_entry_hash:
             return {"status": "tampered", "verified": verified, "broken_at": record_id}
         expected_hash = _compute_entry_hash(
@@ -164,7 +174,7 @@ def _verify_records(records: list[Any]) -> dict[str, Any]:
             return {"status": "tampered", "verified": verified, "broken_at": record_id}
         previous_entry_hash = entry_hash
         verified += 1
-    return {"status": "ok", "verified": len(records), "broken_at": None}
+    return {"status": "ok", "verified": verified, "skipped_legacy": skipped_legacy, "broken_at": None}
 
 
 def _parse_user_id(value: str | None) -> uuid.UUID | None:

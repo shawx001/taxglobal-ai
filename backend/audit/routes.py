@@ -191,9 +191,14 @@ def _parse_date(value: str | None) -> datetime | None:
         return None
     try:
         normalized = f"{value[:-1]}+00:00" if value.endswith("Z") else value
-        return datetime.fromisoformat(normalized)
+        parsed = datetime.fromisoformat(normalized)
     except ValueError:
         return None
+    # Compliance API: reject timezone-naive datetimes to avoid
+    # ambiguous PostgreSQL interpretation across server timezones.
+    if parsed.tzinfo is None:
+        return None
+    return parsed
 
 
 def _authorize_admin(request_id: str, provided_token: str | None) -> JSONResponse | None:

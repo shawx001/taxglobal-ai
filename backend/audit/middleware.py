@@ -11,11 +11,12 @@ from backend.audit.logger import log_action
 
 
 def _should_audit(path: str) -> bool:
+    normalized = path.rstrip("/") if path != "/" else path
     return (
-        path == "/api/skills"
+        normalized == "/api/skills"
         or path.startswith("/api/skills/")
         or path.startswith("/api/assistant/")
-        or path == "/api/tips"
+        or normalized == "/api/tips"
         or path.startswith("/api/admin/audit")
     )
 

@@ -210,6 +210,7 @@ class AuditMiddlewareUnitTests(TestCase):
         self.assertTrue(_should_audit("/api/skills/income_tax_summary"))
         self.assertTrue(_should_audit("/api/assistant/query"))
         self.assertTrue(_should_audit("/api/tips"))
+        self.assertTrue(_should_audit("/api/tips/"))  # trailing slash
         self.assertTrue(_should_audit("/api/admin/audit"))
         self.assertFalse(_should_audit("/calc/summary"))
         self.assertFalse(_should_audit("/api/knowledge/search"))
@@ -430,6 +431,12 @@ class AuditAdminRouteTests(TestCase):
         parsed = audit_routes._parse_date("2026-06-09T12:00:00Z")
 
         self.assertEqual(parsed, datetime(2026, 6, 9, 12, 0, tzinfo=UTC))
+
+    def test_admin_audit_rejects_naive_date_filter(self) -> None:
+        """Timezone-naive datetimes are ambiguous — reject them."""
+        from backend.audit import routes as audit_routes
+
+        self.assertIsNone(audit_routes._parse_date("2026-06-09T12:00:00"))
 
     def test_verify_records_detects_valid_chain(self) -> None:
         from backend.audit import logger as audit_logger

@@ -164,9 +164,11 @@ def _request_payload(method: str, request_body: bytes, query_string: bytes) -> d
 def _response_payload(path: str, response_body: bytes) -> dict[str, Any] | None:
     payload = _json_payload(response_body)
     if path.startswith("/api/admin/audit") and payload is not None:
+        # Only summarize successful responses (those with a "records" list).
+        # Error responses (503/403) pass through as-is — they contain no PII.
         records = payload.get("records")
-        count = len(records) if isinstance(records, list) else payload.get("count")
-        return {"audit_query_count": count}
+        if isinstance(records, list):
+            return {"audit_query_count": len(records)}
     return payload
 
 

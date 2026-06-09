@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import tempfile
 import unittest
 from pathlib import Path
@@ -220,3 +222,33 @@ class TestEndToEnd(unittest.TestCase):
             self.assertTrue(knowledge_output.exists())
             self.assertTrue(manifest_output.exists())
             ingest_all.assert_called_once_with(knowledge_output.parent, manifest_output)
+
+    def test_generate_without_stats_does_not_print_stats(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "oa"
+            output_root = Path(temp_dir) / "out"
+            federal = root / "federal"
+            federal.mkdir(parents=True)
+            (federal / "us-qbi-deduction.md").write_text(
+                "# US QBI Deduction\n\n"
+                "## Section 1\n\n"
+                "This section covers IRC section 199A(a)(1) and has enough content.",
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                exit_code = main(
+                    [
+                        "--generate",
+                        "--oa-root",
+                        str(root),
+                        "--knowledge-output",
+                        str(output_root / "knowledge" / "oa_knowledge.json"),
+                        "--manifest-output",
+                        str(output_root / "sources" / "source_manifest.json"),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 0)
+            self.assertIn("Written:", stdout.getvalue())
+            self.assertNotIn("Files processed:", stdout.getvalue())

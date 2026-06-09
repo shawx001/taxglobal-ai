@@ -341,7 +341,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("Specify --generate, --stats, and/or --ingest")
 
     knowledge_json, manifest_json = build_knowledge_and_manifest(args.oa_root)
-    _print_stats(knowledge_json, manifest_json)
+    if args.stats:
+        _print_stats(knowledge_json, manifest_json)
 
     if args.generate or args.ingest:
         _write_json(args.knowledge_output, knowledge_json)

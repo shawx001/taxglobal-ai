@@ -8,7 +8,13 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from fastapi.testclient import TestClient
 
-from backend.audit.middleware import _extract_action, _request_payload, _response_payload, _should_audit
+from backend.audit.middleware import (
+    _append_limited,
+    _extract_action,
+    _request_payload,
+    _response_payload,
+    _should_audit,
+)
 from backend.audit.sanitizer import sanitize_payload
 from backend.main import create_app
 
@@ -48,6 +54,27 @@ class AuditSanitizerTests(TestCase):
         sanitized = sanitize_payload(payload)
 
         self.assertEqual(sanitized, payload)
+
+    def test_masks_undashed_ssn_fields_and_labeled_text(self) -> None:
+        payload = {
+            "ssn": "123456789",
+            "note": "SSN 987654321 belongs to taxpayer.",
+            "gross_income": "123456789",
+        }
+
+        sanitized = sanitize_payload(payload)
+
+        self.assertEqual(sanitized["ssn"], "***-**-6789")
+        self.assertEqual(sanitized["note"], "SSN ***-**-4321 belongs to taxpayer.")
+        self.assertEqual(sanitized["gross_income"], "123456789")
+
+    def test_redacts_compound_token_keys(self) -> None:
+        payload = {"access_token": "secret-token", "refresh_token": "refresh-token"}
+
+        sanitized = sanitize_payload(payload)
+
+        self.assertEqual(sanitized["access_token"], "[redacted]")
+        self.assertEqual(sanitized["refresh_token"], "[redacted]")
 
 
 class AuditLoggerTests(IsolatedAsyncioTestCase):
@@ -114,7 +141,10 @@ class AuditLoggerTests(IsolatedAsyncioTestCase):
         ):
             session = Mock()
             session.commit = AsyncMock()
-            session_factory.return_value.__aenter__.return_value = session
+            context_manager = Mock()
+            context_manager.__aenter__ = AsyncMock(return_value=session)
+            context_manager.__aexit__ = AsyncMock(return_value=None)
+            session_factory.return_value = context_manager
             audit_log.return_value = Mock(user_id=None)
             await audit_logger._write_record(
                 request_id=str(uuid.uuid4()),
@@ -165,6 +195,15 @@ class AuditMiddlewareUnitTests(TestCase):
         ).encode()
 
         self.assertEqual(_response_payload("/api/admin/audit", raw), {"audit_query_count": 2})
+
+    def test_append_limited_truncates_to_remaining_budget(self) -> None:
+        chunks = [b"a" * 65_530]
+
+        new_size = _append_limited(chunks, 65_530, b"b" * 20)
+
+        self.assertEqual(new_size, 65_536)
+        self.assertEqual(len(b"".join(chunks)), 65_536)
+        self.assertEqual(chunks[-1], b"b" * 6)
 
 
 class AuditRouteIntegrationTests(TestCase):
@@ -221,10 +260,11 @@ class AuditRouteIntegrationTests(TestCase):
 
     def test_admin_audit_503_when_postgres_unavailable(self) -> None:
         with (
+            patch.dict("os.environ", {"TAXGLOBAL_ADMIN_AUDIT_TOKEN": "test-token"}),
             patch("backend.audit.routes.is_pg_available", return_value=False),
             patch("backend.audit.middleware._schedule_log", lambda **kwargs: None),
         ):
-            response = self.client.get("/api/admin/audit")
+            response = self.client.get("/api/admin/audit", headers={"X-Admin-Token": "test-token"})
 
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json()["error"]["code"], "postgres_unavailable")
@@ -232,6 +272,32 @@ class AuditRouteIntegrationTests(TestCase):
 
 
 class AuditAdminRouteTests(TestCase):
+    def test_admin_audit_requires_configured_token(self) -> None:
+        app = create_app()
+        client = TestClient(app)
+
+        with (
+            patch.dict("os.environ", {}, clear=True),
+            patch("backend.audit.middleware._schedule_log", lambda **kwargs: None),
+        ):
+            response = client.get("/api/admin/audit")
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["error"]["code"], "admin_audit_auth_not_configured")
+
+    def test_admin_audit_rejects_bad_token(self) -> None:
+        app = create_app()
+        client = TestClient(app)
+
+        with (
+            patch.dict("os.environ", {"TAXGLOBAL_ADMIN_AUDIT_TOKEN": "test-token"}),
+            patch("backend.audit.middleware._schedule_log", lambda **kwargs: None),
+        ):
+            response = client.get("/api/admin/audit", headers={"X-Admin-Token": "wrong"})
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error"]["code"], "admin_forbidden")
+
     def test_admin_audit_serializes_records(self) -> None:
         from backend.audit import routes as audit_routes
 
@@ -267,10 +333,15 @@ class AuditAdminRouteTests(TestCase):
         client = TestClient(app)
 
         with (
+            patch.dict("os.environ", {"TAXGLOBAL_ADMIN_AUDIT_TOKEN": "test-token"}),
             patch.object(audit_routes, "is_pg_available", return_value=True),
             patch("backend.audit.middleware._schedule_log", lambda **kwargs: None),
         ):
-            response = client.get("/api/admin/audit", params={"from": "not-a-date"})
+            response = client.get(
+                "/api/admin/audit",
+                params={"from": "not-a-date"},
+                headers={"X-Admin-Token": "test-token"},
+            )
 
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.json()["error"]["code"], "invalid_date_filter")

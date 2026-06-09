@@ -64,8 +64,7 @@ class AuditMiddleware:
             if method in {"POST", "PUT", "PATCH"} and message.get("type") == "http.request":
                 body = message.get("body", b"")
                 if isinstance(body, bytes) and request_size < _MAX_CAPTURE_BYTES:
-                    request_chunks.append(body)
-                    request_size += len(body)
+                    request_size = _append_limited(request_chunks, request_size, body)
             return message
 
         async def audit_send(message: dict[str, Any]) -> None:
@@ -73,8 +72,7 @@ class AuditMiddleware:
             if message.get("type") == "http.response.body":
                 chunk = message.get("body", b"")
                 if isinstance(chunk, bytes) and response_size < _MAX_CAPTURE_BYTES:
-                    response_chunks.append(chunk)
-                    response_size += len(chunk)
+                    response_size = _append_limited(response_chunks, response_size, chunk)
             await send(message)
 
         await self.app(scope, audit_receive, audit_send)
@@ -110,6 +108,16 @@ _MAX_CAPTURE_BYTES = 65_536  # 64 KB cap per request/response body capture
 
 # Module-level set to prevent fire-and-forget tasks from being garbage-collected.
 _background_tasks: set[asyncio.Task[None]] = set()
+
+
+def _append_limited(chunks: list[bytes], current_size: int, chunk: bytes) -> int:
+    remaining = _MAX_CAPTURE_BYTES - current_size
+    if remaining <= 0:
+        return current_size
+    captured = chunk[:remaining]
+    if captured:
+        chunks.append(captured)
+    return current_size + len(captured)
 
 
 def _schedule_log(

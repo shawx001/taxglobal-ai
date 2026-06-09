@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import hmac
+import os
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Header, Query, Request
 from fastapi.responses import JSONResponse
 
 from backend.audit.sanitizer import sanitize_payload
@@ -46,11 +48,16 @@ async def list_audit_records(
     to_date: str | None = Query(default=None, alias="to"),
     limit: int = Query(default=100, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
     session: AsyncSession | None = Depends(audit_session),
 ) -> dict[str, Any] | JSONResponse:
     """Return sanitized audit records for internal compliance review."""
 
     request_id = str(getattr(request.state, "request_id", "unknown"))
+    auth_error = _authorize_admin(request_id, x_admin_token)
+    if auth_error is not None:
+        return auth_error
+
     parsed_user_id = _parse_user_id(user_id)
     if user_id and parsed_user_id is None:
         return _invalid_filter(request_id, "user_id must be a valid UUID.")
@@ -131,6 +138,31 @@ def _parse_date(value: str | None) -> datetime | None:
         return datetime.fromisoformat(normalized)
     except ValueError:
         return None
+
+
+def _authorize_admin(request_id: str, provided_token: str | None) -> JSONResponse | None:
+    expected_token = os.environ.get("TAXGLOBAL_ADMIN_AUDIT_TOKEN")
+    if not expected_token:
+        return JSONResponse(
+            status_code=503,
+            headers={"X-Request-ID": request_id},
+            content=error_response(
+                code="admin_audit_auth_not_configured",
+                message="Admin audit access is not configured.",
+                request_id=request_id,
+            ),
+        )
+    if provided_token is None or not hmac.compare_digest(provided_token, expected_token):
+        return JSONResponse(
+            status_code=403,
+            headers={"X-Request-ID": request_id},
+            content=error_response(
+                code="admin_forbidden",
+                message="Admin audit access denied.",
+                request_id=request_id,
+            ),
+        )
+    return None
 
 
 def _postgres_unavailable(request_id: str) -> JSONResponse:

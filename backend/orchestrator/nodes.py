@@ -65,8 +65,14 @@ def _extract_numbers(query: str) -> list[Decimal]:
         suffix = (match.group(2) or "").strip()
         if suffix:
             value *= _MULTIPLIERS.get(suffix, Decimal("1"))
-        if value not in (Decimal("2025"), Decimal("2026")):
-            numbers.append(value)
+        # Skip values that look like tax years (2020-2040 range) rather than
+        # dollar amounts.  The range is intentionally wider than the API's
+        # current 2025-2030 window so that adding a new tax year never
+        # requires touching this filter.
+        int_value = int(value)
+        if Decimal("2020") <= value <= Decimal("2040") and value == int_value:
+            continue
+        numbers.append(value)
     return numbers
 
 
@@ -117,10 +123,19 @@ def extract_skill_params(query: str, intent: str, tax_year: int = 2026) -> dict[
     return params
 
 
-def _missing_params(intent: str, params: dict[str, Any]) -> list[str]:
+def _is_self_employment_query(query: str) -> bool:
+    """Check if query mentions self-employment keywords."""
+    query_lower = query.lower()
+    return any(kw in query_lower for kw in ("self-employment", "self employment", "自雇"))
+
+
+def _missing_params(intent: str, params: dict[str, Any], query: str = "") -> list[str]:
     if intent == INTENT_INCOME_TAX:
         if "w2_wages" in params or "net_self_employment_profit" in params:
             return []
+        # Ask for the param that matches the query context.
+        if _is_self_employment_query(query):
+            return ["net_self_employment_profit"]
         return ["w2_wages"]
     required = {
         INTENT_FEIE: ["foreign_earned_income", "days_abroad"],
@@ -149,7 +164,7 @@ def skill_route_node(state: AssistantState) -> dict[str, Any]:
     intent = state.get("intent", "")
     skill_name = INTENT_SKILL_MAP.get(intent, "")
     params = extract_skill_params(state.get("query", ""), intent, int(state.get("tax_year", 2026)))
-    missing = _missing_params(intent, params)
+    missing = _missing_params(intent, params, state.get("query", ""))
     update: dict[str, Any] = {
         "skill_name": skill_name,
         "skill_input": params,

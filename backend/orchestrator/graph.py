@@ -76,6 +76,18 @@ def build_graph() -> Any:
     return graph.compile()
 
 
+# Module-level singleton — the compiled graph is immutable, no need to rebuild
+# per request.  Thread-safe: StateGraph.compile() returns a frozen object.
+_GRAPH: Any = None
+
+
+def _get_graph() -> Any:
+    global _GRAPH  # noqa: PLW0603
+    if _GRAPH is None:
+        _GRAPH = build_graph()
+    return _GRAPH
+
+
 def run_assistant_query(
     query: str,
     *,
@@ -92,5 +104,5 @@ def run_assistant_query(
         "request_id": request_id,
         "nodes_visited": [],
     }
-    final_state = build_graph().invoke(initial_state)
+    final_state = _get_graph().invoke(initial_state)
     return final_state["response"]

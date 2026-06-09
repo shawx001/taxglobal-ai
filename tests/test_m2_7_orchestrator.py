@@ -111,6 +111,26 @@ class TestParameterExtraction(unittest.TestCase):
         self.assertEqual(params["foreign_earned_income"], "120000")
         self.assertEqual(params["days_abroad"], 330)
 
+    def test_year_not_treated_as_income(self) -> None:
+        """Tax years 2025-2030 (and broader 2020-2040 range) must not become amounts."""
+        from backend.orchestrator.intent import INTENT_INCOME_TAX
+        from backend.orchestrator.nodes import extract_skill_params
+
+        for year in ("2025", "2026", "2027", "2029", "2030"):
+            params = extract_skill_params(f"income tax {year}", INTENT_INCOME_TAX)
+            self.assertNotIn("w2_wages", params, f"Year {year} should not become w2_wages")
+
+    def test_self_employment_missing_params(self) -> None:
+        """Self-employment query without amount should ask for SE profit, not W-2."""
+        from backend.orchestrator.intent import INTENT_INCOME_TAX
+        from backend.orchestrator.nodes import _missing_params
+
+        missing = _missing_params(INTENT_INCOME_TAX, {"tax_year": 2026}, "self-employment tax")
+        self.assertEqual(missing, ["net_self_employment_profit"])
+
+        missing_w2 = _missing_params(INTENT_INCOME_TAX, {"tax_year": 2026}, "how much tax")
+        self.assertEqual(missing_w2, ["w2_wages"])
+
 
 class TestWorkflow(unittest.TestCase):
     def test_skill_workflow_income_tax(self) -> None:

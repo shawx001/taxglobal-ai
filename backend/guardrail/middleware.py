@@ -29,7 +29,14 @@ def guardrail_check(skill_output: dict[str, Any], request_id: str = "") -> dict[
 
     # Defensive: non-dict input cannot be a valid Skill envelope.
     if not isinstance(skill_output, dict):
-        raise GuardrailViolation({"reason": "Skill output is not a dict.", "request_id": request_id})
+        escalation = request_human_review(
+            reason="Skill output is not a dict.",
+            severity=EscalationLevel.BLOCKED,
+            request_id=request_id,
+            engine_function="",
+            check_code="invalid_output_type",
+        )
+        raise GuardrailViolation(escalation)
 
     try:
         return _run_checks(skill_output, request_id)

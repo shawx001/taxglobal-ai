@@ -335,6 +335,23 @@ class TestGuardrailMiddleware(unittest.TestCase):
         with self.assertRaises(GuardrailViolation):
             guardrail_check(None, request_id="r2")  # type: ignore[arg-type]
 
+    def test_guardrail_check_non_dict_emits_audit_log(self) -> None:
+        """Non-dict rejection must produce a structured audit log entry."""
+        import json
+
+        from backend.guardrail.middleware import GuardrailViolation, guardrail_check
+
+        with patch("backend.guardrail.escalation.logger.warning") as warning:
+            with self.assertRaises(GuardrailViolation):
+                guardrail_check("bad", request_id="r-audit")  # type: ignore[arg-type]
+
+        warning.assert_called_once()
+        payload = json.loads(warning.call_args.args[0])
+        self.assertEqual(payload["event"], "guardrail_escalation")
+        self.assertEqual(payload["severity"], "blocked")
+        self.assertEqual(payload["request_id"], "r-audit")
+        self.assertEqual(payload["check_code"], "invalid_output_type")
+
     def test_guardrail_check_fail_open_on_unexpected_error(self) -> None:
         """If guardrail itself crashes, valid Skill output is returned with _guardrail.error annotation."""
         from backend.guardrail.middleware import guardrail_check

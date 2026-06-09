@@ -1,6 +1,6 @@
 # TaxGlobal AI 功能状态总表（实时打勾 + 可溯源）
 
-最后更新：2026-06-09（M2.7 merged）
+最后更新：2026-06-08（M2.8 merged, M2.9 prompt ready）
 维护规则：每个 step 的 PR 经 Claude review 通过 / 合并后，更新本表"状态"列。每行可追溯到 **设计文档 + 实现 commit + 官方来源**。
 
 图例：✅ 已实现并测试 ｜ 🟡 已设计待实现 ｜ ⬜ 未开始
@@ -72,10 +72,10 @@
 | LangChain Skill 框架（5 引擎 Skills + registry + REST 端点） | ✅ | M2.5 PR #53 |
 | Guardrail 中间件（金额来源验证 + schema 校验 + 4级升级 + PII 脱敏审计） | ✅ | M2.6 PR #55 |
 | LangGraph Workflow 编排器（意图分类 → Skill/KB 路由 → Guardrail → 结构化响应） | ✅ | M2.7 PR #57 |
-| 知识库驱动提醒系统 | ⬜ | M2.8 |
+| 知识库驱动提醒系统(KB-Driven Tips & Deadlines) | ✅ | M2.8 PR #59 |
 | Copilot（检索+引擎+guardrail） | ⬜ | 8 |
 | 档案持久化 API（Profile CRUD + 优雅降级） | ✅ | M2.4 PR #51 |
-| 审计日志（PostgreSQL） | ⬜ | M2.9 |
+| 审计日志（PostgreSQL） | 🟡 | M2.9 (prompt ready) |
 | 知识库定期更新 | ⬜ | 10 |
 | 美国 MVP 完整联调 | ⬜ | 11 |
 

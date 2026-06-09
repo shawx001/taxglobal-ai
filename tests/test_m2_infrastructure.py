@@ -67,6 +67,7 @@ class M2InfrastructureTests(unittest.TestCase):
                     "neo4j": False,
                     "chroma": False,
                     "embedder": False,
+                    "llm": False,
                 },
             },
         )

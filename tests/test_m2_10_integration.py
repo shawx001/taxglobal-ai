@@ -344,6 +344,7 @@ class M2AcceptanceCriteria(unittest.TestCase):
         self.assertFalse(stores["postgresql"])
         self.assertFalse(stores["neo4j"])
         self.assertFalse(stores["chroma"])
+        self.assertFalse(stores["llm"])
 
 
 # ---------------------------------------------------------------------------

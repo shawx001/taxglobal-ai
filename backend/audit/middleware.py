@@ -34,6 +34,8 @@ def _extract_action(method: str, path: str) -> str:
         return "assistant:query"
     if normalized == "/api/tips":
         return "tips:list"
+    if normalized == "/api/admin/audit/verify":
+        return "admin:audit:verify"
     if path.startswith("/api/admin/audit"):
         return "admin:audit:list"
     return f"{method.lower()}:{path}"

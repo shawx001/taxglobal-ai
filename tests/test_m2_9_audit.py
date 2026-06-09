@@ -256,6 +256,7 @@ class AuditMiddlewareUnitTests(TestCase):
         self.assertEqual(_extract_action("POST", "/api/assistant/query"), "assistant:query")
         self.assertEqual(_extract_action("GET", "/api/tips"), "tips:list")
         self.assertEqual(_extract_action("GET", "/api/admin/audit"), "admin:audit:list")
+        self.assertEqual(_extract_action("GET", "/api/admin/audit/verify"), "admin:audit:verify")
 
     def test_extract_action_trailing_slash_normalizes_to_list(self) -> None:
         self.assertEqual(_extract_action("GET", "/api/skills/"), "skill:list")

@@ -13,11 +13,16 @@ _REDACT_FIELDS: frozenset[str] = frozenset(
         "ssn",
         "social_security_number",
         "ein",
+        "itin",
         "name",
         "first_name",
         "last_name",
+        "middle_name",
+        "full_name",
+        "legal_name",
         "taxpayer_name",
         "spouse_name",
+        "dependent_name",
         "email",
         "email_address",
         "phone",
@@ -25,7 +30,28 @@ _REDACT_FIELDS: frozenset[str] = frozenset(
         "address",
         "street",
         "street_address",
+        "city",
+        "zip_code",
+        "zip",
+        "postal_code",
+        "date_of_birth",
+        "dob",
+        "birth_date",
+        "bank_account",
+        "account_number",
+        "routing_number",
+        "password",
+        "token",
+        "api_key",
+        "secret",
     }
+)
+
+# Substrings that indicate PII in compound field names (e.g. "spouse_ssn",
+# "dependent_1_email").  Checked when exact match against _REDACT_FIELDS
+# misses.
+_PII_SUBSTRINGS: frozenset[str] = frozenset(
+    {"ssn", "ein", "itin", "email", "phone", "bank_account", "routing", "password", "secret", "api_key"}
 )
 
 
@@ -48,7 +74,12 @@ def _sanitize(obj: Any) -> Any:
 
 
 def _sanitize_value(key: str, value: Any) -> Any:
-    if key.lower() in _REDACT_FIELDS:
+    lower = key.lower()
+    if lower in {"ssn", "social_security_number"} or "ssn" in lower:
+        return _mask_ssn(value) if isinstance(value, str) else "[redacted]"
+    if lower in _REDACT_FIELDS:
+        return "[redacted]"
+    if any(token in lower for token in _PII_SUBSTRINGS):
         return "[redacted]"
     return _sanitize(value)
 

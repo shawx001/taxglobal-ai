@@ -39,7 +39,7 @@ class AuditSanitizerTests(TestCase):
 
         self.assertEqual(payload["ssn"], "123-45-6789")
         self.assertEqual(payload["items"][0]["taxpayer_name"], "Jane")
-        self.assertEqual(sanitized["ssn"], "[redacted]")
+        self.assertEqual(sanitized["ssn"], "***-**-6789")
         self.assertEqual(sanitized["items"][0]["taxpayer_name"], "[redacted]")
 
     def test_preserves_money_like_values(self) -> None:
@@ -220,7 +220,11 @@ class AuditRouteIntegrationTests(TestCase):
         self.assertIn(b"income_types=w2", captured[0]["query_string"])
 
     def test_admin_audit_503_when_postgres_unavailable(self) -> None:
-        response = self.client.get("/api/admin/audit")
+        with (
+            patch("backend.audit.routes.is_pg_available", return_value=False),
+            patch("backend.audit.middleware._schedule_log", lambda **kwargs: None),
+        ):
+            response = self.client.get("/api/admin/audit")
 
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json()["error"]["code"], "postgres_unavailable")
@@ -270,3 +274,10 @@ class AuditAdminRouteTests(TestCase):
 
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.json()["error"]["code"], "invalid_date_filter")
+
+    def test_admin_audit_accepts_utc_z_date_filter(self) -> None:
+        from backend.audit import routes as audit_routes
+
+        parsed = audit_routes._parse_date("2026-06-09T12:00:00Z")
+
+        self.assertEqual(parsed, datetime(2026, 6, 9, 12, 0, tzinfo=UTC))

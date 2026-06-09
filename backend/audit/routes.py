@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 
+from backend.audit.sanitizer import sanitize_payload
 from backend.database import get_session, is_pg_available
 from backend.errors import error_response
 from backend.models import AuditLog
@@ -100,13 +101,15 @@ def _build_query(
 
 def _serialize_record(record: Any) -> dict[str, Any]:
     created_at = getattr(record, "created_at", None)
+    # Defense-in-depth: re-sanitize on read in case historical records
+    # were written before a sanitizer fix (e.g. undashed SSN gap).
     return {
         "id": getattr(record, "id", None),
         "request_id": str(getattr(record, "request_id", "")),
         "user_id": str(getattr(record, "user_id")) if getattr(record, "user_id", None) is not None else None,
         "action": getattr(record, "action", ""),
-        "request_payload": getattr(record, "request_payload", None),
-        "response_payload": getattr(record, "response_payload", None),
+        "request_payload": sanitize_payload(getattr(record, "request_payload", None)),
+        "response_payload": sanitize_payload(getattr(record, "response_payload", None)),
         "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else None,
     }
 
@@ -124,7 +127,8 @@ def _parse_date(value: str | None) -> datetime | None:
     if not value:
         return None
     try:
-        return datetime.fromisoformat(value)
+        normalized = f"{value[:-1]}+00:00" if value.endswith("Z") else value
+        return datetime.fromisoformat(normalized)
     except ValueError:
         return None
 

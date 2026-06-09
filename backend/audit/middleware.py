@@ -55,31 +55,43 @@ class AuditMiddleware:
         request_chunks: list[bytes] = []
         response_chunks: list[bytes] = []
 
+        request_size = 0
+        response_size = 0
+
         async def audit_receive() -> dict[str, Any]:
+            nonlocal request_size
             message = await receive()
             if method in {"POST", "PUT", "PATCH"} and message.get("type") == "http.request":
                 body = message.get("body", b"")
-                if isinstance(body, bytes):
+                if isinstance(body, bytes) and request_size < _MAX_CAPTURE_BYTES:
                     request_chunks.append(body)
+                    request_size += len(body)
             return message
 
         async def audit_send(message: dict[str, Any]) -> None:
+            nonlocal response_size
             if message.get("type") == "http.response.body":
                 chunk = message.get("body", b"")
-                if isinstance(chunk, bytes):
+                if isinstance(chunk, bytes) and response_size < _MAX_CAPTURE_BYTES:
                     response_chunks.append(chunk)
+                    response_size += len(chunk)
             await send(message)
 
         await self.app(scope, audit_receive, audit_send)
 
-        _schedule_log(
-            scope=scope,
-            method=method,
-            path=path,
-            request_body=b"".join(request_chunks),
-            query_string=scope.get("query_string", b""),
-            response_body=b"".join(response_chunks),
-        )
+        # Audit must NEVER crash the request path — wrap the entire
+        # post-response audit in a try/except.
+        try:
+            _schedule_log(
+                scope=scope,
+                method=method,
+                path=path,
+                request_body=b"".join(request_chunks),
+                query_string=scope.get("query_string", b""),
+                response_body=b"".join(response_chunks),
+            )
+        except Exception:
+            pass
 
 
 def _json_payload(raw_body: bytes) -> dict[str, Any] | None:
@@ -94,6 +106,12 @@ def _json_payload(raw_body: bytes) -> dict[str, Any] | None:
     return {"value": parsed}
 
 
+_MAX_CAPTURE_BYTES = 65_536  # 64 KB cap per request/response body capture
+
+# Module-level set to prevent fire-and-forget tasks from being garbage-collected.
+_background_tasks: set[asyncio.Task[None]] = set()
+
+
 def _schedule_log(
     *,
     scope: dict[str, Any],
@@ -103,12 +121,12 @@ def _schedule_log(
     query_string: bytes,
     response_body: bytes,
 ) -> None:
-    request_payload = _request_payload(method, request_body, query_string)
-    response_payload = _response_payload(path, response_body)
-    state = scope.get("state") or {}
-    request_id = str(state.get("request_id", "unknown"))
     try:
-        asyncio.create_task(
+        request_payload = _request_payload(method, request_body, query_string)
+        response_payload = _response_payload(path, response_body)
+        state = scope.get("state") or {}
+        request_id = str(state.get("request_id", "unknown"))
+        task = asyncio.create_task(
             log_action(
                 request_id=request_id,
                 user_id=_extract_user_id(request_payload),
@@ -117,7 +135,9 @@ def _schedule_log(
                 response_payload=response_payload,
             )
         )
-    except RuntimeError:
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
+    except Exception:
         return
 
 

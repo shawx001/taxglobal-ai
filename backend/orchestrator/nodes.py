@@ -205,7 +205,7 @@ def guardrail_node(state: AssistantState) -> dict[str, Any]:
     """Validate Skill output before formatting."""
 
     output = state.get("skill_output")
-    if not output:
+    if output is None:
         return {"guardrail_passed": True, "nodes_visited": _visited(state, "guardrail")}
     try:
         checked = guardrail_check(output, state.get("request_id", ""))

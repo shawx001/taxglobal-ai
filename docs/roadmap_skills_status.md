@@ -2,7 +2,7 @@
 
 > 目的:让"我们现在在哪、18 Skills 做到哪"始终可见,不再"看不到"。
 > 依据:`TaxGlobal_AI_项目计划书_v3.1.md`(M0–M5 里程碑 + 18 Skills 架构)。
-> 维护:每完成一步由 Claude 更新本表 + `feature_status.md`。最后更新:2026-06-09（M2.7 merged — LangGraph Workflow Orchestrator PR #57）。
+> 维护:每完成一步由 Claude 更新本表 + `feature_status.md`。最后更新:2026-06-08（M2.8 merged — KB-Driven Tips & Deadlines PR #59; M2.9 Audit Logging prompt ready）。
 
 ## 一、里程碑路线图(M0–M5)与当前位置
 

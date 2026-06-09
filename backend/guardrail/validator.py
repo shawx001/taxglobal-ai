@@ -98,6 +98,14 @@ def _check_status_consistency(output: dict[str, Any]) -> CheckResult:
 
 def _check_engine_function_known(output: dict[str, Any]) -> CheckResult:
     engine_function = output.get("engine_function")
+    # Guard against unhashable types (list/dict) which would raise TypeError
+    # on frozenset membership check, triggering fail-open bypass.
+    if not isinstance(engine_function, str):
+        return CheckResult(
+            passed=False,
+            code="unknown_engine_function",
+            message="engine_function must be a string.",
+        )
     if engine_function not in KNOWN_ENGINE_FUNCTIONS:
         return CheckResult(
             passed=False,

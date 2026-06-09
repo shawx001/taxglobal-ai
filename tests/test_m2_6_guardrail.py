@@ -76,6 +76,26 @@ class TestValidator(unittest.TestCase):
         self.assertEqual(verdict.level, EscalationLevel.BLOCKED)
         self.assertIn("unknown_engine_function", {check.code for check in verdict.checks if not check.passed})
 
+    def test_unhashable_engine_function_blocked_not_fail_open(self) -> None:
+        """Non-string engine_function must be BLOCKED, not trigger fail-open bypass."""
+        from backend.guardrail.escalation import EscalationLevel
+        from backend.guardrail.middleware import guardrail_check
+        from backend.guardrail.validator import validate_skill_output
+
+        for bad_value in [["a", "b"], {"key": "val"}, None, 42]:
+            verdict = validate_skill_output(_skill_output(engine_function=bad_value))
+            self.assertEqual(
+                verdict.level,
+                EscalationLevel.BLOCKED,
+                f"engine_function={bad_value!r} should be BLOCKED",
+            )
+
+        # Confirm middleware raises (not fail-open annotation)
+        from backend.guardrail.middleware import GuardrailViolation
+
+        with self.assertRaises(GuardrailViolation):
+            guardrail_check(_skill_output(engine_function=["bypass"]), request_id="r1")
+
     def test_missing_envelope_field_blocked(self) -> None:
         from backend.guardrail.escalation import EscalationLevel
         from backend.guardrail.validator import validate_skill_output

@@ -17,8 +17,15 @@ def sanitize_text(text: str) -> str:
     """Mask SSN and email in free text while preserving dollar amounts."""
 
     result = _mask_ssn(text)
-    result = _BARE_NINE_DIGIT_PATTERN.sub(lambda match: f"***-**-{match.group(1)[-4:]}", result)
+    result = _BARE_NINE_DIGIT_PATTERN.sub(_mask_bare_ssn, result)
     return _EMAIL_PATTERN.sub("[email redacted]", result)
+
+
+def _mask_bare_ssn(match: re.Match[str]) -> str:
+    prefix = match.string[: match.start()].rstrip()
+    if prefix.endswith("$"):
+        return match.group(1)
+    return f"***-**-{match.group(1)[-4:]}"
 
 
 def sanitize_messages(messages: list[LLMMessage]) -> list[LLMMessage]:

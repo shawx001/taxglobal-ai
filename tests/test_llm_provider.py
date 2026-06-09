@@ -79,6 +79,10 @@ class TestSanitizeText(unittest.TestCase):
         self.assertIn("$200,000", result)
         self.assertNotIn("123-45-6789", result)
 
+    def test_nine_digit_dollar_amounts_preserved(self) -> None:
+        self.assertIn("$123456789", sanitize_text("gain was $123456789"))
+        self.assertIn("$ 123456789", sanitize_text("gain was $ 123456789"))
+
     def test_sanitize_messages_returns_new_messages(self) -> None:
         messages = [LLMMessage(role="user", content="email me at jane@example.com")]
         sanitized = sanitize_messages(messages)
@@ -195,6 +199,7 @@ class TestClientModule(unittest.TestCase):
             with patch("backend.llm.client.create_provider", return_value=MockProvider()) as create:
                 client.init_llm()
             self.assertTrue(client.is_llm_available())
+            self.assertIsInstance(client.get_provider(), SanitizedProvider)
             create.assert_called_once()
             self.assertEqual(create.call_args.kwargs["base_url"], "https://api.deepseek.com")
             self.assertEqual(create.call_args.kwargs["model"], "deepseek-chat")

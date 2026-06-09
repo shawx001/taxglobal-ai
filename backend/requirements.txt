@@ -26,5 +26,5 @@ langgraph==1.2.4
 langgraph-checkpoint==4.1.1
 
 # === M3: LLM Provider ===
-openai>=1.82.0,<2.0
-tiktoken>=0.9.0,<1.0
+openai==1.82.0
+tiktoken==0.9.0

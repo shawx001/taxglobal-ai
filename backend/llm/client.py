@@ -22,6 +22,9 @@ def init_llm() -> None:
 
     global _provider  # noqa: PLW0603
 
+    if _provider is not None:
+        return
+
     if not config.ENABLE_LLM:
         logger.info("LLM disabled (ENABLE_LLM=false)")
         _provider = None

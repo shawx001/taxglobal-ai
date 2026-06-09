@@ -213,6 +213,31 @@ class TestClientModule(unittest.TestCase):
                 config.LLM_MODEL,
             ) = originals
 
+    def test_init_llm_is_idempotent(self) -> None:
+        from backend import config
+        from backend.llm import client
+
+        originals = (config.ENABLE_LLM, config.LLM_PROVIDER, config.LLM_API_KEY, config.LLM_BASE_URL, config.LLM_MODEL)
+        try:
+            config.ENABLE_LLM = True
+            config.LLM_PROVIDER = "deepseek"
+            config.LLM_API_KEY = "test"
+            config.LLM_BASE_URL = ""
+            config.LLM_MODEL = ""
+            with patch("backend.llm.client.create_provider", return_value=MockProvider()) as create:
+                client.init_llm()
+                client.init_llm()
+            create.assert_called_once()
+        finally:
+            client.close_llm()
+            (
+                config.ENABLE_LLM,
+                config.LLM_PROVIDER,
+                config.LLM_API_KEY,
+                config.LLM_BASE_URL,
+                config.LLM_MODEL,
+            ) = originals
+
 
 if __name__ == "__main__":
     unittest.main()

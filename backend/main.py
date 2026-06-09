@@ -18,6 +18,7 @@ from starlette.responses import Response
 
 from backend.errors import error_response
 from backend.knowledge.search_routes import router as search_router
+from backend.knowledge.tips_routes import router as tips_router
 from backend.orchestrator.routes import router as orchestrator_router
 from backend.profiles.routes import router as profiles_router
 from backend.routes.calc import router as calc_router
@@ -165,6 +166,7 @@ def create_app() -> FastAPI:
     app.add_middleware(RequestIdMiddleware)
     app.include_router(calc_router)
     app.include_router(search_router)
+    app.include_router(tips_router)
     app.include_router(profiles_router)
     app.include_router(skills_router)
     app.include_router(orchestrator_router)

@@ -5,15 +5,18 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from backend.knowledge.ingestion import validate_items
 from scripts.ingest_openaccountants import (
     build_knowledge_and_manifest,
     chunk_by_h2,
     extract_citations,
+    main,
     map_jurisdiction,
     parse_frontmatter,
     source_id_for_path,
+    topic_for_file,
 )
 
 
@@ -93,6 +96,13 @@ class TestSourceIds(unittest.TestCase):
             "oa_federal_us_qbi_deduction",
         )
 
+    def test_topic_fallback_uses_source_id(self) -> None:
+        self.assertEqual(topic_for_file({}, "oa_us_states_ca_readme"), "us-states-ca-readme")
+        self.assertEqual(
+            topic_for_file({"name": "ca-income-tax"}, "oa_us_states_ca_ca_income_tax"),
+            "ca-income-tax",
+        )
+
 
 class TestEndToEnd(unittest.TestCase):
     def test_build_from_fixture(self) -> None:
@@ -134,6 +144,7 @@ class TestEndToEnd(unittest.TestCase):
             self.assertEqual(len({source["source_id"] for source in sources}), 2)
             self.assertTrue(all(item["source"] == "openaccountants" for item in items))
             self.assertTrue(any(item["jurisdiction"] == "CA" for item in items))
+            self.assertTrue(any(item["topic"] == "us-states-ca-readme" for item in items))
             self.assertTrue(any("199A" in citation for item in items for citation in item["citations"]))
 
             source_map = {source["source_id"]: source for source in sources}
@@ -166,3 +177,46 @@ class TestEndToEnd(unittest.TestCase):
 
         errors = validate_items(items, sources={source["source_id"]: source for source in sources})
         self.assertEqual(errors, [])
+
+    def test_ingest_without_generate_writes_json_before_ingest(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "oa"
+            output_root = Path(temp_dir) / "out"
+            federal = root / "federal"
+            federal.mkdir(parents=True)
+            (federal / "us-qbi-deduction.md").write_text(
+                "---\nname: us-qbi-deduction\njurisdiction: US-FEDERAL\n---\n\n"
+                "# US QBI Deduction\n\n"
+                "## Section 1\n\n"
+                "This section covers IRC section 199A(a)(1) and has enough content.",
+                encoding="utf-8",
+            )
+            knowledge_output = output_root / "knowledge" / "oa_knowledge.json"
+            manifest_output = output_root / "sources" / "source_manifest.json"
+
+            with (
+                patch("backend.knowledge.neo4j_client.init_neo4j"),
+                patch("backend.knowledge.neo4j_client.close_neo4j"),
+                patch("backend.knowledge.vector_store.init_chroma"),
+                patch("backend.knowledge.vector_store.close_chroma"),
+                patch("backend.knowledge.embedder.init_embedder"),
+                patch("backend.knowledge.embedder.close_embedder"),
+                patch("backend.knowledge.ingestion.ingest_all", return_value={"total_items": 1, "errors": []})
+                as ingest_all,
+            ):
+                exit_code = main(
+                    [
+                        "--ingest",
+                        "--oa-root",
+                        str(root),
+                        "--knowledge-output",
+                        str(knowledge_output),
+                        "--manifest-output",
+                        str(manifest_output),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 0)
+            self.assertTrue(knowledge_output.exists())
+            self.assertTrue(manifest_output.exists())
+            ingest_all.assert_called_once_with(knowledge_output.parent, manifest_output)

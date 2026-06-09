@@ -191,6 +191,14 @@ def _source_title(frontmatter: dict[str, Any], stem: str, markdown_title: str | 
     return f"OpenAccountants: {title}"
 
 
+def topic_for_file(frontmatter: dict[str, Any], source_id: str) -> str:
+    """Return the OA topic, keeping no-frontmatter files distinct."""
+
+    if frontmatter.get("name"):
+        return str(frontmatter["name"])
+    return source_id.removeprefix("oa_").replace("_", "-")
+
+
 def _build_item(
     *,
     chunk: dict[str, Any],
@@ -248,7 +256,7 @@ def build_knowledge_and_manifest(oa_root: Path) -> tuple[dict[str, Any], dict[st
         frontmatter, body = parse_frontmatter(text)
         markdown_title, body_without_title = _strip_primary_heading(body)
         jurisdiction = map_jurisdiction(frontmatter, rel_path)
-        topic = str(frontmatter.get("name") or stem)
+        topic = topic_for_file(frontmatter, source_id)
 
         sources.append(
             {
@@ -335,7 +343,7 @@ def main(argv: list[str] | None = None) -> int:
     knowledge_json, manifest_json = build_knowledge_and_manifest(args.oa_root)
     _print_stats(knowledge_json, manifest_json)
 
-    if args.generate:
+    if args.generate or args.ingest:
         _write_json(args.knowledge_output, knowledge_json)
         _write_json(args.manifest_output, manifest_json)
         print(f"Written: {args.knowledge_output}")

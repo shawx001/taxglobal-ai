@@ -21,14 +21,17 @@ def _should_audit(path: str) -> bool:
 
 
 def _extract_action(method: str, path: str) -> str:
-    if path == "/api/skills":
+    # Normalize trailing slash so /api/skills/ == /api/skills
+    normalized = path.rstrip("/") if path != "/" else path
+
+    if normalized == "/api/skills":
         return "skill:list"
     if path.startswith("/api/skills/"):
         skill_name = path.removeprefix("/api/skills/").split("/", 1)[0]
-        return f"skill:{skill_name}" if skill_name else "skill:unknown"
+        return f"skill:{skill_name}" if skill_name else "skill:list"
     if path.startswith("/api/assistant/"):
         return "assistant:query"
-    if path == "/api/tips":
+    if normalized == "/api/tips":
         return "tips:list"
     if path.startswith("/api/admin/audit"):
         return "admin:audit:list"
@@ -52,6 +55,12 @@ class AuditMiddleware:
             return
 
         method = str(scope.get("method", "GET")).upper()
+
+        # CORS preflight (OPTIONS) is not a business action — skip audit.
+        if method == "OPTIONS":
+            await self.app(scope, receive, send)
+            return
+
         request_chunks: list[bytes] = []
         response_chunks: list[bytes] = []
 

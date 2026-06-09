@@ -221,6 +221,24 @@ class AuditMiddlewareUnitTests(TestCase):
         self.assertEqual(_extract_action("GET", "/api/tips"), "tips:list")
         self.assertEqual(_extract_action("GET", "/api/admin/audit"), "admin:audit:list")
 
+    def test_extract_action_trailing_slash_normalizes_to_list(self) -> None:
+        self.assertEqual(_extract_action("GET", "/api/skills/"), "skill:list")
+        self.assertEqual(_extract_action("GET", "/api/tips/"), "tips:list")
+
+    def test_options_requests_are_not_audited(self) -> None:
+        """CORS preflight (OPTIONS) should bypass audit entirely."""
+        captured: list[dict[str, object]] = []
+
+        def fake_schedule_log(**kwargs: object) -> None:
+            captured.append(kwargs)
+
+        app = create_app()
+        client = TestClient(app)
+        with patch("backend.audit.middleware._schedule_log", fake_schedule_log):
+            client.options("/api/skills/calculate_income_tax")
+
+        self.assertEqual(captured, [], "OPTIONS request should not trigger audit")
+
     def test_request_payload_uses_query_string_for_get(self) -> None:
         self.assertEqual(
             _request_payload("GET", b"", b"state=CA&income_types=w2&income_types=rsu"),

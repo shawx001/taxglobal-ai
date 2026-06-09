@@ -86,6 +86,15 @@ class AuditSanitizerTests(TestCase):
         self.assertEqual(double_sanitized["ssn"], "***-**-6789")
         self.assertEqual(double_sanitized["name"], "[redacted]")
 
+    def test_masks_numeric_ssn_fields(self) -> None:
+        payload = {"ssn": 123456789, "spouse_ssn": 987654321, "gross_income": 123456789}
+
+        sanitized = sanitize_payload(payload)
+
+        self.assertEqual(sanitized["ssn"], "***-**-6789")
+        self.assertEqual(sanitized["spouse_ssn"], "***-**-4321")
+        self.assertEqual(sanitized["gross_income"], 123456789)
+
 
 class AuditLoggerTests(IsolatedAsyncioTestCase):
     async def test_log_action_noops_when_postgres_unavailable(self) -> None:

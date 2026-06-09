@@ -136,6 +136,7 @@ class AuditLoggerTests(IsolatedAsyncioTestCase):
         from backend.audit import logger as audit_logger
 
         with (
+            patch.object(audit_logger, "select", None),
             patch("backend.database._session_factory") as session_factory,
             patch("backend.models.AuditLog") as audit_log,
         ):
@@ -155,8 +156,51 @@ class AuditLoggerTests(IsolatedAsyncioTestCase):
             )
 
         self.assertIsNone(audit_log.call_args.kwargs["user_id"])
+        self.assertEqual(audit_log.call_args.kwargs["prev_hash"], audit_logger.GENESIS_HASH)
+        self.assertEqual(len(audit_log.call_args.kwargs["entry_hash"]), 64)
         session.add.assert_called_once_with(audit_log.return_value)
         session.commit.assert_awaited_once()
+
+    def test_compute_entry_hash_is_deterministic(self) -> None:
+        from backend.audit import logger as audit_logger
+
+        first = audit_logger._compute_entry_hash(
+            request_id="r1",
+            action="skill:test",
+            request_payload={"amount": "100"},
+            response_payload={"result": "ok"},
+            prev_hash=audit_logger.GENESIS_HASH,
+        )
+        second = audit_logger._compute_entry_hash(
+            request_id="r1",
+            action="skill:test",
+            request_payload={"amount": "100"},
+            response_payload={"result": "ok"},
+            prev_hash=audit_logger.GENESIS_HASH,
+        )
+
+        self.assertEqual(first, second)
+        self.assertEqual(len(first), 64)
+
+    def test_compute_entry_hash_changes_with_prev_hash(self) -> None:
+        from backend.audit import logger as audit_logger
+
+        first = audit_logger._compute_entry_hash(
+            request_id="r1",
+            action="skill:test",
+            request_payload={},
+            response_payload={},
+            prev_hash=audit_logger.GENESIS_HASH,
+        )
+        second = audit_logger._compute_entry_hash(
+            request_id="r1",
+            action="skill:test",
+            request_payload={},
+            response_payload={},
+            prev_hash="a" * 64,
+        )
+
+        self.assertNotEqual(first, second)
 
 
 class AuditMiddlewareUnitTests(TestCase):
@@ -195,6 +239,11 @@ class AuditMiddlewareUnitTests(TestCase):
         ).encode()
 
         self.assertEqual(_response_payload("/api/admin/audit", raw), {"audit_query_count": 2})
+
+    def test_admin_audit_error_response_payload_is_not_counted_as_none(self) -> None:
+        raw = json.dumps({"error": {"code": "admin_forbidden"}}).encode()
+
+        self.assertEqual(_response_payload("/api/admin/audit", raw), {"error": {"code": "admin_forbidden"}})
 
     def test_append_limited_truncates_to_remaining_budget(self) -> None:
         chunks = [b"a" * 65_530]
@@ -352,3 +401,78 @@ class AuditAdminRouteTests(TestCase):
         parsed = audit_routes._parse_date("2026-06-09T12:00:00Z")
 
         self.assertEqual(parsed, datetime(2026, 6, 9, 12, 0, tzinfo=UTC))
+
+    def test_verify_records_detects_valid_chain(self) -> None:
+        from backend.audit import logger as audit_logger
+        from backend.audit import routes as audit_routes
+
+        first_hash = audit_logger._compute_entry_hash(
+            request_id="r1",
+            action="skill:a",
+            request_payload={},
+            response_payload={},
+            prev_hash=audit_logger.GENESIS_HASH,
+        )
+        second_hash = audit_logger._compute_entry_hash(
+            request_id="r2",
+            action="skill:b",
+            request_payload={},
+            response_payload={},
+            prev_hash=first_hash,
+        )
+        records = [
+            Mock(
+                id=1,
+                request_id="r1",
+                action="skill:a",
+                request_payload={},
+                response_payload={},
+                prev_hash=audit_logger.GENESIS_HASH,
+                entry_hash=first_hash,
+            ),
+            Mock(
+                id=2,
+                request_id="r2",
+                action="skill:b",
+                request_payload={},
+                response_payload={},
+                prev_hash=first_hash,
+                entry_hash=second_hash,
+            ),
+        ]
+
+        self.assertEqual(audit_routes._verify_records(records), {"status": "ok", "verified": 2, "broken_at": None})
+
+    def test_verify_records_detects_broken_chain(self) -> None:
+        from backend.audit import logger as audit_logger
+        from backend.audit import routes as audit_routes
+
+        first_hash = audit_logger._compute_entry_hash(
+            request_id="r1",
+            action="skill:a",
+            request_payload={},
+            response_payload={},
+            prev_hash=audit_logger.GENESIS_HASH,
+        )
+        records = [
+            Mock(
+                id=1,
+                request_id="r1",
+                action="skill:a",
+                request_payload={},
+                response_payload={},
+                prev_hash=audit_logger.GENESIS_HASH,
+                entry_hash=first_hash,
+            ),
+            Mock(
+                id=2,
+                request_id="r2",
+                action="skill:b",
+                request_payload={},
+                response_payload={},
+                prev_hash="bad",
+                entry_hash="bad",
+            ),
+        ]
+
+        self.assertEqual(audit_routes._verify_records(records), {"status": "tampered", "verified": 1, "broken_at": 2})

@@ -491,60 +491,20 @@ class AuditMiddleware(BaseHTTPMiddleware):
 
 ### Wire into `backend/main.py`
 
-Add the `AuditMiddleware` after `RequestIdMiddleware` (so `request.state.request_id`
-is already set when audit runs):
+Add `AuditMiddleware` **before** `RequestIdMiddleware` in `create_app()`:
 
 ```python
 from backend.audit.middleware import AuditMiddleware
 
-# In create_app(), after app.add_middleware(RequestIdMiddleware):
+# Starlette middleware is LIFO: the last added middleware runs first on request entry.
+# RequestIdMiddleware must run before AuditMiddleware so request.state.request_id exists.
 app.add_middleware(AuditMiddleware)
+app.add_middleware(RequestIdMiddleware)
 ```
 
-**Important**: Starlette middleware is a LIFO stack. The LAST `add_middleware()`
-call runs FIRST on request entry. So adding `AuditMiddleware` AFTER
-`RequestIdMiddleware` means:
-- Request enters → AuditMiddleware.dispatch → RequestIdMiddleware.dispatch → route
-- Response exits → RequestIdMiddleware (sets X-Request-ID) → AuditMiddleware (logs)
-
-Wait — that means `request.state.request_id` might NOT be set when AuditMiddleware
-runs. To fix this, add `AuditMiddleware` BEFORE `RequestIdMiddleware`:
-
-```python
-# Correct order in create_app():
-app.add_middleware(RequestIdMiddleware)    # runs first on request (sets request_id)
-app.add_middleware(AuditMiddleware)        # runs second (reads request_id)
-```
-
-No — Starlette LIFO means the LAST added runs OUTERMOST. So:
-
-```python
-app.add_middleware(AuditMiddleware)        # added last → runs outermost
-app.add_middleware(RequestIdMiddleware)    # added first → runs innermost
-```
-
-**Correct final order in `create_app()`**:
-
-```python
-app.add_middleware(CORSMiddleware, ...)
-app.add_middleware(RequestIdMiddleware)     # inner: sets request_id
-app.add_middleware(AuditMiddleware)         # outer: reads request_id after inner sets it
-```
-
-Actually, because Starlette is LIFO, the LAST `add_middleware` processes the
-request FIRST. Since `AuditMiddleware` needs `request_id` to be already set,
-`RequestIdMiddleware` must process the request first, meaning it must be added
-LAST:
-
-```python
-# In create_app() — order matters (Starlette LIFO):
-app.add_middleware(AuditMiddleware)         # added first → processes request LAST
-app.add_middleware(RequestIdMiddleware)     # added last → processes request FIRST
-```
-
-**Codex**: validate the middleware ordering by checking that `request.state.request_id`
-is available inside `AuditMiddleware.dispatch`. If the test
-`test_audit_request_id_correlation` fails, swap the `add_middleware` order.
+With this order, the request path is:
+`RequestIdMiddleware -> AuditMiddleware -> route`, and the audit task receives
+the same `request_id` returned in `X-Request-ID`.
 
 ## Section 4: Admin Audit Query Route
 

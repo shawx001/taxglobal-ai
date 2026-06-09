@@ -12,6 +12,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Header, Query, Request
 from fastapi.responses import JSONResponse
 
+from backend.audit.logger import GENESIS_HASH, _compute_entry_hash
 from backend.audit.sanitizer import sanitize_payload
 from backend.database import get_session, is_pg_available
 from backend.errors import error_response
@@ -85,6 +86,28 @@ async def list_audit_records(
     return {"records": [_serialize_record(record) for record in records], "count": len(records)}
 
 
+@router.get("/audit/verify", response_model=None)
+async def verify_audit_chain(
+    request: Request,
+    limit: int = Query(default=100, ge=1, le=1000),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    session: AsyncSession | None = Depends(audit_session),
+) -> dict[str, Any] | JSONResponse:
+    """Verify the integrity of recent audit log hash-chain records."""
+
+    request_id = str(getattr(request.state, "request_id", "unknown"))
+    auth_error = _authorize_admin(request_id, x_admin_token)
+    if auth_error is not None:
+        return auth_error
+    if session is None or select is None:
+        return _postgres_unavailable(request_id)
+
+    result = await session.execute(select(AuditLog).order_by(AuditLog.id.desc()).limit(limit))
+    records = list(result.scalars().all())
+    records.reverse()
+    return _verify_records(records)
+
+
 def _build_query(
     *,
     user_id: uuid.UUID | None,
@@ -119,6 +142,29 @@ def _serialize_record(record: Any) -> dict[str, Any]:
         "response_payload": sanitize_payload(getattr(record, "response_payload", None)),
         "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else None,
     }
+
+
+def _verify_records(records: list[Any]) -> dict[str, Any]:
+    previous_entry_hash: str | None = None
+    verified = 0
+    for record in records:
+        record_id = getattr(record, "id", None)
+        prev_hash = getattr(record, "prev_hash", None) or GENESIS_HASH
+        entry_hash = getattr(record, "entry_hash", None)
+        if previous_entry_hash is not None and prev_hash != previous_entry_hash:
+            return {"status": "tampered", "verified": verified, "broken_at": record_id}
+        expected_hash = _compute_entry_hash(
+            request_id=str(getattr(record, "request_id", "")),
+            action=getattr(record, "action", ""),
+            request_payload=getattr(record, "request_payload", None),
+            response_payload=getattr(record, "response_payload", None),
+            prev_hash=prev_hash,
+        )
+        if entry_hash != expected_hash:
+            return {"status": "tampered", "verified": verified, "broken_at": record_id}
+        previous_entry_hash = entry_hash
+        verified += 1
+    return {"status": "ok", "verified": len(records), "broken_at": None}
 
 
 def _parse_user_id(value: str | None) -> uuid.UUID | None:

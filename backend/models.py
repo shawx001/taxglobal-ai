@@ -64,6 +64,8 @@ try:
         action: Mapped[str] = mapped_column(String(50), nullable=False)
         request_payload: Mapped[dict[str, Any] | None] = mapped_column("request_payload", JSONB, nullable=True)
         response_payload: Mapped[dict[str, Any] | None] = mapped_column("response_payload", JSONB, nullable=True)
+        entry_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+        prev_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
         created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 except ModuleNotFoundError:

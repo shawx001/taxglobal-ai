@@ -142,14 +142,17 @@ async def lifespan(app: FastAPI):
     from backend.knowledge.embedder import close_embedder, init_embedder
     from backend.knowledge.neo4j_client import close_neo4j, init_neo4j
     from backend.knowledge.vector_store import close_chroma, init_chroma
+    from backend.llm.client import close_llm, init_llm
 
     await init_db()
     init_neo4j()
     init_chroma()
     init_embedder()
+    init_llm()
     try:
         yield
     finally:
+        close_llm()
         close_embedder()
         close_chroma()
         close_neo4j()
@@ -218,6 +221,7 @@ def create_app() -> FastAPI:
         from backend.knowledge.embedder import is_embedder_available
         from backend.knowledge.neo4j_client import is_neo4j_available
         from backend.knowledge.vector_store import is_chroma_available
+        from backend.llm.client import is_llm_available
 
         return {
             "status": "ok",
@@ -226,6 +230,7 @@ def create_app() -> FastAPI:
                 "neo4j": is_neo4j_available(),
                 "chroma": is_chroma_available(),
                 "embedder": is_embedder_available(),
+                "llm": is_llm_available(),
             },
         }
 

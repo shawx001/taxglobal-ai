@@ -22,7 +22,12 @@ build/
 *.log
 .DS_Store
 Thumbs.db
+.claude/
 
 # Generated reports
 coverage/
 htmlcov/
+
+# Generated knowledge artifacts
+data/knowledge/oa/
+data/sources/oa/

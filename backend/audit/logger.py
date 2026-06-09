@@ -65,6 +65,9 @@ async def _write_record(
     parsed_user_id = _parse_uuid_or_none(user_id)
 
     async with _session_factory() as session:
+        # KNOWN LIMITATION: concurrent fire-and-forget tasks can read the same
+        # latest entry_hash before either commits, forking the hash chain.
+        # Fix requires pg_advisory_xact_lock — deferred to hash-chain hardening PR.
         prev_hash = await _latest_entry_hash(session)
         entry_hash = _compute_entry_hash(
             request_id=str(parsed_request_id),

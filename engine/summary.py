@@ -415,8 +415,8 @@ def income_tax_summary(
     has_qbi_addback = bool(state_block and state_block.get("tax_base", {}).get("qbi_addback"))
     if has_qbi_addback and state_result is not None and state_result["status"] == "ok":
         assumptions.append(
-            "Colorado QBI addback is applied from stored tax_base data, but Colorado-specific statutory conditions "
-            "for that addback are not fully modeled in this summary."
+            "State QBI addback is applied from stored tax_base data when configured, but state-specific "
+            "statutory conditions for that addback are not fully modeled in this summary."
         )
 
     reported_state_taxable_base = (

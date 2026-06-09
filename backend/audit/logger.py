@@ -15,9 +15,12 @@ logger = logging.getLogger("taxglobal.audit")
 GENESIS_HASH = "0" * 64
 
 try:
-    from sqlalchemy import select
+    from sqlalchemy import select, text
 except ModuleNotFoundError:
     select = None  # type: ignore[assignment]
+    text = None  # type: ignore[assignment]
+
+HASH_CHAIN_LOCK_ID = 90_290_061
 
 
 async def log_action(
@@ -65,9 +68,7 @@ async def _write_record(
     parsed_user_id = _parse_uuid_or_none(user_id)
 
     async with _session_factory() as session:
-        # KNOWN LIMITATION: concurrent fire-and-forget tasks can read the same
-        # latest entry_hash before either commits, forking the hash chain.
-        # Fix requires pg_advisory_xact_lock — deferred to hash-chain hardening PR.
+        await _lock_hash_chain(session)
         prev_hash = await _latest_entry_hash(session)
         entry_hash = _compute_entry_hash(
             request_id=str(parsed_request_id),
@@ -126,6 +127,12 @@ def _compute_entry_hash(
         separators=(",", ":"),
     )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+async def _lock_hash_chain(session: Any) -> None:
+    if text is None:
+        return
+    await session.execute(text(f"SELECT pg_advisory_xact_lock({HASH_CHAIN_LOCK_ID})"))
 
 
 async def _latest_entry_hash(session: Any) -> str:

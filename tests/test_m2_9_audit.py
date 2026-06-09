@@ -138,6 +138,7 @@ class AuditLoggerTests(IsolatedAsyncioTestCase):
 
         with (
             patch.object(audit_logger, "select", None),
+            patch.object(audit_logger, "text", None),
             patch("backend.database._session_factory") as session_factory,
             patch("backend.models.AuditLog") as audit_log,
         ):
@@ -202,6 +203,30 @@ class AuditLoggerTests(IsolatedAsyncioTestCase):
         )
 
         self.assertNotEqual(first, second)
+
+    async def test_lock_hash_chain_uses_postgres_advisory_lock(self) -> None:
+        from backend.audit import logger as audit_logger
+
+        session = Mock()
+        session.execute = AsyncMock()
+
+        with patch.object(audit_logger, "text", lambda sql: f"SQL:{sql}"):
+            await audit_logger._lock_hash_chain(session)
+
+        session.execute.assert_awaited_once_with(
+            f"SQL:SELECT pg_advisory_xact_lock({audit_logger.HASH_CHAIN_LOCK_ID})"
+        )
+
+    async def test_lock_hash_chain_noops_without_sqlalchemy(self) -> None:
+        from backend.audit import logger as audit_logger
+
+        session = Mock()
+        session.execute = AsyncMock()
+
+        with patch.object(audit_logger, "text", None):
+            await audit_logger._lock_hash_chain(session)
+
+        session.execute.assert_not_called()
 
 
 class AuditMiddlewareUnitTests(TestCase):

@@ -426,7 +426,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
     <div id="obStep1" style="display:none">
       <div class="ob-eyebrow">第 2 步 · 基本信息</div>
       <h1 class="ob-h">告诉我们<em>基本情况</em></h1>
-      <p class="ob-sub">这些信息用于实时计算税额。全部可在档案设置里修改，数据本地处理不出境。</p>
+      <p class="ob-sub">这些信息用于实时计算税额。全部可在档案设置里修改，税额在本地引擎计算，敏感信息脱敏保护。</p>
       <div class="ob-field">
         <label class="ob-flabel">居住国 / 报税国</label>
         <select class="ob-select" id="obCountry">
@@ -707,7 +707,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
 <div class="wrap">
   <div class="eyebrow">📄 W-2 报税</div>
   <h1 class="h1">上传 W-2，<em>一键生成</em> Form 1040</h1>
-  <p class="sub">Qwen-VL 自动识别全部字段（本地处理不出境），AI 填写报税表草稿，实时计算退税金额。</p>
+  <p class="sub">AI 自动识别全部字段（敏感信息脱敏保护），填写报税表草稿，实时计算退税金额。</p>
   <div class="w2-grid">
     <div class="card">
       <div class="ch"><div class="ct">上传税务文件</div><span class="badge bg">VLM 识别</span></div>
@@ -1841,7 +1841,7 @@ function startUpload(){
   if(uploaded){ go('w2'); return; }
   const dz=document.getElementById('dropZone');
   document.getElementById('progWrap').classList.add('show');
-  dz.innerHTML='<div class="drop-icon">⏳</div><div class="drop-title">正在解析…</div><div class="drop-sub">Qwen-VL 本地处理，数据不出境</div>';
+  dz.innerHTML='<div class="drop-icon">⏳</div><div class="drop-title">正在解析…</div><div class="drop-sub">AI 识别中，敏感信息已脱敏</div>';
   const steps=[[20,'图像预处理中…','20%'],[45,'VLM 识别表单字段…','45%'],[70,'提取 Box 1-17 数值…','70%'],[90,'交叉校验数据一致性…','90%'],[100,'解析完成 ✓','100%']];
   let i=0;
   const iv=setInterval(()=>{
@@ -2395,7 +2395,7 @@ function renderEnabled(){
 </script>
 
 <script>
-/* ════════ 悬浮 AI 助手（自有模型 + 自有知识库，不接第三方）════════ */
+/* ════════ 悬浮 AI 助手（外部 LLM 语言层 + 自有知识库，PII 脱敏后调用）════════ */
 let chatOpen=false, currentTab='dash', chatHistory=[];
 function toggleChat(){
   chatOpen=!chatOpen;

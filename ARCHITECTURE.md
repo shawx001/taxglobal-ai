@@ -6,7 +6,7 @@
 - **业务**：US-first 个人/SMB 报税计算与合规 SaaS（联邦 + 州；W-2/RSU/自雇/资本利得/加密/海外/电商 Nexus）。
 - **数值即法律/财务风险**：算错一分 = 用户报错税 = 法律与赔付风险。→ **#1 审查焦点永远是数值精确到分 + 公式/阈值只来自版本化数据、可溯官方源(IRS Rev.Proc./州 DOR)**。这是本系统的核心 SLO，不是"功能跑通"。
 - **极敏 PII**：SSN、收入、家庭、海外账户、券商/交易所数据。→ 安全与合规是工业级红线（加密传输/存储、最小权限、审计日志、数据驻留）。
-- **数据驻留/不出境**：合规要求 + 计划约束——**Copilot 由自部署微调模型驱动，不接任何第三方 LLM API**；涉及金额的回答必须来自规则引擎(guardrail)，可回链法条。
+- **外部 LLM 语言层 + 计算驻留（2026-06-08 Shaw 决策，见 `docs/llm_integration_reference.md`）**：Copilot 语言层（意图分类 + 自然语言表达）调用外部 LLM API（GPT-4o-mini，备选 Claude Haiku / DeepSeek），**调用前经 PII sanitizer 脱敏**（SSN/姓名/邮箱掩码）。**税务计算与金额 100% 留在本地规则引擎、绝不经过 LLM**；涉及金额的回答必须来自规则引擎(guardrail)、可回链法条；Guardrail 验证 LLM 未篡改引擎数字；`ENABLE_LLM=false` 时降级为关键词分类 + 模板响应。
 - **强季节性(关键负载特征)**：年负载约 80% 集中在 1–4 月；**截止日尖峰**(4/15 报税、10/15 延期、季度预缴 4/6/9/1 月 15 日)是定义性负载事件。→ 抗压设计必须按"尖峰"而非"日均"。
 
 ## 1. 负载与 SLO 目标（上线前为目标值，Shaw 可校准）
@@ -63,18 +63,18 @@
 
 ## 3. 生产目标架构（M3–M5，**计划中**——前瞻审查 + 解锁矩阵全项）
 - 前端 Next.js 14 + Tailwind；API FastAPI + WebSocket(流式 Copilot)。
-- **M3 模型层**：自部署 Qwen 基座 + LoRA + vLLM(热加载 adapter)；Qwen-VL 做 W-2 OCR。**全部自部署,数据不出境。** 编排器意图分类从关键词匹配升级为模型分类。
+- **M3 模型层**：Copilot 语言层接外部 LLM API（GPT-4o-mini，备选 Claude Haiku / DeepSeek），调用前 PII 脱敏；编排器意图分类从关键词匹配升级为 LLM 分类，响应生成从模板升级为 LLM 表达；Guardrail 验证 LLM 未篡改引擎数字。W-2/1099 文档识别走 vision model（M3 `extract_w2`）。**计算与金额仍 100% 本地规则引擎、不经 LLM。**
 - **M3 连接器**：Google/Apple/微信 OAuth；Shopify/Amazon(电商 Nexus 真连)。→ 需超时/重试风暴控制/熔断降级/限流;对外依赖故障不得拖垮核心计算链路。
 - **M4 训练闭环**：Trace 回流 + LoRA 微调 + Eval Harness。
 - **M5 合规上线**：PII 列级加密、HTTPS、生产部署、安全审计。
 
 ## 4. 外部依赖
 - **当前（M2）**：PostgreSQL（档案+审计，可选）、Neo4j（知识图谱，可选）、Chroma（向量库，可选，本地文件）、sentence-transformers（本地 embedding，可选）。**全部可选——关闭后核心计算不受影响。**
-- **目标（M3+）**：自部署模型服务(vLLM)、OAuth 提供方、Shopify/Amazon API。每项落地时本文件更新 + 审查矩阵安全/性能/SRE 全项对其生效。
+- **目标（M3+）**：外部 LLM API（GPT-4o-mini，备选 Claude Haiku / DeepSeek，PII 脱敏后调用）、OAuth 提供方、Shopify/Amazon API。每项落地时本文件更新 + 审查矩阵安全/性能/SRE 全项对其生效。
 
 ## 5. 跨切面工业级约束（审查恒查）
 - **PII 安全**：SSN/收入等传输+存储加密、最小权限、审计可追溯;日志/错误信息**不得泄露 PII**。
-- **数据驻留**：不出境、不接第三方 LLM API。
+- **数据驻留 + LLM 边界**：税务计算与金额 100% 本地规则引擎、绝不经过 LLM；Copilot 语言层调用外部 LLM API 前必须经 PII sanitizer 脱敏；Guardrail 验证 LLM 未篡改引擎数字。
 - **Guardrail**：涉及金额必出自规则引擎,模型不得编造数字;结论可回链法条。
 - **幂等**：M2+ 的写入/摄取/外部调用须幂等(重试/重复提交不重复计、不损坏)。
 - **可观测性**：M2+ 关键分支补 metrics + Error 日志,出事 1 分钟内可定位。

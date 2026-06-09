@@ -22,7 +22,7 @@
 - [ ] 税率和法条需要版本化：前端里现在有不少简化模型，生产化前必须标注“真实规则 / 简化估算 / 演示规则”。
 - [ ] Copilot 不要急着做模型训练：MVP 先做“检索 + 引擎工具调用 + 引用来源”，等 trace 和评测集稳定后再 LoRA。
 - [ ] OAuth 和连接器先做假后端也可以：第一版可先用真实后端 session + mock provider，等计算引擎稳定后再接 Google/Apple/微信/Shopify/Amazon。
-- [ ] 文档中“自有模型不接第三方 LLM”和“真实 LLM Claude”表述需要统一，避免后面工程目标冲突。
+- [x] 文档中“自有模型不接第三方 LLM”和“真实 LLM”表述已统一（2026-06-08 Shaw 决策）：Copilot 语言层（意图分类 + 自然语言表达）使用**外部 LLM API**（GPT-4o-mini，备选 Claude Haiku / DeepSeek），调用前经 PII sanitizer 脱敏；**税务计算与金额 100% 本地规则引擎、绝不经过 LLM**，Guardrail 验证 LLM 未篡改引擎数字。权威定义见 `docs/llm_integration_reference.md`。
 
 ---
 

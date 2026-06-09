@@ -29,13 +29,16 @@ records for compliance review.
 5. **Module size**: no single file > 500 lines; prefer 200-300 lines.
 6. **Non-blocking writes**: audit records are written via `asyncio.create_task()`
    after the response is sent. The audit write must never increase response latency.
+7. **Hash-chain tamper-evidence**: every audit record stores a SHA-256 hash of its
+   own content and the hash of the previous record, forming a cryptographic chain.
+   Altering any historical record invalidates all subsequent hashes.
 
 ## Existing Infrastructure (DO NOT recreate)
 
 | What | Where | Notes |
 |---|---|---|
-| `AuditLog` ORM model | `backend/models.py` lines 52-67 | Columns: `id`, `request_id`, `user_id`, `action`, `request_payload`, `response_payload`, `created_at`. Already has indexes on `request_id` and `user_id`. |
-| Alembic migration | `alembic/versions/001_initial_tables.py` | Table `audit_log` already created. No new migration needed. |
+| `AuditLog` ORM model | `backend/models.py` lines 52-67 | Columns: `id`, `request_id`, `user_id`, `action`, `request_payload`, `response_payload`, `created_at`. Already has indexes on `request_id` and `user_id`. **You will ADD two columns**: `entry_hash` (String(64)) and `prev_hash` (String(64)). |
+| Alembic migration | `alembic/versions/001_initial_tables.py` | Table `audit_log` already created. **Create a new migration** `002_audit_hash_chain.py` to add the two hash columns. |
 | PII regex patterns | `backend/guardrail/escalation.py` lines 14-18 | `_SSN_PATTERN`, `_COMMA_AMOUNT_PATTERN`, `_MONEY_LIKE_PATTERN`, `_LARGE_INTEGER_PATTERN`, `_PII_FIELD_PATTERN`. Import and reuse these — do NOT duplicate. |
 | `RequestIdMiddleware` | `backend/main.py` lines 107-132 | Already generates `request.state.request_id` UUID and sets `X-Request-ID` response header. The audit middleware runs AFTER this. |
 | Async session management | `backend/database.py` | `is_pg_available()`, `get_session()`, `_session_factory`. |
@@ -249,6 +252,112 @@ async def _write_record(
 - `action` is truncated to 50 chars to match the VARCHAR(50) column.
 - `sanitize_payload()` is called BEFORE the write, not after — PII never reaches
   the database.
+
+## Section 2b: Hash-Chain Tamper-Evidence
+
+### ORM model change: `backend/models.py`
+
+Add two columns to `AuditLog`:
+
+```python
+class AuditLog(Base):
+    # ... existing columns ...
+    entry_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    prev_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+```
+
+Both nullable so existing rows (if any) are not broken by the migration.
+
+### New migration: `alembic/versions/002_audit_hash_chain.py`
+
+```python
+"""add hash chain columns to audit_log
+
+Revision ID: 002_audit_hash_chain
+Revises: 001_initial_tables
+Create Date: 2026-06-08
+"""
+
+from __future__ import annotations
+
+from alembic import op
+import sqlalchemy as sa
+
+revision = "002_audit_hash_chain"
+down_revision = "001_initial_tables"
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    op.add_column("audit_log", sa.Column("entry_hash", sa.String(64), nullable=True))
+    op.add_column("audit_log", sa.Column("prev_hash", sa.String(64), nullable=True))
+
+
+def downgrade() -> None:
+    op.drop_column("audit_log", "prev_hash")
+    op.drop_column("audit_log", "entry_hash")
+```
+
+### Hash computation in `backend/audit/logger.py`
+
+Add hash computation before writing the record. The hash chain works as follows:
+
+```python
+import hashlib
+import json
+
+def _compute_entry_hash(
+    *,
+    request_id: str,
+    action: str,
+    request_payload: dict | None,
+    response_payload: dict | None,
+    prev_hash: str,
+) -> str:
+    """SHA-256 hash of the audit record content + previous hash."""
+    canonical = json.dumps(
+        {
+            "request_id": request_id,
+            "action": action,
+            "request_payload": request_payload,
+            "response_payload": response_payload,
+            "prev_hash": prev_hash,
+        },
+        sort_keys=True,
+        default=str,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+```
+
+In `_write_record()`, before inserting:
+1. Query the most recent `entry_hash` from `audit_log` (ORDER BY id DESC LIMIT 1).
+   If no rows exist, use `"0" * 64` as the genesis hash.
+2. Compute `entry_hash = _compute_entry_hash(...)` using the prev record's hash.
+3. Store both `entry_hash` and `prev_hash` on the new record.
+
+**Important**: The hash query + insert should be within the same session/transaction
+to avoid race conditions between concurrent audit writes. If two writes race, one
+will get a stale `prev_hash` — this is acceptable at M2 scale; the chain is still
+verifiable. For strict ordering, a future enhancement could use a DB sequence lock.
+
+### Hash chain verification in `backend/audit/routes.py`
+
+Add a `GET /api/admin/audit/verify` endpoint:
+
+```python
+@router.get("/audit/verify")
+async def verify_audit_chain(
+    limit: int = Query(100, ge=1, le=1000),
+    session: Any = Depends(_audit_session),
+) -> dict[str, Any]:
+    """Verify the integrity of the audit log hash chain."""
+    # Query last N records ordered by id ASC
+    # For each consecutive pair, verify:
+    #   record[i].prev_hash == record[i-1].entry_hash
+    #   record[i].entry_hash == _compute_entry_hash(record[i] fields + prev_hash)
+    # Return: {"verified": N, "broken_at": null or record_id, "status": "ok"|"tampered"}
+```
 
 ## Section 3: Audit Middleware
 
@@ -718,6 +827,63 @@ class TestAuditIntegration(unittest.TestCase):
         self.assertEqual(search.status_code, 200)
         self.assertEqual(assistant.status_code, 200)
         self.assertEqual(tips.status_code, 200)
+
+
+class TestHashChain(unittest.TestCase):
+    """SHA-256 hash-chain tamper-evidence tests."""
+
+    def test_compute_entry_hash_deterministic(self) -> None:
+        """Same inputs produce same hash."""
+        from backend.audit.logger import _compute_entry_hash
+        h1 = _compute_entry_hash(
+            request_id="abc", action="skill:test",
+            request_payload={"a": 1}, response_payload={"b": 2},
+            prev_hash="0" * 64,
+        )
+        h2 = _compute_entry_hash(
+            request_id="abc", action="skill:test",
+            request_payload={"a": 1}, response_payload={"b": 2},
+            prev_hash="0" * 64,
+        )
+        self.assertEqual(h1, h2)
+        self.assertEqual(len(h1), 64)  # SHA-256 hex
+
+    def test_different_payload_different_hash(self) -> None:
+        from backend.audit.logger import _compute_entry_hash
+        h1 = _compute_entry_hash(
+            request_id="abc", action="skill:test",
+            request_payload={"income": 100000}, response_payload=None,
+            prev_hash="0" * 64,
+        )
+        h2 = _compute_entry_hash(
+            request_id="abc", action="skill:test",
+            request_payload={"income": 100001}, response_payload=None,
+            prev_hash="0" * 64,
+        )
+        self.assertNotEqual(h1, h2)
+
+    def test_different_prev_hash_different_entry_hash(self) -> None:
+        """Changing prev_hash breaks the chain."""
+        from backend.audit.logger import _compute_entry_hash
+        h1 = _compute_entry_hash(
+            request_id="abc", action="test",
+            request_payload=None, response_payload=None,
+            prev_hash="0" * 64,
+        )
+        h2 = _compute_entry_hash(
+            request_id="abc", action="test",
+            request_payload=None, response_payload=None,
+            prev_hash="a" * 64,
+        )
+        self.assertNotEqual(h1, h2)
+
+    def test_admin_verify_endpoint_returns_503_or_200(self) -> None:
+        """Verify endpoint works or returns 503 when PG unavailable."""
+        from fastapi.testclient import TestClient
+        from backend.main import create_app
+        client = TestClient(create_app())
+        response = client.get("/api/admin/audit/verify")
+        self.assertIn(response.status_code, [200, 503])
 ```
 
 ## Acceptance Gates
@@ -742,24 +908,30 @@ python -c "from fastapi.testclient import TestClient; from backend.main import c
 |---|---|---|
 | `backend/audit/__init__.py` | **New** | ~1 |
 | `backend/audit/sanitizer.py` | **New** | ~80 |
-| `backend/audit/logger.py` | **New** | ~100 |
+| `backend/audit/logger.py` | **New** — includes `_compute_entry_hash()` + hash-chain logic | ~130 |
 | `backend/audit/middleware.py` | **New** | ~120 |
-| `backend/audit/routes.py` | **New** | ~80 |
+| `backend/audit/routes.py` | **New** — includes `/api/admin/audit/verify` chain verification | ~120 |
+| `backend/models.py` | **Edit** — add `entry_hash`, `prev_hash` columns to AuditLog | +2 |
 | `backend/main.py` | **Edit** — add AuditMiddleware + audit_router | +5 |
-| `tests/test_m2_9_audit.py` | **New** | ~250 |
+| `alembic/versions/002_audit_hash_chain.py` | **New** — migration for hash columns | ~25 |
+| `tests/test_m2_9_audit.py` | **New** — includes hash-chain tests | ~300 |
 
-**Total new code**: ~630 lines across 5 new files + 5-line edit to main.py.
+**Total new code**: ~780 lines across 6 new files + 2 edits.
 
 ## Commit Format
 
 ```
-feat(audit): M2.9 audit logging with PII sanitization
+feat(audit): M2.9 audit logging with PII sanitization + hash-chain
 
 Add async audit logging middleware that captures request/response payloads
 for /api/skills/*, /api/assistant/*, /api/tips routes. PII (SSN, names,
 emails) sanitized before database write; income amounts preserved for
 audit trail. Fire-and-forget via asyncio.create_task — zero response
 latency impact. Graceful degradation when PostgreSQL unavailable.
+
+SHA-256 hash-chain: each audit record stores entry_hash and prev_hash,
+forming a tamper-evident chain. GET /api/admin/audit/verify validates
+chain integrity.
 
 Includes admin query endpoint GET /api/admin/audit with date/user/action
 filters.

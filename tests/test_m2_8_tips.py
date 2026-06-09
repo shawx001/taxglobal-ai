@@ -276,7 +276,7 @@ class TestDeadlines(unittest.TestCase):
         deadlines = get_deadlines(TipContext())
         dates = [deadline["date"] for deadline in deadlines]
 
-        self.assertIn("2026-04-15", dates)
+        self.assertIn("2027-04-15", dates)
 
     def test_deadlines_sorted_by_date(self) -> None:
         from backend.knowledge.tips import TipContext, get_deadlines
@@ -302,7 +302,7 @@ class TestDeadlines(unittest.TestCase):
         summaries = " ".join(deadline["summary"] for deadline in deadlines).lower()
 
         self.assertTrue("abroad" in summaries or "june" in summaries)
-        self.assertIn("2026-06-15", [deadline["date"] for deadline in deadlines])
+        self.assertIn("2027-06-15", [deadline["date"] for deadline in deadlines])
 
     def test_deadlines_have_required_fields(self) -> None:
         from backend.knowledge.tips import TipContext, get_deadlines

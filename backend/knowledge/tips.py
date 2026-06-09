@@ -257,18 +257,26 @@ def _deadline_date(item: dict[str, Any], ctx: TipContext) -> str:
     trigger = item.get("trigger_conditions", {})
     if not isinstance(trigger, dict):
         trigger = {}
-    month_day = ("04", "15")
-    if trigger.get("estimated_tax_installment") == "q2" or trigger.get("taxpayer_abroad"):
-        month_day = ("06", "15")
-    elif trigger.get("estimated_tax_installment") == "q3":
-        month_day = ("09", "15")
-    elif trigger.get("estimated_tax_installment") == "q4":
-        return date(ctx.tax_year + 1, 1, 15).isoformat()
-    elif trigger.get("extension_requested"):
-        month_day = ("10", "15")
-    elif trigger.get("information_return") in {"w2", "1099"}:
-        month_day = ("01", "31")
-    return f"{ctx.tax_year}-{month_day[0]}-{month_day[1]}"
+    installment = trigger.get("estimated_tax_installment", "")
+    # Estimated tax installments Q1-Q3 fall within the tax year itself.
+    if installment == "q1":
+        return f"{ctx.tax_year}-04-15"
+    if installment == "q2":
+        return f"{ctx.tax_year}-06-15"
+    if installment == "q3":
+        return f"{ctx.tax_year}-09-15"
+    # All other deadlines (filing, extension, Q4, info returns, abroad)
+    # fall in the year after the tax period.
+    filing_year = ctx.tax_year + 1
+    if installment == "q4":
+        return date(filing_year, 1, 15).isoformat()
+    if trigger.get("information_return") in {"w2", "1099"}:
+        return f"{filing_year}-01-31"
+    if trigger.get("taxpayer_abroad"):
+        return f"{filing_year}-06-15"
+    if trigger.get("extension_requested"):
+        return f"{filing_year}-10-15"
+    return f"{filing_year}-04-15"
 
 
 def _relevance_score(item: dict[str, Any], ctx: TipContext) -> float:

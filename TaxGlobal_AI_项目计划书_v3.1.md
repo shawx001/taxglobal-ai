@@ -24,7 +24,7 @@
 
 ### v3.1 关键产品决策（2026-06-02 评审确定）
 
-1. **AI Copilot 必须用自有模型，不接第三方 LLM。** 答案全部检索自**自有税务知识库**（KB / GraphRAG），保证速度快、可控、可审计、数据不外流。原型已据此把 Copilot 改为自有知识库检索（去除任何第三方 API 调用），生产环境替换为自部署的自有微调模型 + KB 检索。
+1. **AI Copilot 语言层用外部 LLM API（2026-06-08 修订，撤销原"不接第三方 LLM"约束）。** 意图分类 + 自然语言表达由外部 LLM API（GPT-4o-mini，备选 Claude Haiku / DeepSeek）驱动，**调用前经 PII sanitizer 脱敏**；答案内容仍全部检索自**自有税务知识库**（KB / GraphRAG），可控、可审计、附法条来源；**税务计算与金额 100% 本地规则引擎、绝不经过 LLM**，Guardrail 验证 LLM 未篡改引擎数字。权威定义见 `docs/llm_integration_reference.md`。
 2. **所有建议/结论都源于自有知识库。** 不依赖外部实时调用；KB 命中即返回，附来源标签与法条，毫秒级检索。
 3. **第三方连接采用 OAuth 跳转模式。** 电商（Amazon 等）走"跳转到平台登录授权页 → 授权后跳回 TaxGlobal"的标准 OAuth Redirect 流程；原型已模拟该跳出/跳回体验。
 4. **登录方式：Google + Apple + 微信（国内）。** 三者均以各自官方授权方式接入；原型已加三入口（演示）。
@@ -175,14 +175,14 @@ TaxGlobal AI 是一个面向全球用户的 **AI 驱动税务计算与合规平�
   3. **黄金测试集**：对每个场景固化输入→期望输出（含边界：高收入、零州税、附加医保税触发点），CI 必须全绿才发布。
   4. 前端与后端共用同一份测试夹具，杜绝"前端算一套、后端算另一套"。
 
-### 6.2 AI Copilot：自有模型 + 自有知识库（不接第三方）
+### 6.2 AI Copilot：外部 LLM 语言层 + 自有知识库（2026-06-08 修订）
 
-- **核心原则**：Copilot 由**自部署的自有微调模型**驱动，**不接任何第三方 LLM API**；所有建议/结论必须**检索自自有税务知识库（KB / GraphRAG）**，做到快、可控、可审计、数据不外流。
+- **核心原则**：Copilot 语言层（意图分类 + 自然语言表达）由**外部 LLM API**（GPT-4o-mini，备选 Claude Haiku / DeepSeek）驱动，**调用前经 PII sanitizer 脱敏**；所有建议/结论必须**检索自自有税务知识库（KB / GraphRAG）**，做到快、可控、可审计；**税务计算与金额 100% 本地规则引擎、绝不经过 LLM**，Guardrail 验证 LLM 未篡改引擎数字。
 - **检索优先**：用户提问 → 先在自有 KB（向量 + 图）做检索 → 命中条目带法条与来源标签返回（毫秒级）→ 自有模型只负责把检索结果组织成自然语言。
 - LangChain 编排 **18 个 Skills**（parse_profile / calculate_income_tax / analyze_rsu / track_crypto / assess_feie / rank_nomad_cities / detect_nexus / classify_transaction / extract_w2 / generate_form / check_treaty 等）。
 - **关键约束（Guardrail）**：涉及金额的回答必须来自规则引擎结果，自有模型不得自行编造数字；结论必须能回链到 KB 条目与法条；命中敏感/越权问题走拒答模板。
 - 流式输出走 WebSocket，前端 Copilot 已具备消化多 block 的能力。
-- **模型路线**：复用既有训练栈——Qwen 系基座 + LoRA 微调 + vLLM 服务（热加载 adapter）；小模型负责分类/意图，主模型负责表达，全部自部署。
+- **模型路线**：外部 LLM API（GPT-4o-mini 做意图分类 + 自然语言表达，备选 Claude Haiku / DeepSeek），调用前 PII 脱敏；`ENABLE_LLM=false` 时降级为关键词分类 + 模板响应。（M4 可选演进：自部署 Qwen + LoRA + vLLM，作为成本/合规优化路径，非 MVP 前提。）
 
 ### 6.3 知识层（GraphRAG）
 
@@ -206,10 +206,10 @@ TaxGlobal AI 是一个面向全球用户的 **AI 驱动税务计算与合规平�
 - **统一抽象**：电商连接器归一化为 `{platform, facilitator, salesByState, txns}`，对接前端已实现的 Nexus 引擎与平台拆分逻辑。
 - **安全**：密钥后端加密存储（KMS），绝不下发前端；CORS 与速率限制在网关层。
 
-### 6.5 多模态 VLM（自部署）
+### 6.5 多模态 VLM（文档识别）
 
-- 自部署 **Qwen-VL** 识别 W-2 / 1099-K / 工资条 / VAT 发票 / 银行对账单。
-- **为什么自部署**：税务数据是最敏感财务数据，不出境。
+- vision model 识别 W-2 / 1099-K / 工资条 / VAT 发票 / 银行对账单（M3 `extract_w2`）。
+- **隐私边界**：与文本 LLM 同策——外部 vision model 调用前 PII 脱敏；识别出的金额仍交本地规则引擎计算，不进入任何外部模型。自部署 Qwen-VL 作为成本/合规优化的可选路径（非 MVP 前提）。
 - 识别结果回填 Form 1040 草稿（前端流程已就绪），并交叉校验各字段一致性。
 
 ### 6.6 训练闭环
@@ -243,9 +243,9 @@ TaxGlobal AI 是一个面向全球用户的 **AI 驱动税务计算与合规平�
 | 向量库 | OpenSearch | ChromaDB |
 | 存储 | PostgreSQL | SQLite |
 | 缓存 | Redis | — |
-| 对话模型 | **自有微调模型（自部署，不接第三方）** | 同左 |
+| 对话模型 | **外部 LLM API（GPT-4o-mini，PII 脱敏后调用）** | mock / 同左 |
 | 知识检索 | 自有知识库 GraphRAG（KB 命中即答） | ChromaDB |
-| VLM | Qwen-VL（自部署） | — |
+| VLM | vision model（PII 脱敏后调用；Qwen-VL 自部署为可选） | — |
 | 训练 | HuggingFace PEFT + TRL，vLLM 服务 | Qwen2.5-0.5B + LoRA（CPU 可跑）|
 | 部署 | Docker / ECS / K8s | Docker Compose |
 

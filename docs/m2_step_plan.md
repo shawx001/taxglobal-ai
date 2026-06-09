@@ -31,7 +31,7 @@
 
 ### 诚实说明
 
-M2 **没有真正的"AI 对话"**。自部署 Qwen 模型是 M3 才接入的。M2 的"问问题"本质是关键词匹配→调计算器或查知识库→模板拼结果。真正的"打字问问题,AI 用人话回答"要到 M3。
+M2 **没有真正的"AI 对话"**。外部 LLM(意图分类 + 自然语言表达)是 M3 才接入的。M2 的"问问题"本质是关键词匹配→调计算器或查知识库→模板拼结果。真正的"打字问问题,AI 用人话回答"要到 M3。
 
 M2 核心价值:①搭好基础设施(三库+知识+Skill+安全) ②实打实的功能(档案保存+提醒+知识搜索) ③给 M3 AI 对话铺路(接入 Qwen 后一切就活了)。
 
@@ -57,7 +57,7 @@ M2 核心价值:①搭好基础设施(三库+知识+Skill+安全) ②实打实�
 | **编排框架** | **LangChain + LangGraph** | Skill = LangChain Tool;LangGraph 做 workflow 状态机 |
 | **业务数据库** | **PostgreSQL 16** | profiles / audit_log;SQLAlchemy 2.0 + Alembic |
 | **Schema 校验** | **Pydantic v2** | 输入/输出严格校验 |
-| **LLM(M2 阶段)** | **暂无 / mock** | M2 编排器用确定性路由;M3 接入自部署 Qwen + vLLM |
+| **LLM(M2 阶段)** | **暂无 / mock** | M2 编排器用确定性路由;M3 接入外部 LLM API(GPT-4o-mini,备选 Claude Haiku / DeepSeek),调用前 PII 脱敏 |
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -627,8 +627,8 @@ langgraph>=0.1
 
 ## 注意事项
 
-1. **LLM 在 M2 中不上线**:意图分类 = 关键词匹配;响应 = 模板组装。自部署 Qwen + vLLM 在 M3 引入,届时 LangGraph 的 classify 节点和 format 节点升级为模型调用。
-2. **数据不出境**:embedding 用本地 sentence-transformers;Neo4j/Chroma/PG 全部本地部署;不接任何第三方 API。
+1. **LLM 在 M2 中不上线**:意图分类 = 关键词匹配;响应 = 模板组装。外部 LLM API(GPT-4o-mini,备选 Claude Haiku / DeepSeek)在 M3 引入,届时 LangGraph 的 classify 节点和 format 节点升级为 LLM 调用,调用前经 PII sanitizer 脱敏。
+2. **计算驻留 + LLM 边界**:embedding 用本地 sentence-transformers;Neo4j/Chroma/PG 全部本地部署;**M2 阶段不接任何第三方 API**;**M3 起 Copilot 语言层调外部 LLM API,但调用前 PII 脱敏、税务计算与金额 100% 本地规则引擎绝不经过 LLM**(见 `docs/llm_integration_reference.md`)。
 3. **向后兼容**:`/calc/*` 不依赖三库;任何存储不可用时 M1 功能照常。
 4. **PII**:MVP profile data 存 JSONB 明文;M5 加列级加密。审计日志必须脱敏。
 5. **幂等**:profile upsert(UNIQUE 约束)、knowledge ingestion(MERGE)、audit write(append-only)。

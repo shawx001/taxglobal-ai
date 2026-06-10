@@ -166,7 +166,7 @@ python -m ruff check engine backend tests
   - 来源引用保留
   - 降级：LLM 挂 → 返回 M2 模板格式
 
-**状态**：🚧 PR 进行中（codex/m3-3-response-generation）。实现说明：新模块 `backend/orchestrator/response.py`（`llm_format_response()`）；LLM 文本作为**新增** `answer_text` 字段，结构化 `answer` 原样保留（M3.4 fact-checker 的比对基准）；错误/澄清路径不调 LLM；system prompt 硬编码。
+**状态**：✅ 已合并（PR #69，2026-06-10）。实现说明：新模块 `backend/orchestrator/response.py`（`llm_format_response()`）；LLM 文本作为**新增** `answer_text` 字段，结构化 `answer` 原样保留（M3.4 fact-checker 的比对基准）；错误/澄清路径不调 LLM；system prompt 硬编码；sanitizer 9 位金额误掩码缺陷已在该 PR 一并修复。
 
 ---
 
@@ -194,7 +194,7 @@ python -m ruff check engine backend tests
   - 包含"保证"→ WARN
   - 来源 ID 不存在 → WARN
 
-**状态**：🔲 未开始
+**状态**：🚧 PR 进行中（codex/m3-4-fact-checker）。实现说明：新增 `backend/guardrail/fact_checker.py`，用 Decimal 归一化比对 LLM `answer_text` 中所有 `$` 金额与结构化引擎输出；金额不匹配则 fail-closed 丢弃 LLM 文本，WARN 仅附注不拦截。
 
 ---
 
@@ -302,8 +302,8 @@ python -m ruff check engine backend tests
 |---|---|---|---|---|
 | **M3.1** | LLM Provider 抽象层 | 无 | 1 天 | ✅ PR #66 |
 | **M3.2** | LLM 意图分类 | M3.1 | 1 天 | ✅ PR #67 |
-| **M3.3** | LLM 自然语言响应 | M3.1 | 1 天 | 🚧 |
-| **M3.4** | Fact-checker Guardrail | M3.3 | 1 天 | 🔲 |
+| **M3.3** | LLM 自然语言响应 | M3.1 | 1 天 | ✅ PR #69 |
+| **M3.4** | Fact-checker Guardrail | M3.3 | 1 天 | 🚧 |
 | **M3.5** | 前端 Copilot 聊天 UI | M3.2 + M3.3 + M3.4 | 2 天 | 🔲 |
 | **M3.6** | W-2 拍照识别 | M3.1 | 2 天 | 🔲 |
 | **M3.7** | Token 优化 + 成本监控 | M3.1 | 1 天 | 🔲 |

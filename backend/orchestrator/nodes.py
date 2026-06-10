@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from decimal import Decimal
 from typing import Any
@@ -24,6 +25,8 @@ from backend.orchestrator.intent import (
 from backend.orchestrator.state import AssistantState
 from backend.skills.registry import get_skill
 from engine.rules_loader import RuleLoadError
+
+logger = logging.getLogger("taxglobal.orchestrator")
 
 _STATE_CODES = {
     "加州": "CA",
@@ -278,11 +281,20 @@ def _attach_llm_answer_text(response: dict[str, Any], query: str) -> dict[str, A
     if not config.ENABLE_LLM:
         return response
 
+    from backend.guardrail.fact_checker import VERDICT_BLOCK, check_response_fidelity
     from backend.orchestrator.response import llm_format_response
 
     text = llm_format_response(query, response.get("answer", {}), response.get("sources", []))
-    if text is not None:
-        response["answer_text"] = text
+    if text is None:
+        return response
+
+    fact_check = check_response_fidelity(text, response.get("answer", {}), response.get("sources", []))
+    if fact_check.verdict == VERDICT_BLOCK:
+        logger.warning("fact-checker blocked LLM answer_text: %s", ",".join(fact_check.issues))
+        return response
+
+    response["answer_text"] = text
+    response["fact_check"] = {"verdict": fact_check.verdict, "issues": fact_check.issues}
     return response
 
 

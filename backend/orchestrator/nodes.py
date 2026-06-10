@@ -266,6 +266,26 @@ def _base_response(state: AssistantState, answer: dict[str, Any], sources: list[
     }
 
 
+def _attach_llm_answer_text(response: dict[str, Any], query: str) -> dict[str, Any]:
+    """M3.3: add a natural-language ``answer_text`` when the LLM is enabled.
+
+    The structured ``answer`` is never modified — any LLM failure simply
+    leaves the M2 template response unchanged.
+    """
+
+    from backend import config
+
+    if not config.ENABLE_LLM:
+        return response
+
+    from backend.orchestrator.response import llm_format_response
+
+    text = llm_format_response(query, response.get("answer", {}), response.get("sources", []))
+    if text is not None:
+        response["answer_text"] = text
+    return response
+
+
 def format_node(state: AssistantState) -> dict[str, Any]:
     """Assemble final structured assistant response."""
 
@@ -290,11 +310,13 @@ def format_node(state: AssistantState) -> dict[str, Any]:
         answer = {"type": "error", "message": "The assistant workflow could not complete this request."}
         return {"response": _base_response(next_state, answer, []), "nodes_visited": next_state["nodes_visited"]}
 
+    query = next_state.get("query", "")
     if next_state.get("intent") == INTENT_KNOWLEDGE:
         kb_results = next_state.get("kb_results", {"results": [], "total": 0})
         answer = {"type": "knowledge", "results": kb_results.get("results", []), "total": kb_results.get("total", 0)}
+        response = _base_response(next_state, answer, _sources_from_kb(kb_results))
         return {
-            "response": _base_response(next_state, answer, _sources_from_kb(kb_results)),
+            "response": _attach_llm_answer_text(response, query),
             "nodes_visited": next_state["nodes_visited"],
         }
 
@@ -306,7 +328,8 @@ def format_node(state: AssistantState) -> dict[str, Any]:
         "engine_function": skill_output.get("engine_function", ""),
     }
     sources = [skill_output["source_attribution"]] if skill_output.get("source_attribution") else []
-    return {"response": _base_response(next_state, answer, sources), "nodes_visited": next_state["nodes_visited"]}
+    response = _base_response(next_state, answer, sources)
+    return {"response": _attach_llm_answer_text(response, query), "nodes_visited": next_state["nodes_visited"]}
 
 
 def clarify_node(state: AssistantState) -> dict[str, Any]:

@@ -140,14 +140,14 @@ class TestFactCheckerUnit(unittest.TestCase):
         self.assertEqual(result.verdict, VERDICT_BLOCK)
 
     def test_malformed_amounts_and_nested_non_numbers_do_not_crash(self) -> None:
-        from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
+        from backend.guardrail.fact_checker import VERDICT_BLOCK, VERDICT_PASS, check_response_fidelity
 
-        result = check_response_fidelity(
-            "这些不是金额 $abc $. $1,2,3，真实金额 $ 24,734.00。",
-            {"data": [None, False, "not a number", {"total_tax": "24734.00"}]},
-            [],
-        )
+        answer = {"data": [None, False, "not a number", {"total_tax": "24734.00"}]}
+        result = check_response_fidelity("这些不是金额 $abc $.，真实金额 $ 24,734.00。", answer, [])
         self.assertEqual(result.verdict, VERDICT_PASS)
+        # "$1,2,3" partially parses as $1.00 — fail-closed block, never a crash.
+        result = check_response_fidelity("乱码 $1,2,3，真实金额 $ 24,734.00。", answer, [])
+        self.assertEqual(result.verdict, VERDICT_BLOCK)
 
     def test_issue_strings_do_not_include_text_or_amounts(self) -> None:
         from backend.guardrail.fact_checker import check_response_fidelity
@@ -163,6 +163,80 @@ class TestFactCheckerUnit(unittest.TestCase):
         result = check_response_fidelity("没有引用。", {}, [123])
         self.assertEqual(result.verdict, VERDICT_WARN)
         self.assertIn("no_source_cited", result.issues)
+
+    def test_blocks_tampered_integer_amount_with_trailing_comma(self) -> None:
+        """Regression: '$99,999, including...' must not evade extraction."""
+        from backend.guardrail.fact_checker import VERDICT_BLOCK, check_response_fidelity
+
+        answer = {"data": {"total_tax": 24734.0}}
+        for text in ("总税额 $99,999, 包括联邦和州税。", "Your tax is $99,999, including state."):
+            with self.subTest(text=text):
+                self.assertEqual(check_response_fidelity(text, answer, []).verdict, VERDICT_BLOCK)
+
+    def test_passes_legit_integer_amount_with_trailing_comma(self) -> None:
+        from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
+
+        result = check_response_fidelity("总税额 $24,734, 包括联邦税。", {"data": {"total_tax": 24734.0}}, [])
+        self.assertEqual(result.verdict, VERDICT_PASS)
+
+    def test_blocks_tenths_tamper_with_trailing_comma(self) -> None:
+        """Regression: '$24,734.5,' must extract 24734.50, not 24734.00."""
+        from backend.guardrail.fact_checker import VERDICT_BLOCK, check_response_fidelity
+
+        result = check_response_fidelity("$24,734.5, 包括州税。", {"data": {"total_tax": 24734.0}}, [])
+        self.assertEqual(result.verdict, VERDICT_BLOCK)
+
+    def test_authorizes_all_real_engine_money_keys(self) -> None:
+        """Regression: threshold/limit/cost/fmv/ubia/insurance are money keys."""
+        from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
+
+        cases = [
+            ({"data": {"threshold": 500000.0}}, "门槛是 $500,000.00。"),
+            ({"data": {"overall_limit": 17000.0}}, "上限 $17,000.00。"),
+            ({"data": {"unit_cost": 1500.5}}, "单位成本 $1,500.50。"),
+            ({"data": {"fmv_per_share": 42.0}}, "每股 $42.00。"),
+            ({"data": {"ubia": 80000.0}}, "UBIA $80,000.00。"),
+            ({"data": {"se_health_insurance": 6000.0}}, "扣除 $6,000.00。"),
+        ]
+        for answer, text in cases:
+            with self.subTest(answer=answer):
+                self.assertEqual(check_response_fidelity(text, answer, []).verdict, VERDICT_PASS)
+
+    def test_engine_float_total_is_money(self) -> None:
+        """crypto/payroll engine outputs use a bare 'total' money key."""
+        from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
+
+        result = check_response_fidelity(
+            "总税额 $13,200.00。", {"data": {"tax_estimate": {"total": 13200.0}}}, []
+        )
+        self.assertEqual(result.verdict, VERDICT_PASS)
+
+    def test_knowledge_int_total_is_not_money(self) -> None:
+        """knowledge-search 'total' is a result count, not an amount."""
+        from backend.guardrail.fact_checker import VERDICT_BLOCK, check_response_fidelity
+
+        result = check_response_fidelity("$5.00", {"type": "knowledge", "results": [], "total": 5}, [])
+        self.assertEqual(result.verdict, VERDICT_BLOCK)
+
+    def test_amounts_quoted_from_kb_text_are_authorized(self) -> None:
+        """Amounts inside KB chunk text are user-visible facts, not tampering."""
+        from backend.guardrail.fact_checker import (
+            VERDICT_BLOCK,
+            VERDICT_PASS,
+            check_response_fidelity,
+        )
+
+        answer = {
+            "type": "knowledge",
+            "results": [{"text": "The standard deduction for single filers is $13,850 in 2023."}],
+            "total": 1,
+        }
+        self.assertEqual(
+            check_response_fidelity("单身标准扣除是 $13,850.00。", answer, []).verdict, VERDICT_PASS
+        )
+        self.assertEqual(
+            check_response_fidelity("单身标准扣除是 $14,000.00。", answer, []).verdict, VERDICT_BLOCK
+        )
 
 
 class TestFactCheckerIntegration(unittest.TestCase):

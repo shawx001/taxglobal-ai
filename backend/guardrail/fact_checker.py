@@ -18,9 +18,12 @@ VERDICT_BLOCK = "block"
 
 _CENT = Decimal("0.01")
 
+# Trailing lookahead is (?!\d) only — NOT (?![\d,]): a prose comma right
+# after an integer amount ("$99,999, including...") must not abort the
+# match, or tampered amounts would evade extraction entirely.
 _DOLLAR_AMOUNT_PATTERN = re.compile(
     r"(?P<paren>\()?\s*(?P<prefix>-)?\$\s*(?P<post>-)?\s*"
-    r"(?P<number>(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)(?![\d,])\)?"
+    r"(?P<number>(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)(?!\d)\)?"
 )
 _NON_MONEY_KEYS = {
     "confidence",
@@ -34,7 +37,6 @@ _NON_MONEY_KEYS = {
     "rate",
     "shares",
     "tax_year",
-    "total",
     "transaction_count",
     "year",
 }
@@ -43,13 +45,17 @@ _MONEY_KEY_MARKERS = (
     "amount",
     "basis",
     "base",
+    "cost",
     "credit",
     "deduction",
     "exclusion",
     "fica",
+    "fmv",
     "gain",
     "income",
+    "insurance",
     "liability",
+    "limit",
     "loss",
     "niit",
     "payroll",
@@ -57,6 +63,8 @@ _MONEY_KEY_MARKERS = (
     "qbi",
     "tax",
     "taxable",
+    "threshold",
+    "ubia",
     "value",
     "wage",
     "withheld",
@@ -109,13 +117,38 @@ def _is_money_key(key: str) -> bool:
     return any(marker in normalized for marker in _MONEY_KEY_MARKERS)
 
 
+def _is_money_total(key: str, value: Any) -> bool:
+    """Engine money totals (crypto/payroll ``total``) are cent-quantized
+    floats or decimal strings; knowledge-search ``total`` is an int count."""
+
+    if key.lower() != "total":
+        return False
+    if isinstance(value, float):
+        return True
+    return isinstance(value, str) and "." in value
+
+
 def _collect_engine_numbers(value: Any, out: set[Decimal], key: str = "") -> None:
-    """Recursively collect money-like numeric leaves from engine output."""
+    """Recursively collect money-like numeric leaves from engine output.
+
+    String leaves are additionally scanned for $-amounts regardless of key:
+    any amount already present in the structured answer (e.g. quoted inside
+    a knowledge-base chunk) is user-visible, so the LLM citing it is not
+    tampering.
+    """
 
     if isinstance(value, bool):
         return
-    if isinstance(value, (int, float, str)):
-        if _is_money_key(key):
+    if isinstance(value, str):
+        if _is_money_key(key) or _is_money_total(key, value):
+            amount = _to_cent_decimal(value)
+            if amount is not None:
+                out.add(amount)
+        if "$" in value:
+            out.update(_extract_dollar_amounts(value))
+        return
+    if isinstance(value, (int, float)):
+        if _is_money_key(key) or _is_money_total(key, value):
             amount = _to_cent_decimal(value)
             if amount is not None:
                 out.add(amount)

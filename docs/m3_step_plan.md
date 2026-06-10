@@ -149,18 +149,18 @@ python -m ruff check engine backend tests
 **目标**：引擎结果 + 来源 → LLM 组织成自然语言回答。
 
 **交付**：
-- `backend/orchestrator/nodes.py` 修改
-  - `format_node` → 根据 `ENABLE_LLM` 选择 LLM 响应或模板拼接
-  - `llm_format_response(engine_result, sources, query) → str`
-  - System prompt 严格约束：
-    - 金额必须原样引用引擎输出（不得四舍五入、不得编造）
+- `backend/orchestrator/response.py` — 新模块
+  - `llm_format_response(query, answer, sources) → str | None`（任何失败返回 None，调用方保留 M2 模板）
+  - System prompt 硬编码在模块内，严格约束：
+    - 金额必须与引擎输出精确到分一致（可加 $ 和千分位格式，不得四舍五入、不得编造）
     - 必须包含来源引用
     - 口吻友好、用中文（或跟随用户语言）
     - 不给投资/理财建议
-- `data/llm_prompts/response_generate.txt` — System prompt
+- `backend/orchestrator/nodes.py` 修改
+  - `format_node` → `ENABLE_LLM=true` 时新增 `answer_text` 字段，结构化 `answer` 原样保留
 
 **测试**：
-- `test_m3_3_llm_response.py`
+- `test_m3_3_response.py`
   - MockProvider 返回模板化自然语言
   - 金额保持精确：引擎输出 $24,734.00 → 响应中出现 $24,734.00
   - 来源引用保留

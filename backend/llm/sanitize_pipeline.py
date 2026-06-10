@@ -13,7 +13,8 @@ _EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b
 # Bare 9-digit sequences are masked as potential SSNs, EXCEPT when they are
 # clearly part of a decimal number: followed by ".<digit>" (an amount like
 # 123456789.00) or preceded by "." (fraction digits like 0.123456789).
-# Engine amounts always carry two decimals, so they are never masked.
+# Engine amounts are floats quantized to cents, so JSON always serializes
+# them with a decimal point (e.g. 123456789.0) and they are never masked.
 _BARE_NINE_DIGIT_PATTERN = re.compile(r"(?<![\d.])(\d{9})(?!\.?\d)")
 
 

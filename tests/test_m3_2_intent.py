@@ -138,6 +138,42 @@ class TestLLMClassifyIntent(unittest.TestCase):
         result = llm_classify_intent("test")
         self.assertIsNone(result)
 
+    @patch("backend.llm.client.get_provider")
+    def test_provider_complete_raises_falls_back(self, mock_get_provider):
+        """If provider.complete() raises, return None instead of propagating."""
+
+        class RaisingProvider(MockProvider):
+            def complete(self, messages, **kwargs):
+                raise RuntimeError("network timeout")
+
+        mock_get_provider.return_value = RaisingProvider()
+        result = llm_classify_intent("tax question")
+        self.assertIsNone(result)
+
+    @patch("backend.llm.client.get_provider")
+    def test_nan_confidence_treated_as_zero(self, mock_get_provider):
+        provider = MockProvider()
+        provider.enqueue(json.dumps({"intent": "income_tax", "confidence": "nan"}))
+        mock_get_provider.return_value = provider
+        result = llm_classify_intent("tax question")
+        self.assertIsNone(result)
+
+    @patch("backend.llm.client.get_provider")
+    def test_inf_confidence_treated_as_zero(self, mock_get_provider):
+        provider = MockProvider()
+        provider.enqueue(json.dumps({"intent": "income_tax", "confidence": "inf"}))
+        mock_get_provider.return_value = provider
+        result = llm_classify_intent("tax question")
+        self.assertIsNone(result)
+
+    @patch("backend.llm.client.get_provider")
+    def test_confidence_above_one_treated_as_zero(self, mock_get_provider):
+        provider = MockProvider()
+        provider.enqueue(json.dumps({"intent": "income_tax", "confidence": 1.5}))
+        mock_get_provider.return_value = provider
+        result = llm_classify_intent("tax question")
+        self.assertIsNone(result)
+
 
 class TestClassifyNodeFallback(unittest.TestCase):
     """Test that classify_node falls back to keyword when LLM is unavailable."""

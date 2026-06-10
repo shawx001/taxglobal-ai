@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from dataclasses import dataclass
 
 INTENT_INCOME_TAX = "income_tax"
@@ -190,7 +191,11 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
         LLMMessage(role="user", content=query),
     ]
 
-    response = provider.complete(messages, temperature=0.0, max_tokens=64)
+    try:
+        response = provider.complete(messages, temperature=0.0, max_tokens=64)
+    except Exception:
+        logger.warning("LLM provider.complete() raised, falling back to keyword")
+        return None
     if response is None:
         return None
 
@@ -204,6 +209,8 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
     try:
         confidence = float(parsed.get("confidence", 0.0))
     except (TypeError, ValueError):
+        confidence = 0.0
+    if not math.isfinite(confidence) or confidence < 0.0 or confidence > 1.0:
         confidence = 0.0
 
     if intent not in _VALID_INTENTS:

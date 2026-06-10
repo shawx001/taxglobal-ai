@@ -139,6 +139,44 @@ class TestLLMClassifyIntent(unittest.TestCase):
         self.assertIsNone(result)
 
     @patch("backend.llm.client.get_provider")
+    def test_json_array_returns_none(self, mock_get_provider):
+        """Valid JSON that is not an object must fall back, not crash."""
+        provider = MockProvider()
+        provider.enqueue("[]")
+        mock_get_provider.return_value = provider
+        result = llm_classify_intent("tax question")
+        self.assertIsNone(result)
+
+    @patch("backend.llm.client.get_provider")
+    def test_json_null_returns_none(self, mock_get_provider):
+        provider = MockProvider()
+        provider.enqueue("null")
+        mock_get_provider.return_value = provider
+        result = llm_classify_intent("tax question")
+        self.assertIsNone(result)
+
+    @patch("backend.llm.client.get_provider")
+    def test_json_string_returns_none(self, mock_get_provider):
+        provider = MockProvider()
+        provider.enqueue('"income_tax"')
+        mock_get_provider.return_value = provider
+        result = llm_classify_intent("tax question")
+        self.assertIsNone(result)
+
+    @patch("backend.llm.client.get_provider")
+    def test_non_string_content_returns_none(self, mock_get_provider):
+        """A provider returning non-string content must not crash."""
+        from backend.llm.provider import LLMResponse
+
+        class WeirdProvider(MockProvider):
+            def complete(self, messages, **kwargs):
+                return LLMResponse(content=None, model="mock")
+
+        mock_get_provider.return_value = WeirdProvider()
+        result = llm_classify_intent("tax question")
+        self.assertIsNone(result)
+
+    @patch("backend.llm.client.get_provider")
     def test_provider_complete_raises_falls_back(self, mock_get_provider):
         """If provider.complete() raises, return None instead of propagating."""
 

@@ -28,11 +28,11 @@ Upgrade the orchestrator's intent classification from keyword-only to LLM-enhanc
 Keep the `classify_intent()` implementation unchanged. Append the new LLM code below it.
 
 ```python
-import json
-import logging
-
-from backend.llm.client import get_provider
-from backend.llm.provider import LLMMessage
+# Imports live inside the M3.2 section (below classify_intent) so the M2
+# section of the file stays byte-identical to main.
+import json  # noqa: E402
+import logging  # noqa: E402
+import math  # noqa: E402
 
 logger = logging.getLogger("taxglobal.orchestrator")
 
@@ -48,7 +48,7 @@ _INTENT_SYSTEM_PROMPT = """\
 You are a tax query intent classifier for TaxGlobal AI.
 Classify the user's query into exactly ONE of these intents:
 
-- income_tax: Questions about federal/state income tax calculation, tax rates, filing status, W-2 wages, self-employment tax, FICA
+- income_tax: Federal/state income tax calculation, tax rates, filing status, W-2, self-employment, FICA
 - feie: Foreign Earned Income Exclusion, working abroad, 330-day rule, Form 2555, bona fide residence
 - rsu: Restricted Stock Units, vesting, equity compensation
 - crypto: Cryptocurrency tax, capital gains/losses, cost basis, NFT, wash sales
@@ -64,9 +64,13 @@ Respond with ONLY a JSON object, no markdown, no explanation:
 def llm_classify_intent(query: str) -> ClassifyResult | None:
     """Classify intent using the LLM provider.
 
-    Returns ClassifyResult on success, None on any failure (caller should
-    fall back to keyword classification).
+    Returns ``ClassifyResult`` on success, ``None`` on any failure so the
+    caller can fall back to keyword classification.
     """
+
+    from backend.llm.client import get_provider
+    from backend.llm.provider import LLMMessage
+
     provider = get_provider()
     if provider is None:
         return None
@@ -76,25 +80,47 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
         LLMMessage(role="user", content=query),
     ]
 
-    response = provider.complete(messages, temperature=0.0, max_tokens=64)
+    try:
+        response = provider.complete(messages, temperature=0.0, max_tokens=64)
+    except Exception:
+        logger.exception("LLM provider.complete() failed, falling back to keyword")
+        return None
     if response is None:
         return None
 
+    content = response.content if isinstance(response.content, str) else ""
     try:
-        parsed = json.loads(response.content.strip())
+        parsed = json.loads(content.strip())
     except (json.JSONDecodeError, ValueError):
-        logger.warning("LLM intent response not valid JSON: %s", response.content[:200])
+        # Do not log response content — it may echo user-provided PII.
+        logger.warning(
+            "LLM intent response not valid JSON (model=%s, len=%d)",
+            response.model,
+            len(content),
+        )
+        return None
+    if not isinstance(parsed, dict):
+        logger.warning("LLM intent response is not a JSON object (model=%s)", response.model)
         return None
 
-    intent = parsed.get("intent", "").strip().lower()
-    confidence = float(parsed.get("confidence", 0.0))
+    intent = str(parsed.get("intent", "")).strip().lower()
+    try:
+        confidence = float(parsed.get("confidence", 0.0))
+    except (TypeError, ValueError):
+        confidence = 0.0
+    if not math.isfinite(confidence) or confidence < 0.0 or confidence > 1.0:
+        confidence = 0.0
 
     if intent not in _VALID_INTENTS:
-        logger.warning("LLM returned invalid intent: %s", intent)
+        logger.warning("LLM returned invalid intent: %s", intent[:40])
         return None
 
     if confidence < _LLM_CONFIDENCE_THRESHOLD:
-        logger.info("LLM confidence %.2f below threshold %.2f, falling back", confidence, _LLM_CONFIDENCE_THRESHOLD)
+        logger.info(
+            "LLM confidence %.2f below threshold %.2f, falling back",
+            confidence,
+            _LLM_CONFIDENCE_THRESHOLD,
+        )
         return None
 
     return ClassifyResult(
@@ -103,6 +129,14 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
         matched_keyword="",
     )
 ```
+
+**Defensive parsing requirements** (all must hold — "any LLM failure falls back to keyword"):
+
+1. `provider.complete()` may raise — catch broadly, `logger.exception`, return `None`.
+2. Never log raw LLM response content (it may echo user-provided PII) — log model name + length only.
+3. Valid JSON that is not an object (`[]`, `null`, `"str"`) must return `None`, not crash.
+4. Non-finite (`nan`/`inf`) or out-of-range (`<0`, `>1`) confidence is treated as `0.0`.
+5. Non-string `response.content` is treated as empty string.
 
 ## File 2: `backend/orchestrator/nodes.py` — MODIFY `classify_node()`
 

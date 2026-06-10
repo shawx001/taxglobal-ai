@@ -200,15 +200,19 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
     if response is None:
         return None
 
+    content = response.content if isinstance(response.content, str) else ""
     try:
-        parsed = json.loads(response.content.strip())
+        parsed = json.loads(content.strip())
     except (json.JSONDecodeError, ValueError):
         # Do not log response content — it may echo user-provided PII.
         logger.warning(
             "LLM intent response not valid JSON (model=%s, len=%d)",
             response.model,
-            len(response.content),
+            len(content),
         )
+        return None
+    if not isinstance(parsed, dict):
+        logger.warning("LLM intent response is not a JSON object (model=%s)", response.model)
         return None
 
     intent = str(parsed.get("intent", "")).strip().lower()

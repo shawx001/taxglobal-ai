@@ -83,6 +83,21 @@ class TestSanitizeText(unittest.TestCase):
         self.assertIn("$123456789", sanitize_text("gain was $123456789"))
         self.assertIn("$ 123456789", sanitize_text("gain was $ 123456789"))
 
+    def test_nine_digit_decimal_amounts_preserved(self) -> None:
+        """M3.3 regression: engine amounts in JSON carry decimals — never mask."""
+        text = '{"sales_amount": "123456789.00"}'
+        self.assertEqual(sanitize_text(text), text)
+
+    def test_nine_decimal_fraction_digits_preserved(self) -> None:
+        """M3.3 regression: 9 digits after a decimal point are not an SSN."""
+        text = "rate is 0.123456789"
+        self.assertEqual(sanitize_text(text), text)
+
+    def test_bare_nine_digit_at_sentence_end_still_masked(self) -> None:
+        result = sanitize_text("my ssn is 123456789.")
+        self.assertIn("***-**-6789", result)
+        self.assertNotIn("123456789", result)
+
     def test_sanitize_messages_returns_new_messages(self) -> None:
         messages = [LLMMessage(role="user", content="email me at jane@example.com")]
         sanitized = sanitize_messages(messages)

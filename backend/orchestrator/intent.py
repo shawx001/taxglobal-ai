@@ -1,10 +1,7 @@
-"""Deterministic keyword-based intent classifier for M2, with optional LLM enhancement (M3.2)."""
+"""Deterministic keyword-based intent classifier for M2."""
 
 from __future__ import annotations
 
-import json
-import logging
-import math
 from dataclasses import dataclass
 
 INTENT_INCOME_TAX = "income_tax"
@@ -146,6 +143,10 @@ def classify_intent(query: str) -> ClassifyResult:
 # M3.2: LLM-enhanced intent classification
 # ---------------------------------------------------------------------------
 
+import json  # noqa: E402
+import logging  # noqa: E402
+import math  # noqa: E402
+
 logger = logging.getLogger("taxglobal.orchestrator")
 
 _VALID_INTENTS = frozenset({
@@ -194,7 +195,7 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
     try:
         response = provider.complete(messages, temperature=0.0, max_tokens=64)
     except Exception:
-        logger.warning("LLM provider.complete() raised, falling back to keyword")
+        logger.exception("LLM provider.complete() failed, falling back to keyword")
         return None
     if response is None:
         return None
@@ -202,7 +203,12 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
     try:
         parsed = json.loads(response.content.strip())
     except (json.JSONDecodeError, ValueError):
-        logger.warning("LLM intent response not valid JSON: %s", response.content[:200])
+        # Do not log response content — it may echo user-provided PII.
+        logger.warning(
+            "LLM intent response not valid JSON (model=%s, len=%d)",
+            response.model,
+            len(response.content),
+        )
         return None
 
     intent = str(parsed.get("intent", "")).strip().lower()
@@ -214,7 +220,7 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
         confidence = 0.0
 
     if intent not in _VALID_INTENTS:
-        logger.warning("LLM returned invalid intent: %s", intent)
+        logger.warning("LLM returned invalid intent: %s", intent[:40])
         return None
 
     if confidence < _LLM_CONFIDENCE_THRESHOLD:

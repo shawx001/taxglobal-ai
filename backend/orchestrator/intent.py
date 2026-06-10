@@ -224,7 +224,8 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
         confidence = 0.0
 
     if intent not in _VALID_INTENTS:
-        logger.warning("LLM returned invalid intent: %s", intent[:40])
+        # Do not log the intent value — LLM output may echo user-provided PII.
+        logger.warning("LLM returned invalid intent (model=%s)", response.model)
         return None
 
     if confidence < _LLM_CONFIDENCE_THRESHOLD:

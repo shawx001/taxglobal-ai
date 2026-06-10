@@ -112,7 +112,8 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
         confidence = 0.0
 
     if intent not in _VALID_INTENTS:
-        logger.warning("LLM returned invalid intent: %s", intent[:40])
+        # Do not log the intent value — LLM output may echo user-provided PII.
+        logger.warning("LLM returned invalid intent (model=%s)", response.model)
         return None
 
     if confidence < _LLM_CONFIDENCE_THRESHOLD:
@@ -133,7 +134,7 @@ def llm_classify_intent(query: str) -> ClassifyResult | None:
 **Defensive parsing requirements** (all must hold — "any LLM failure falls back to keyword"):
 
 1. `provider.complete()` may raise — catch broadly, `logger.exception`, return `None`.
-2. Never log raw LLM response content (it may echo user-provided PII) — log model name + length only.
+2. Never log LLM output (raw content OR parsed fields like intent) — it may echo user-provided PII. Log model name + length only.
 3. Valid JSON that is not an object (`[]`, `null`, `"str"`) must return `None`, not crash.
 4. Non-finite (`nan`/`inf`) or out-of-range (`<0`, `>1`) confidence is treated as `0.0`.
 5. Non-string `response.content` is treated as empty string.

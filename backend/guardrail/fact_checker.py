@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from decimal import Decimal, InvalidOperation
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any
 
 VERDICT_PASS = "pass"
@@ -92,15 +92,31 @@ class FactCheckResult:
 
 def _to_cent_decimal(value: Any) -> Decimal | None:
     try:
-        return Decimal(str(value).replace(",", "")).quantize(_CENT)
+        # Engine-side normalization: ROUND_HALF_UP to match engine/money.py.
+        return Decimal(str(value).replace(",", "")).quantize(_CENT, rounding=ROUND_HALF_UP)
+    except (InvalidOperation, ValueError):
+        return None
+
+
+def _to_exact_decimal(value: str) -> Decimal | None:
+    try:
+        return Decimal(value.replace(",", ""))
     except (InvalidOperation, ValueError):
         return None
 
 
 def _extract_dollar_amounts(text: str) -> list[Decimal]:
+    """Extract $-amounts EXACTLY as written — no rounding.
+
+    Rounding the text side would hide sub-cent tampering: "$24,734.005"
+    must not collapse onto the engine's 24734.00. Decimal equality and
+    hashing are numeric ("24734" == "24734.00"), so exact values still
+    match the cent-quantized engine set.
+    """
+
     amounts: list[Decimal] = []
     for match in _DOLLAR_AMOUNT_PATTERN.finditer(text):
-        amount = _to_cent_decimal(match.group("number"))
+        amount = _to_exact_decimal(match.group("number"))
         if amount is not None:
             if match.group("paren") or match.group("prefix") or match.group("post"):
                 amount = -amount

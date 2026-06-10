@@ -186,6 +186,25 @@ class TestFactCheckerUnit(unittest.TestCase):
         result = check_response_fidelity("$24,734.5, 包括州税。", {"data": {"total_tax": 24734.0}}, [])
         self.assertEqual(result.verdict, VERDICT_BLOCK)
 
+    def test_blocks_sub_cent_tamper(self) -> None:
+        """Regression: text amounts compare exactly — no rounding on the text
+        side. ROUND_HALF_EVEN would collapse .005 onto .00 and PASS; even
+        ROUND_HALF_UP on the text side would let .004 through."""
+        from backend.guardrail.fact_checker import VERDICT_BLOCK, check_response_fidelity
+
+        answer = {"data": {"total_tax": 24734.0}}
+        for text in ("总税额 $24,734.005。", "总税额 $24,734.004。"):
+            with self.subTest(text=text):
+                self.assertEqual(check_response_fidelity(text, answer, []).verdict, VERDICT_BLOCK)
+
+    def test_engine_half_up_rounding_matches_engine_money(self) -> None:
+        """Engine-side normalization uses ROUND_HALF_UP like engine/money.py."""
+        from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
+
+        # A string engine value with sub-cent precision rounds HALF_UP: .005 -> .01
+        result = check_response_fidelity("税额 $24,734.01。", {"data": {"total_tax": "24734.005"}}, [])
+        self.assertEqual(result.verdict, VERDICT_PASS)
+
     def test_authorizes_all_real_engine_money_keys(self) -> None:
         """Regression: threshold/limit/cost/fmv/ubia/insurance are money keys."""
         from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity

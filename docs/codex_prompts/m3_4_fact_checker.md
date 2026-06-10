@@ -10,7 +10,7 @@ Add a fact-checker guardrail that verifies the M3.3 LLM-generated `answer_text` 
 
 ## Architecture Decision (IMPORTANT — READ THIS)
 
-**Numeric comparison MUST be Decimal-normalized, never string match.** PR #69 review finding: the engine's `_money()` returns floats quantized to cents, so the answer dict carries `13200.0`, while a correct LLM reply writes `$13,200.00`. String comparison would false-positive on every formatted amount. Strip `$`, commas, and whitespace; convert both sides with `Decimal(str(value)).quantize(Decimal("0.01"))`; compare Decimals.
+**Numeric comparison MUST be Decimal-normalized, never string match.** PR #69 review finding: the engine's `_money()` returns floats quantized to cents, so the answer dict carries `13200.0`, while a correct LLM reply writes `$13,200.00`. String comparison would false-positive on every formatted amount. Strip `$`, commas, and whitespace. Engine side: `Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)` — same rounding as `engine/money.py`; quantize without an explicit mode defaults to ROUND_HALF_EVEN and drifts from the engine. Text side: convert EXACTLY as written with NO rounding — rounding the text side would let sub-cent tampering like `$24,734.005` collapse onto the engine's `24734.00` and PASS. Decimal equality/hashing are numeric (`Decimal("24734") == Decimal("24734.00")`), so exact text values still match the quantized engine set.
 
 **Shaw has approved external LLM calls with PII sanitization (2026-06-08). Do NOT add any new external-API guards.** This step makes NO LLM calls at all — it is a pure local validation function.
 

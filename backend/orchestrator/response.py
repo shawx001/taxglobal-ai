@@ -4,6 +4,10 @@ Turns the structured engine/KB answer into a friendly natural-language
 reply. The structured answer is never replaced — the LLM text is an
 additive ``answer_text`` field, and any LLM failure means the caller
 simply keeps the M2 template response.
+
+NOTE: ``answer_text`` is NOT yet fact-checked against the engine output.
+M3.4 adds the fact-checker guardrail; until it lands, ``ENABLE_LLM``
+must stay off in production.
 """
 
 from __future__ import annotations

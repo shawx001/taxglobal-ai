@@ -943,6 +943,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
 <div class="toast" id="toast"></div>
 
 <script src="api.js"></script>
+<script src="copilot.js"></script>
 <script>
 /* ════════ 类型配置（对应链路图逻辑）════════ */
 const TYPES = {
@@ -2406,7 +2407,7 @@ function toggleChat(){
 }
 function initCopilot(){
   document.getElementById('cpMsgs').innerHTML='';
-  addMsg('你好 👋 我是 TaxGlobal Copilot，由<b>我们自有的税务模型</b>驱动，答案全部检索自<b>自有税务知识库</b>——速度快、附法条、可审计。问我任何税务问题吧。','ai');
+  addMsg('你好 👋 我是 TaxGlobal Copilot。<b>所有金额由规则引擎计算</b>、知识答案检索自税务知识库，AI 只负责理解问题和组织语言，每个数字都经过核查、可审计。问我任何税务问题吧。','ai');
   setCopilotContext('dash');
 }
 function setCopilotContext(tab){
@@ -2469,17 +2470,37 @@ function kbAnswer(q){
   const lower=q.toLowerCase();
   if(/方案|规划|计划|整体|安排|怎么省|节税|plan|strategy|optimi/i.test(q)) return {a:planReply(), src:'跨身份规划引擎'};
   for(const [kws,src,a] of KB){ if(kws.some(k=>lower.includes(k.toLowerCase())||q.includes(k))) return {a,src}; }
-  return {a:`关于"${q}"——结合你的档案（${profileBrief()}）来看，税务结论因管辖区而异。建议在对应功能页输入参数获取精确数字，每项结论都可追溯到法条 <span class="cp-cite">可审计</span>。想要我给一份覆盖你全部身份的整体方案吗？`, src:'通用税务条目'};
+  const safeQ=(window.TaxGlobalCopilot&&TaxGlobalCopilot.escapeHtml)?TaxGlobalCopilot.escapeHtml(q):q.replace(/[<>&"']/g,'');
+  return {a:`关于"${safeQ}"——结合你的档案（${profileBrief()}）来看，税务结论因管辖区而异。建议在对应功能页输入参数获取精确数字，每项结论都可追溯到法条 <span class="cp-cite">可审计</span>。想要我给一份覆盖你全部身份的整体方案吗？`, src:'通用税务条目'};
 }
 function handleQ(q){
-  addMsg(q,'u'); chatHistory.push({role:'user',content:q});
+  addMsg(TaxGlobalCopilot.escapeHtml(q),'u'); chatHistory.push({role:'user',content:q});
   addTyping();
-  // 模拟自有知识库的毫秒级检索
-  setTimeout(()=>{
-    const {a,src}=kbAnswer(q);
-    removeTyping(); addMsg(a,'ai',src);
-    chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,'')});
-  }, 420);
+  // 整体方案类问题仍由前端规划引擎回答（基于本地档案的演示估算，后端暂无此能力）。
+  // 仅当是纯方案类问题（不含具体算税意图/金额）时才走本地规划，避免劫持引擎可答的问题。
+  const isPlanQ=/方案|规划|整体|安排|怎么省|节税|plan|strategy|optimi/i.test(q);
+  const isCalcQ=/所得税|税额|交多少税|算|计算|多少钱|\d/.test(q);
+  if(isPlanQ && !isCalcQ){
+    setTimeout(()=>{
+      const a=planReply();
+      removeTyping(); addMsg(a,'ai','规划演示（本地档案估算，非引擎核查数字）');
+      chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,'')});
+    },420);
+    return;
+  }
+  // M3.5: 真后端 — 规则引擎计算 + GraphRAG 检索 + (可选) LLM 表达, SSE 流式返回。
+  TaxGlobalCopilot.ask(q,{
+    removeTyping: removeTyping,
+    onDone: function(plainText){
+      chatHistory.push({role:'assistant',content:plainText});
+    },
+    onUnavailable: function(){
+      // 后端不可达 → 退回本地演示知识库，并明确标注离线。
+      const {a,src}=kbAnswer(q);
+      removeTyping(); addMsg(a,'ai','离线演示 · '+src);
+      chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,'')});
+    },
+  });
 }
 function sendMsg(){const v=document.getElementById('cpInp').value.trim();if(!v)return;document.getElementById('cpInp').value='';handleQ(v);}
 function askCopilot(q){ if(!chatOpen) toggleChat(); setTimeout(()=>handleQ(q),chatOpen?0:350); }

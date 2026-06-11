@@ -224,7 +224,7 @@ python -m ruff check engine backend tests
   - 流式输出包含 intent + answer + sources
   - `ENABLE_LLM=false` → 降级到同步 JSON 响应
 
-**状态**：🔲 未开始
+**状态**：✅ 本地完成（branch m3/local-completion，多agent评审通过）。实现说明：`POST /api/assistant/stream` 始终 SSE（flag 关闭时无 text 事件，`/query` 保持纯 JSON）；**fact-check 完成后才开始流式**（不转发原始 LLM token），通过的 `answer_text` 重新切块给前端打字效果；前端复用原型已有聊天壳（`frontend/copilot.js` 为新传输层，全部动态文本 HTML 转义），假大脑 KB 仅作"离线演示"兜底；tax_year 未显式传时从问题文本解析（"2025年…"→2025 规则）；审计中间件新增 SSE 响应重建（meta+answer 入审计，action=assistant:stream）。测试文件实际为 `test_m3_5_stream.py`，13 个测试。
 
 ---
 

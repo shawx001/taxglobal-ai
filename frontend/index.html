@@ -712,18 +712,18 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
     <div class="card">
       <div class="ch"><div class="ct">上传税务文件</div><span class="badge bg">VLM 识别</span></div>
       <div class="cb">
-        <div class="drop-zone" id="dropZone" onclick="startUpload()">
+        <div class="drop-zone" id="dropZone" onclick="TaxGlobalW2.pickAndExtract()">
           <div class="drop-icon">📄</div>
-          <div class="drop-title">点击模拟上传 W-2</div>
-          <div class="drop-sub">AI 自动识别 Box 1-17 全部字段<br>数据本地处理，不发送外部服务器</div>
-          <div class="drop-fmts"><span class="dfmt">PDF</span><span class="dfmt">JPG</span><span class="dfmt">PNG</span><span class="dfmt">HEIC</span></div>
+          <div class="drop-title">点击上传 W-2 照片</div>
+          <div class="drop-sub">AI 自动识别 Box 1-17 金额字段<br>图片仅用于本次识别、不存储；SSN/姓名等不提取</div>
+          <div class="drop-fmts"><span class="dfmt">JPG</span><span class="dfmt">PNG</span><span class="dfmt">WEBP</span></div>
         </div>
         <div class="prog-wrap" id="progWrap">
           <div class="prog-label2"><span id="progLabel">VLM 初始化…</span><span id="progPct">0%</span></div>
           <div class="prog-track"><div class="prog-fill2" id="progFill"></div></div>
         </div>
         <div class="or-div"><div class="or-line"></div><span class="or-txt">或</span><div class="or-line"></div></div>
-        <button class="btn ghost" style="width:100%" onclick="startUpload()">✏️ 手动填写 W-2 字段</button>
+        <button class="btn ghost" style="width:100%" onclick="startUpload()">🎬 模拟上传演示（无需后端）</button>
         <div class="w2-preview" id="w2Preview">
           <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:12px 0 7px">W-2 解析结果</div>
           <div class="w2fg">
@@ -942,8 +942,9 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
 
 <div class="toast" id="toast"></div>
 
-<script src="api.js"></script>
-<script src="copilot.js"></script>
+<script src="api.js?v=m3"></script>
+<script src="copilot.js?v=m3"></script>
+<script src="w2-upload.js?v=m3"></script>
 <script>
 /* ════════ 类型配置（对应链路图逻辑）════════ */
 const TYPES = {
@@ -2489,7 +2490,9 @@ function handleQ(q){
     return;
   }
   // M3.5: 真后端 — 规则引擎计算 + GraphRAG 检索 + (可选) LLM 表达, SSE 流式返回。
+  // 多轮记忆: 把当前消息之前的对话一起发给后端做查询改写。
   TaxGlobalCopilot.ask(q,{
+    history: chatHistory.slice(0,-1),
     removeTyping: removeTyping,
     onDone: function(plainText){
       chatHistory.push({role:'assistant',content:plainText});

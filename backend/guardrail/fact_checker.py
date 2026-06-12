@@ -25,6 +25,13 @@ _DOLLAR_AMOUNT_PATTERN = re.compile(
     r"(?P<paren>\()?\s*(?P<prefix>-)?\$\s*(?P<post>-)?\s*"
     r"(?P<number>(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)(?!\d)\)?"
 )
+
+# Chinese-format USD amounts: "12万美元" / "200,000美金" / "1.5万 美元".
+# Without this, an LLM writing "约12万美元" from memory slips past the
+# $-only pattern (found live 2026-06-11).
+_CN_USD_AMOUNT_PATTERN = re.compile(
+    r"(?P<number>(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(?P<wan>万)?\s*美[元金]"
+)
 _NON_MONEY_KEYS = {
     "confidence",
     "count",
@@ -65,6 +72,7 @@ _MONEY_KEY_MARKERS = (
     "taxable",
     "threshold",
     "ubia",
+    "up_to",
     "value",
     "wage",
     "withheld",
@@ -120,6 +128,12 @@ def _extract_dollar_amounts(text: str) -> list[Decimal]:
         if amount is not None:
             if match.group("paren") or match.group("prefix") or match.group("post"):
                 amount = -amount
+            amounts.append(amount)
+    for match in _CN_USD_AMOUNT_PATTERN.finditer(text):
+        amount = _to_exact_decimal(match.group("number"))
+        if amount is not None:
+            if match.group("wan"):
+                amount *= Decimal("10000")
             amounts.append(amount)
     return amounts
 

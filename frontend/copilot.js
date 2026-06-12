@@ -25,17 +25,47 @@
 
   // ---------- structured answer rendering ----------
 
+  var PARAM_LABELS = {
+    w2_wages: "W-2 工资收入",
+    net_self_employment_profit: "自雇净利润",
+    foreign_earned_income: "海外收入",
+    days_abroad: "海外居住天数",
+    state_code: "所在州",
+    sales_amount: "销售额",
+    shares_vested: "归属股数",
+    fmv_per_share: "每股公允价值",
+    vest_date: "归属日期",
+    lots: "买入批次",
+    disposals: "卖出记录",
+  };
+
+  var PARAM_EXAMPLES = {
+    w2_wages: "「加州收入10万的所得税」",
+    net_self_employment_profit: "「自雇利润8万要交多少税」",
+    foreign_earned_income: "「海外收入15万住了340天，FEIE能免多少」",
+    days_abroad: "「海外收入15万住了340天，FEIE能免多少」",
+    sales_amount: "「在加州卖了60万，需要交销售税吗」",
+    state_code: "「在加州卖了60万，需要交销售税吗」",
+  };
+
   function describeAnswer(answer) {
     if (!answer || typeof answer !== "object") return "";
     if (answer.type === "clarification") {
-      var msg = answer.message || "";
       if (answer.missing_params && answer.missing_params.length) {
-        msg += "\n缺少参数: " + answer.missing_params.join(", ");
+        var labels = [];
+        var example = "";
+        for (var p = 0; p < answer.missing_params.length; p++) {
+          var param = String(answer.missing_params[p]);
+          labels.push(PARAM_LABELS[param] || param);
+          if (!example && PARAM_EXAMPLES[param]) example = PARAM_EXAMPLES[param];
+        }
+        var msg = "我需要知道你的**" + labels.join("、") + "**才能调用规则引擎计算。";
+        msg += "\n请把数字写进问题里再问一次" + (example ? "，例如：" + example : "。");
+        return msg;
       }
-      if (answer.available_topics && answer.available_topics.length) {
-        msg += "\n可以问: " + answer.available_topics.join(" / ");
-      }
-      return msg;
+      var fallback = "我没听懂这个问题。可以问我：联邦/州所得税、FEIE 海外收入、RSU、加密税、销售税 nexus，或任何税务知识。";
+      if (answer.available_topics && answer.available_topics.length) return fallback;
+      return answer.message ? String(answer.message) : fallback;
     }
     if (answer.type === "error") return answer.message || "请求未能完成。";
     if (answer.type === "knowledge") {
@@ -55,8 +85,53 @@
       }
       return "已用规则引擎完成计算：";
     }
+    if (answer.type === "tax_overview") {
+      var ov = answer.data || {};
+      if (ov.status !== "ok") {
+        return "规则库还没覆盖 " + String(ov.jurisdiction || "该州") + "（" + String(ov.tax_year || "") + " 年度），暂时无法给出税率。";
+      }
+      var who = ov.jurisdiction === "federal" ? "美国联邦" : String(ov.name || ov.jurisdiction);
+      if (ov.income_tax_type === "none") {
+        return who + " **不征收个人所得税**（" + String(ov.tax_year) + " 年度）。";
+      }
+      if (ov.income_tax_type === "flat") {
+        return who + " " + String(ov.tax_year) + " 年个人所得税为**固定税率 " + pct(ov.flat_rate) + "**。";
+      }
+      return who + " " + String(ov.tax_year) + " 年个人所得税为**累进税率**（单身申报）：";
+    }
     return "";
   }
+
+  function pct(rate) {
+    var value = Number(rate);
+    if (!isFinite(value)) return String(rate);
+    return (Math.round(value * 10000) / 100) + "%";
+  }
+
+  function overviewDetailHtml(answer) {
+    if (!answer || answer.type !== "tax_overview") return "";
+    var ov = answer.data || {};
+    if (ov.status !== "ok") return "";
+    var parts = [];
+    if (Array.isArray(ov.brackets)) {
+      for (var i = 0; i < ov.brackets.length; i++) {
+        var row = ov.brackets[i] || {};
+        var bound = row.up_to === null || typeof row.up_to === "undefined"
+          ? "以上"
+          : "至 " + money_(row.up_to);
+        parts.push('<span class="cp-cite">' + esc_(pct(row.rate)) + "</span> " + esc_(bound));
+      }
+    }
+    if (ov.standard_deduction !== null && typeof ov.standard_deduction !== "undefined") {
+      parts.push("标准扣除（单身） " + '<span class="cp-cite">' + esc_(money_(ov.standard_deduction)) + "</span>");
+    }
+    var html = parts.length ? "<br>" + parts.join("<br>") : "";
+    html += '<br><span style="font-size:10px;color:var(--ink4)">数据来自规则库 ' + esc_(String(ov.rule_version || "")) + "，要算你的具体税额，把收入写进问题里即可</span>";
+    return html;
+  }
+
+  function esc_(t) { return escapeHtml(t); }
+  function money_(v) { return formatMoney(v); }
 
   function formatMoney(value) {
     var amount = Number(value);
@@ -121,7 +196,7 @@
   }
 
   function structuredHtml(answer) {
-    return renderMarkdownEscaped(describeAnswer(answer) || "（无内容）") + skillDetailHtml(answer);
+    return renderMarkdownEscaped(describeAnswer(answer) || "（无内容）") + skillDetailHtml(answer) + overviewDetailHtml(answer);
   }
 
   function sourcesHtml(sources) {
@@ -262,10 +337,22 @@
       }
     }
 
+    var payload = { query: query };
+    if (hooks.history && hooks.history.length) {
+      var trimmed = [];
+      var recent = hooks.history.slice(-8);
+      for (var h = 0; h < recent.length; h++) {
+        var item = recent[h] || {};
+        if ((item.role === "user" || item.role === "assistant") && item.content) {
+          trimmed.push({ role: item.role, content: String(item.content).slice(0, 2000) });
+        }
+      }
+      if (trimmed.length) payload.history = trimmed;
+    }
     window.fetch(API_BASE_URL + "/api/assistant/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: query }),
+      body: JSON.stringify(payload),
     }).then(function (response) {
       if (!response.ok) {
         return response.json().catch(function () { return null; }).then(function (body) {

@@ -50,7 +50,12 @@ _STATE_CODES = {
     "pennsylvania": "PA",
     "oregon": "OR",
 }
-_NUMBER_PATTERN = re.compile(r"(\d+(?:\.\d+)?)(\s*[万千百])?", re.IGNORECASE)
+# Digits glued to letters are NOT amounts: "W2"/"W-2"/"401k"/"Form 1040"
+# must never become wages (live bug 2026-06-11: "我有W2" → w2_wages=2.00).
+# Comma-grouped amounts ("100,000") parse as one number.
+_NUMBER_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9.,-])(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)(\s*[万千百])?(?![A-Za-z0-9])"
+)
 _STATE_CODE_PATTERN = re.compile(r"\b([A-Z]{2})\b")
 _MULTIPLIERS = {"万": Decimal("10000"), "千": Decimal("1000"), "百": Decimal("100")}
 
@@ -64,7 +69,7 @@ def _visited(state: AssistantState, node: str) -> list[str]:
 def _extract_numbers(query: str) -> list[Decimal]:
     numbers: list[Decimal] = []
     for match in _NUMBER_PATTERN.finditer(query):
-        value = Decimal(match.group(1))
+        value = Decimal(match.group(1).replace(",", ""))
         suffix = (match.group(2) or "").strip()
         if suffix:
             value *= _MULTIPLIERS.get(suffix, Decimal("1"))
@@ -179,12 +184,31 @@ def classify_node(state: AssistantState) -> dict[str, Any]:
     }
 
 
+def _extract_params_for_route(state: AssistantState, intent: str) -> dict[str, Any]:
+    """LLM extraction first (understands language), regex as fallback."""
+
+    query = state.get("query", "")
+    tax_year = int(state.get("tax_year", 2026))
+
+    from backend import config
+
+    if config.ENABLE_LLM:
+        from backend.orchestrator.extraction import llm_extract_params
+
+        llm_params = llm_extract_params(query, intent)
+        if llm_params is not None:
+            params: dict[str, Any] = {"tax_year": tax_year}
+            params.update(llm_params)
+            return params
+    return extract_skill_params(query, intent, tax_year)
+
+
 def skill_route_node(state: AssistantState) -> dict[str, Any]:
     """Route a Skill intent to a registered Skill."""
 
     intent = state.get("intent", "")
     skill_name = INTENT_SKILL_MAP.get(intent, "")
-    params = extract_skill_params(state.get("query", ""), intent, int(state.get("tax_year", 2026)))
+    params = _extract_params_for_route(state, intent)
     missing = _missing_params(intent, params, state.get("query", ""))
     update: dict[str, Any] = {
         "skill_name": skill_name,
@@ -269,6 +293,47 @@ def _base_response(state: AssistantState, answer: dict[str, Any], sources: list[
     }
 
 
+# Phrasings that ask about the tax SYSTEM (rates/brackets), not a personal
+# calculation. "我有W2" must NOT land here — it gets a conversational ask.
+_RATES_QUERY_PATTERN = re.compile(r"税率|税多少|多少税|交多少|bracket|rate", re.IGNORECASE)
+
+
+def _rate_overview_answer(state: AssistantState) -> dict[str, Any] | None:
+    """Build a rates-overview answer from rule data for amount-less queries.
+
+    Only the income_tax intent qualifies: a missing wage/SE amount means
+    the user asked about the tax system, not their own liability. Other
+    intents (RSU/crypto/nexus) genuinely need their inputs.
+    """
+
+    if state.get("intent") != INTENT_INCOME_TAX:
+        return None
+    if not _RATES_QUERY_PATTERN.search(state.get("query", "")):
+        return None
+    missing = set(state.get("missing_params", []))
+    if not missing & {"w2_wages", "net_self_employment_profit"}:
+        return None
+
+    from engine.overview import federal_tax_overview, state_tax_overview
+    from engine.rules_loader import RuleLoadError
+
+    state_code = _extract_state(state.get("query", ""))
+    tax_year = int(state.get("tax_year", 2026))
+    try:
+        if state_code:
+            overview = state_tax_overview(state_code, tax_year)
+        else:
+            overview = federal_tax_overview(tax_year)
+    except RuleLoadError:
+        return None
+    except Exception:
+        return None
+
+    answer = {"type": "tax_overview", "data": overview}
+    sources = [overview["citation"]] if overview.get("citation") else list(overview.get("source_ids", []))
+    return {"answer": answer, "sources": sources}
+
+
 def _attach_llm_answer_text(response: dict[str, Any], query: str) -> dict[str, Any]:
     """M3.3: add a natural-language ``answer_text`` when the LLM is enabled.
 
@@ -284,12 +349,31 @@ def _attach_llm_answer_text(response: dict[str, Any], query: str) -> dict[str, A
     from backend.guardrail.fact_checker import VERDICT_BLOCK, check_response_fidelity
     from backend.orchestrator.response import llm_format_response
 
-    text = llm_format_response(query, response.get("answer", {}), response.get("sources", []))
+    answer = response.get("answer", {})
+    sources = response.get("sources", [])
+    text = llm_format_response(query, answer, sources)
     if text is None:
         return response
 
-    fact_check = check_response_fidelity(text, response.get("answer", {}), response.get("sources", []))
+    fact_check = check_response_fidelity(text, answer, sources)
     if fact_check.verdict == VERDICT_BLOCK:
+        # Validator-feedback retry: one rewrite with explicit instructions,
+        # then fail closed. Rescues drafts where the LLM slipped in a
+        # from-memory figure on no-number answers (clarifications).
+        text = llm_format_response(
+            query,
+            answer,
+            sources,
+            retry_feedback=(
+                "Your previous draft was REJECTED: it contained a monetary "
+                "figure that does not appear in ENGINE_RESULT. Rewrite the "
+                "answer WITHOUT any monetary figures except those copied "
+                "exactly from ENGINE_RESULT — in any format ($X, X万美元, Xk)."
+            ),
+        )
+        if text is not None:
+            fact_check = check_response_fidelity(text, answer, sources)
+    if text is None or fact_check.verdict == VERDICT_BLOCK:
         logger.warning("fact-checker blocked LLM answer_text: %s", ",".join(fact_check.issues))
         return response
 
@@ -305,12 +389,25 @@ def format_node(state: AssistantState) -> dict[str, Any]:
     next_state["nodes_visited"] = _visited(state, "format")
     error = next_state.get("error")
     if error == "missing_skill_params":
+        # "加州税多少" without an income amount is a RATES question, not a
+        # calculation request — answer it from the versioned rule data
+        # instead of dead-ending on a parameter prompt.
+        overview = _rate_overview_answer(next_state)
+        if overview is not None:
+            return {
+                "response": _base_response(next_state, overview["answer"], overview["sources"]),
+                "nodes_visited": next_state["nodes_visited"],
+            }
         answer = {
             "type": "clarification",
             "message": "Please provide the missing inputs so I can run the tax engine.",
             "missing_params": next_state.get("missing_params", []),
         }
-        return {"response": _base_response(next_state, answer, []), "nodes_visited": next_state["nodes_visited"]}
+        response = _base_response(next_state, answer, [])
+        return {
+            "response": _attach_llm_answer_text(response, next_state.get("query", "")),
+            "nodes_visited": next_state["nodes_visited"],
+        }
     if error == "guardrail_blocked":
         answer = {
             "type": "error",
@@ -345,7 +442,11 @@ def format_node(state: AssistantState) -> dict[str, Any]:
 
 
 def clarify_node(state: AssistantState) -> dict[str, Any]:
-    """Return a deterministic clarification response."""
+    """Return a clarification response — conversational when the LLM is on.
+
+    Small talk ("你是谁") lands here; with ENABLE_LLM the reply is generated
+    naturally (and still fact-checked), with the template as fallback.
+    """
 
     next_state = dict(state)
     next_state["nodes_visited"] = _visited(state, "clarify")
@@ -357,4 +458,8 @@ def clarify_node(state: AssistantState) -> dict[str, Any]:
         ),
         "available_topics": ["income_tax", "feie", "rsu", "crypto", "nexus", "knowledge"],
     }
-    return {"response": _base_response(next_state, answer, []), "nodes_visited": next_state["nodes_visited"]}
+    response = _base_response(next_state, answer, [])
+    return {
+        "response": _attach_llm_answer_text(response, next_state.get("query", "")),
+        "nodes_visited": next_state["nodes_visited"],
+    }

@@ -22,6 +22,13 @@ _MAX_TAX_YEAR = 2030
 _QUERY_YEAR_PATTERN = re.compile(r"(?<!\d)(20[23][0-9])(?!\d)")
 
 
+class HistoryItem(BaseModel):
+    """One prior chat message, used only for query rewriting."""
+
+    role: str = Field(..., pattern="^(user|assistant)$")
+    content: str = Field(..., max_length=2000)
+
+
 class AssistantQueryRequest(BaseModel):
     """Assistant query request body."""
 
@@ -30,12 +37,14 @@ class AssistantQueryRequest(BaseModel):
     # None = caller did not specify; the year is then inferred from the query
     # text so "2025年加州的所得税" never silently computes with 2026 rules.
     tax_year: int | None = Field(default=None, ge=_MIN_TAX_YEAR, le=_MAX_TAX_YEAR)
+    # Recent conversation for multi-turn understanding (2026-06-11).
+    history: list[HistoryItem] = Field(default_factory=list, max_length=16)
 
 
-def _resolve_tax_year(body: AssistantQueryRequest) -> int:
+def _resolve_tax_year(body: AssistantQueryRequest, query: str) -> int:
     if body.tax_year is not None:
         return body.tax_year
-    match = _QUERY_YEAR_PATTERN.search(body.query)
+    match = _QUERY_YEAR_PATTERN.search(query)
     if match:
         year = int(match.group(1))
         if _MIN_TAX_YEAR <= year <= _MAX_TAX_YEAR:
@@ -43,17 +52,36 @@ def _resolve_tax_year(body: AssistantQueryRequest) -> int:
     return _DEFAULT_TAX_YEAR
 
 
+def _effective_query(body: AssistantQueryRequest) -> str:
+    """Rewrite the query with conversation context when the LLM is on."""
+
+    from backend import config
+
+    if not body.history or not config.ENABLE_LLM:
+        return body.query
+
+    from backend.orchestrator.rewrite import llm_rewrite_query
+
+    history = [{"role": item.role, "content": item.content} for item in body.history]
+    rewritten = llm_rewrite_query(history, body.query)
+    return rewritten if rewritten else body.query
+
+
 @router.post("/query")
 def assistant_query(request: Request, body: AssistantQueryRequest) -> dict[str, Any]:
     """Process a user query through the deterministic workflow."""
 
     request_id = str(getattr(request.state, "request_id", "unknown"))
-    return run_assistant_query(
-        body.query,
+    query = _effective_query(body)
+    response = run_assistant_query(
+        query,
         profile_id=body.profile_id,
-        tax_year=_resolve_tax_year(body),
+        tax_year=_resolve_tax_year(body, query),
         request_id=request_id,
     )
+    if query != body.query:
+        response.setdefault("trace", {})["rewritten_query"] = query
+    return response
 
 
 def _sse_event(event: str, data: Any) -> str:
@@ -101,12 +129,15 @@ def assistant_stream(request: Request, body: AssistantQueryRequest) -> Streaming
     """
 
     request_id = str(getattr(request.state, "request_id", "unknown"))
+    query = _effective_query(body)
     response = run_assistant_query(
-        body.query,
+        query,
         profile_id=body.profile_id,
-        tax_year=_resolve_tax_year(body),
+        tax_year=_resolve_tax_year(body, query),
         request_id=request_id,
     )
+    if query != body.query:
+        response.setdefault("trace", {})["rewritten_query"] = query
     return StreamingResponse(
         _sse_events(response),
         media_type="text/event-stream",

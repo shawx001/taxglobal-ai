@@ -158,6 +158,7 @@ class TestFormatNodeLLMText(unittest.TestCase):
             cfg.ENABLE_LLM = True
             provider = MockProvider()
             provider.enqueue("乱改的数字 $99,999.00")
+            provider.enqueue("重写后还是乱改 $99,999.00")  # retry also tampered
             mock_get_provider.return_value = provider
             with self.assertLogs("taxglobal.orchestrator", level="WARNING"):
                 result = format_node(_skill_state())
@@ -193,16 +194,26 @@ class TestFormatNodeLLMText(unittest.TestCase):
             cfg.ENABLE_LLM = original
 
     @patch("backend.llm.client.get_provider")
-    def test_llm_not_called_on_missing_params(self, mock_get_provider):
+    def test_missing_params_gets_conversational_text(self, mock_get_provider):
+        """Missing inputs → LLM explains conversationally instead of a bare template.
+
+        (Design changed 2026-06-11 per Shaw: hardcoded parameter prompts are
+        too stiff — the LLM answers the underlying question and asks for the
+        inputs in human terms.)
+        """
         original = cfg.ENABLE_LLM
         try:
             cfg.ENABLE_LLM = True
-            state = _skill_state()
+            provider = MockProvider()
+            provider.enqueue("美国公民海外收入也要申报。你去年在海外住了多少天、收入多少？我可以帮你精确算。")
+            mock_get_provider.return_value = provider
+            state = _skill_state(query="我在日本生活怎么报税")
+            state["intent"] = "feie"
             state["error"] = "missing_skill_params"
-            state["missing_params"] = ["w2_wages"]
+            state["missing_params"] = ["foreign_earned_income", "days_abroad"]
             result = format_node(state)
-            self.assertNotIn("answer_text", result["response"])
-            mock_get_provider.assert_not_called()
+            self.assertIn("answer_text", result["response"])
+            self.assertEqual(result["response"]["answer"]["type"], "clarification")
         finally:
             cfg.ENABLE_LLM = original
 

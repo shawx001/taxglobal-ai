@@ -18,9 +18,10 @@ logger = logging.getLogger("taxglobal.orchestrator")
 MAX_HISTORY_MESSAGES = 8
 _MAX_REWRITE_TOKENS = 200
 
-_REWRITE_SYSTEM_PROMPT = """\
+_REWRITE_SYSTEM_PROMPT_TEMPLATE = """\
 You condense a tax-assistant conversation into ONE self-contained
-question, in the same language the user writes.
+question, in the same language the user writes. Today's date is
+{today} (current tax year context).
 
 Rules:
 1. Merge ALL facts the user has stated across the conversation into the
@@ -28,12 +29,15 @@ Rules:
    Normalize slang amounts ("20w" / "20万" -> 200000美元) and convert
    stated durations to approximate days when the topic needs days
    ("10个月" -> "约300天"), keeping the word 约 for approximations.
-2. NEVER invent facts the user did not state. Do not add amounts,
-   states, or years that never appeared.
-3. If the latest message is already self-contained, return it as-is.
-4. If the latest message is small talk unrelated to tax, return it
+2. Resolve relative years using today's date: "去年" -> the explicit
+   year (e.g. {last_year}年), "今年" -> {this_year}年.
+3. NEVER invent facts the user did not state. Do not add amounts,
+   states, or years that the user neither stated nor implied via
+   relative words like 去年/今年.
+4. If the latest message is already self-contained, return it as-is.
+5. If the latest message is small talk unrelated to tax, return it
    as-is.
-5. Output ONLY the rewritten question — no explanation, no quotes.
+6. Output ONLY the rewritten question — no explanation, no quotes.
 """
 
 
@@ -62,8 +66,16 @@ def llm_rewrite_query(history: list[dict[str, str]], query: str) -> str | None:
             lines.append(f"{role}: {content}")
     lines.append(f"用户(最新): {query}")
 
+    from datetime import UTC, datetime
+
+    today = datetime.now(UTC)
+    system_prompt = _REWRITE_SYSTEM_PROMPT_TEMPLATE.format(
+        today=today.strftime("%Y-%m-%d"),
+        this_year=today.year,
+        last_year=today.year - 1,
+    )
     messages = [
-        LLMMessage(role="system", content=_REWRITE_SYSTEM_PROMPT),
+        LLMMessage(role="system", content=system_prompt),
         LLMMessage(role="user", content="\n".join(lines)),
     ]
 

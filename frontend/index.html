@@ -2485,7 +2485,7 @@ function handleQ(q){
     setTimeout(()=>{
       const a=planReply();
       removeTyping(); addMsg(a,'ai','规划演示（本地档案估算，非引擎核查数字）');
-      chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,'')});
+      chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,''),local:true});
     },420);
     return;
   }
@@ -2501,7 +2501,7 @@ function handleQ(q){
       // 后端不可达 → 退回本地演示知识库，并明确标注离线。
       const {a,src}=kbAnswer(q);
       removeTyping(); addMsg(a,'ai','离线演示 · '+src);
-      chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,'')});
+      chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,''),local:true});
     },
   });
 }

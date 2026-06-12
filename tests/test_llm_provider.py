@@ -214,7 +214,12 @@ class TestClientModule(unittest.TestCase):
             with patch("backend.llm.client.create_provider", return_value=MockProvider()) as create:
                 client.init_llm()
             self.assertTrue(client.is_llm_available())
-            self.assertIsInstance(client.get_provider(), SanitizedProvider)
+            # M3.7 wraps tracking outermost; sanitization stays inside it.
+            from backend.llm.usage_tracker import TrackedProvider
+
+            provider = client.get_provider()
+            self.assertIsInstance(provider, TrackedProvider)
+            self.assertIsInstance(provider._inner, SanitizedProvider)
             create.assert_called_once()
             self.assertEqual(create.call_args.kwargs["base_url"], "https://api.deepseek.com")
             self.assertEqual(create.call_args.kwargs["model"], "deepseek-chat")

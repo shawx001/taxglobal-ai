@@ -122,8 +122,16 @@ def llm_format_response(
     if provider is None:
         return None
 
+    prompt_answer = answer
+    if isinstance(answer, dict) and answer.get("type") == "knowledge":
+        # M3.7: cap KB chunk count/length before prompting — full chunks
+        # were the main token cost. The response payload stays uncompressed.
+        from backend.llm.token_optimizer import compress_knowledge_context
+
+        prompt_answer = compress_knowledge_context(answer)
+
     try:
-        answer_json = json.dumps(answer, ensure_ascii=False, default=str)
+        answer_json = json.dumps(prompt_answer, ensure_ascii=False, default=str)
     except (TypeError, ValueError):
         logger.warning("Engine answer not JSON-serializable, skipping LLM response")
         return None

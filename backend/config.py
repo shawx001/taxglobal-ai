@@ -53,3 +53,7 @@ LLM_FAILOVER_MODEL: str = _env("TAXGLOBAL_LLM_FAILOVER_MODEL", "gpt-4o-mini")
 # Empty model = vision disabled. Uses the same provider credentials as the
 # text LLM ("mock" provider enables the deterministic test extractor).
 VISION_MODEL: str = _env("TAXGLOBAL_VISION_MODEL", "")
+
+# === M3.7: LLM cost tracking (USD per 1M tokens, env-overridable) ===
+LLM_PRICE_INPUT_MTOK: str = _env("TAXGLOBAL_LLM_PRICE_INPUT_MTOK", "0.14")
+LLM_PRICE_OUTPUT_MTOK: str = _env("TAXGLOBAL_LLM_PRICE_OUTPUT_MTOK", "0.28")

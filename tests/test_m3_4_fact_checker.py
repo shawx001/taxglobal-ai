@@ -202,6 +202,28 @@ class TestFactCheckerUnit(unittest.TestCase):
         result = check_response_fidelity("总税额约2万美元。", {"data": {"total_tax": 20000.0}}, [])
         self.assertEqual(result.verdict, VERDICT_PASS)
 
+    def test_blocks_k_usd_and_cn_numeral_bypasses(self) -> None:
+        """Regression: 130k / USD 130,000 / 十三万美元 / 13萬美刀 must not slip."""
+        from backend.guardrail.fact_checker import VERDICT_BLOCK, check_response_fidelity
+
+        answer = {"data": {"total_tax": 24734.0}}
+        for text in (
+            "上限大约是130k。",
+            "上限大约是 USD 130,000。",
+            "上限大约是十三万美元。",
+            "上限大约是13萬美刀。",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(check_response_fidelity(text, answer, []).verdict, VERDICT_BLOCK)
+
+    def test_401k_mention_is_not_an_amount(self) -> None:
+        from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
+
+        result = check_response_fidelity(
+            "可以考虑 401k 和 529 计划。", {"data": {"total_tax": 24734.0}}, []
+        )
+        self.assertEqual(result.verdict, VERDICT_PASS)
+
     def test_blocks_sub_cent_tamper(self) -> None:
         """Regression: text amounts compare exactly — no rounding on the text
         side. ROUND_HALF_EVEN would collapse .005 onto .00 and PASS; even

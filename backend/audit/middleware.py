@@ -166,11 +166,18 @@ def _schedule_log(
 def _request_payload(method: str, request_body: bytes, query_string: bytes) -> dict[str, Any] | None:
     if method in {"POST", "PUT", "PATCH"}:
         payload = _json_payload(request_body)
-        # W-2 photos (M3.6) must never land in the audit store — the image
-        # itself is PII (SSN/name are printed on the form).
-        if payload is not None and "image_base64" in payload:
-            payload = dict(payload)
-            payload["image_base64"] = "[image redacted]"
+        if payload is not None:
+            # W-2 photos (M3.6) must never land in the audit store — the
+            # image itself is PII (SSN/name are printed on the form).
+            if "image_base64" in payload:
+                payload = dict(payload)
+                payload["image_base64"] = "[image redacted]"
+            # Chat history re-sends the whole conversation every turn; the
+            # current query is already captured, so persisting history would
+            # store the same PII N times for an N-turn chat.
+            if isinstance(payload.get("history"), list):
+                payload = dict(payload)
+                payload["history"] = f"[{len(payload['history'])} messages elided]"
         return payload
     if not query_string:
         return None

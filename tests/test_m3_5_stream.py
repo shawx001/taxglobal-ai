@@ -333,6 +333,26 @@ class TestParamExtraction(unittest.TestCase):
 
         self.assertEqual(_extract_numbers("收入100,000的税"), [Decimal("100000")])
 
+    def test_regex_handles_digit_ranges(self) -> None:
+        """Regression: '10-20万' must parse BOTH bounds (largest wins), never
+        compute tax on $10 wages."""
+        from decimal import Decimal
+
+        from backend.orchestrator.nodes import _extract_numbers
+
+        self.assertEqual(_extract_numbers("我年收入10-20万之间"), [Decimal("10"), Decimal("200000")])
+
+    def test_history_elided_from_audit_capture(self) -> None:
+        """Chat history must not be re-persisted into audit logs every turn."""
+        from backend.audit.middleware import _request_payload
+
+        body = json.dumps(
+            {"query": "q", "history": [{"role": "user", "content": "我收入20万 SSN 123-45-6789"}]}
+        ).encode("utf-8")
+        payload = _request_payload("POST", body, b"")
+        self.assertEqual(payload["history"], "[1 messages elided]")
+        self.assertNotIn("123-45-6789", json.dumps(payload))
+
     def test_regex_normal_amounts_still_work(self) -> None:
         from decimal import Decimal
 

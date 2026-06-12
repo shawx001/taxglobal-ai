@@ -50,11 +50,15 @@ _STATE_CODES = {
     "pennsylvania": "PA",
     "oregon": "OR",
 }
-# Digits glued to letters are NOT amounts: "W2"/"W-2"/"401k"/"Form 1040"
-# must never become wages (live bug 2026-06-11: "我有W2" → w2_wages=2.00).
-# Comma-grouped amounts ("100,000") parse as one number.
+# Digits glued to letters are NOT amounts: "W2"/"W-2"/"401k" must never
+# become wages (live bug 2026-06-11: "我有W2" → w2_wages=2.00). A hyphen
+# only blocks when it follows a LETTER ("W-2") — digit ranges like
+# "10-20万" must still parse (both bounds; largest wins downstream).
+# Comma-grouped amounts ("100,000") parse as one number. Note: standalone
+# form numbers with a space ("Form 1040") still parse on this regex path;
+# the LLM extraction layer handles those when enabled.
 _NUMBER_PATTERN = re.compile(
-    r"(?<![A-Za-z0-9.,-])(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)(\s*[万千百])?(?![A-Za-z0-9])"
+    r"(?<![A-Za-z0-9.,])(?<![A-Za-z]-)(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)(\s*[万千百])?(?![A-Za-z0-9])"
 )
 _STATE_CODE_PATTERN = re.compile(r"\b([A-Z]{2})\b")
 _MULTIPLIERS = {"万": Decimal("10000"), "千": Decimal("1000"), "百": Decimal("100")}

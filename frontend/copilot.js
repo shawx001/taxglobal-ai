@@ -288,6 +288,12 @@
       } else {
         html = structuredHtml(state.answer);
       }
+      if (state.rewrittenQuery) {
+        // The rewriter merges conversation facts — show its understanding so
+        // the user can catch a wrongly merged amount before trusting numbers.
+        html = '<span style="font-size:10px;color:var(--ink4)">按我的理解：' +
+          escapeHtml(state.rewrittenQuery) + "</span><br>" + html;
+      }
       if (interrupted) {
         html += '<br><span style="font-size:10px;color:var(--ink4)">⚠ 连接中断，以上内容可能不完整</span>';
       }
@@ -325,6 +331,7 @@
       if (name === "meta" && data) {
         state.sources = data.sources || [];
         state.factCheck = data.fact_check || null;
+        state.rewrittenQuery = (data.trace && data.trace.rewritten_query) || null;
       } else if (name === "answer" && data) {
         state.answer = data;
       } else if (name === "text" && data && typeof data.delta === "string") {
@@ -343,6 +350,7 @@
       var recent = hooks.history.slice(-8);
       for (var h = 0; h < recent.length; h++) {
         var item = recent[h] || {};
+        if (item.local) continue; // demo/offline replies must not feed the rewriter
         if ((item.role === "user" || item.role === "assistant") && item.content) {
           trimmed.push({ role: item.role, content: String(item.content).slice(0, 2000) });
         }

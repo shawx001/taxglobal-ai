@@ -123,6 +123,16 @@ def _vision_complete(image_base64: str, media_type: str) -> str | None:
             temperature=0.0,
             max_tokens=512,
         )
+        if response.usage is not None:
+            from backend.llm.usage_tracker import record_usage
+
+            record_usage(
+                response.model or config.VISION_MODEL,
+                {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                },
+            )
         return response.choices[0].message.content or ""
     except Exception as exc:
         # Never log the image or any extracted content — SDK error bodies are

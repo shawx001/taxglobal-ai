@@ -292,7 +292,7 @@ python -m ruff check engine backend tests
   - CacheAligner prefix 稳定性测试
   - Token 计数器准确性
 
-**状态**：🔲 未开始
+**状态**：✅ 本地完成（branch m3/local-completion，多agent评审通过：1 Blocker + 多个 Major 全修）。实现说明：`token_optimizer.py`（知识路径 chunk 压缩——截断永不切断金额中间、引擎数字零压缩；token 估算器 tiktoken/CJK 启发式）；`usage_tracker.py`（线程安全按日×模型聚合 + Decimal 成本估算，定价 env 可覆写且解析防御——配置打错字不会拖垮引擎；vision 调用也计入）；`GET /api/admin/llm-usage`（复用 X-Admin-Token 鉴权，仅计数无内容）。CacheAligner 以"系统提示词=常量模块字符串置于消息首位"实现，无独立模块。**挂账：/api/assistant/* 无限流，单条消息最多 5 次 LLM 调用，公网部署前必须加 per-IP 限流（M4）**。
 
 ---
 
@@ -306,7 +306,7 @@ python -m ruff check engine backend tests
 | **M3.4** | Fact-checker Guardrail | M3.3 | 1 天 | 🚧 |
 | **M3.5** | 前端 Copilot 聊天 UI | M3.2 + M3.3 + M3.4 | 2 天 | ✅ 本地 |
 | **M3.6** | W-2 拍照识别 | M3.1 | 2 天 | ✅ 本地 |
-| **M3.7** | Token 优化 + 成本监控 | M3.1 | 1 天 | 🔲 |
+| **M3.7** | Token 优化 + 成本监控 | M3.1 | 1 天 | ✅ 本地 |
 
 **总计：~9 个工作日**
 

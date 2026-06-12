@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -19,6 +20,10 @@ logger = logging.getLogger("taxglobal.orchestrator")
 
 _MAX_EXTRACTION_TOKENS = 256
 _MAX_AMOUNT = Decimal("999999999.99")
+
+# Same hardening decisions as backend/llm/vision.py: commas stripped only
+# for valid thousands grouping; leading-zero integers are identifiers.
+_THOUSANDS_GROUPED = re.compile(r"^\d{1,3}(,\d{3})+(\.\d+)?$")
 
 # Per-intent field specs: name -> kind (amount | days | state | count).
 _INTENT_FIELDS: dict[str, dict[str, str]] = {
@@ -55,8 +60,14 @@ Rules:
 def _clean_amount(value: Any) -> str | None:
     if value is None:
         return None
-    text = str(value).strip().replace(",", "").replace("$", "")
+    text = str(value).strip().replace("$", "").strip()
     if not text:
+        return None
+    if "," in text:
+        if not _THOUSANDS_GROUPED.match(text):
+            return None
+        text = text.replace(",", "")
+    if len(text) > 1 and text.startswith("0") and "." not in text:
         return None
     try:
         amount = Decimal(text)

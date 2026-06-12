@@ -75,7 +75,8 @@ class TestFactCheckerUnit(unittest.TestCase):
         from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
 
         answer = {"data": {"capital_gain": "-1000.00"}}
-        for text in ("亏损 -$1,000.00。", "亏损 $-1,000.00。", "亏损 ($1,000.00)。"):
+        # incl. spaced negative "- $1,000.00" (Copilot PR #70 finding)
+        for text in ("亏损 -$1,000.00。", "亏损 $-1,000.00。", "亏损 ($1,000.00)。", "亏损 - $1,000.00。"):
             with self.subTest(text=text):
                 result = check_response_fidelity(text, answer, [])
                 self.assertEqual(result.verdict, VERDICT_PASS)

@@ -22,7 +22,7 @@ _CENT = Decimal("0.01")
 # after an integer amount ("$99,999, including...") must not abort the
 # match, or tampered amounts would evade extraction entirely.
 _DOLLAR_AMOUNT_PATTERN = re.compile(
-    r"(?P<paren>\()?\s*(?P<prefix>-)?\$\s*(?P<post>-)?\s*"
+    r"(?P<paren>\()?\s*(?P<prefix>-)?\s*\$\s*(?P<post>-)?\s*"
     r"(?P<number>(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)(?!\d)\)?"
 )
 

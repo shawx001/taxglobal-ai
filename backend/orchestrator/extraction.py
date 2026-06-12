@@ -73,6 +73,11 @@ def _clean_amount(value: Any) -> str | None:
         amount = Decimal(text)
     except InvalidOperation:
         return None
+    # Zero is rejected DELIBERATELY (engine schemas allow ge=0, but LLMs
+    # routinely return 0 instead of null for values the user never stated
+    # — accepting 0 would compute a confident $0 answer for "我有W2").
+    # A user who genuinely means zero gets one clarifying question; a
+    # fabricated zero never becomes a wrong tax bill.
     if not amount.is_finite() or amount <= 0 or amount > _MAX_AMOUNT:
         return None
     return format(amount.normalize(), "f")

@@ -31,3 +31,4 @@ htmlcov/
 # Generated knowledge artifacts
 data/knowledge/oa/
 data/sources/oa/
+data/chroma/

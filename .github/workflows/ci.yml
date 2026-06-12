@@ -17,7 +17,22 @@ jobs:
       - name: Lint
         run: ruff check engine backend tests
       - name: Dependency audit
-        run: pip-audit -r backend/requirements.txt
+        # Documented ignores (remove each once a fixed release ships):
+        # - CVE-2025-3000 (torch, LOW): memory corruption in torch.jit.script,
+        #   local-host only. torch is a transitive dep of sentence-transformers
+        #   used solely for local embedding of our own rule/KB text; we never
+        #   call torch.jit.script and never load untrusted models. No fix
+        #   version published as of 2026-06-12.
+        # - CVE-2026-45829 (chromadb >=1.0, CRITICAL): pre-auth code injection
+        #   in chroma's SERVER-mode HTTP API (/api/v2 collections endpoint).
+        #   We run the embedded PersistentClient only — no chroma server, no
+        #   listener, the vulnerable endpoint never exists in our deployment.
+        #   1.x is required for Windows cp312 wheels. No fix version published
+        #   as of 2026-06-12.
+        run: >-
+          pip-audit -r backend/requirements.txt
+          --ignore-vuln CVE-2025-3000
+          --ignore-vuln CVE-2026-45829
       - name: Unit + golden tests
         run: python -m unittest discover -s tests -v
       - name: Data layer validation

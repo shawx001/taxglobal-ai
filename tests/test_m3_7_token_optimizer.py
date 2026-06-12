@@ -23,10 +23,14 @@ class TestEstimateTokens(unittest.TestCase):
     def test_empty_is_zero(self) -> None:
         self.assertEqual(estimate_tokens(""), 0)
 
-    def test_ascii_roughly_quarter(self) -> None:
+    def test_ascii_estimate_within_sane_bounds(self) -> None:
+        # Implementation-agnostic: tiktoken BPE compresses repeated chars
+        # (~50 for "a"*400) while the heuristic gives ~100 — assert only
+        # a sane order of magnitude and monotonic growth.
         tokens = estimate_tokens("a" * 400)
-        self.assertGreaterEqual(tokens, 80)
-        self.assertLessEqual(tokens, 200)
+        self.assertGreaterEqual(tokens, 25)
+        self.assertLessEqual(tokens, 400)
+        self.assertGreater(estimate_tokens("a" * 4000), tokens)
 
     def test_cjk_counts_heavier_than_ascii(self) -> None:
         self.assertGreater(estimate_tokens("税" * 100), estimate_tokens("a" * 100))

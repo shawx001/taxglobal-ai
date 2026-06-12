@@ -179,17 +179,32 @@ def validate_image(image_base64: str, media_type: str) -> str | None:
         return "empty_image"
     if len(decoded) > MAX_IMAGE_BYTES:
         return "image_too_large"
-    if media_type == "application/pdf" and not decoded.startswith(b"%PDF"):
+    if media_type == "application/pdf" and b"%PDF" not in decoded[:1024]:
+        # The PDF spec lets readers scan the first 1024 bytes for the
+        # header — real-world files sometimes carry leading bytes.
         return "invalid_pdf"
     return None
+
+
+def is_pdf_renderer_available() -> bool:
+    """Server capability check — a missing renderer is OUR misconfig,
+    never the user's fault."""
+
+    try:
+        import pypdfium2  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
 
 
 def pdf_first_page_to_png(pdf_base64: str) -> str | None:
     """Render page 1 of a W-2 PDF to PNG base64 (in memory, never on disk).
 
-    Returns ``None`` on any failure (corrupt PDF, renderer unavailable,
-    oversized render) so the caller reports a structured error. W-2 forms
-    live on page 1; extra pages (instructions/copies) are ignored.
+    Returns ``None`` on render failure (corrupt PDF, oversized render) so
+    the caller reports a structured error. Renderer availability is checked
+    separately via :func:`is_pdf_renderer_available`. W-2 forms live on
+    page 1; extra pages (instructions/copies) are ignored.
     """
 
     try:

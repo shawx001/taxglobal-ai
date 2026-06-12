@@ -280,6 +280,11 @@ class TestPdfSupport(unittest.TestCase):
     def test_non_pdf_bytes_with_pdf_media_type_rejected(self) -> None:
         self.assertEqual(validate_image(_TINY_PNG, "application/pdf"), "invalid_pdf")
 
+    def test_pdf_with_leading_bytes_accepted(self) -> None:
+        """Real-world PDFs may carry bytes before %PDF (spec: scan 1KB)."""
+        with_bom = base64.b64encode(b"\xef\xbb\xbf\n" + base64.b64decode(_MINIMAL_PDF)).decode("ascii")
+        self.assertIsNone(validate_image(with_bom, "application/pdf"))
+
     def test_pdf_first_page_renders_to_png(self) -> None:
         from backend.llm.vision import pdf_first_page_to_png
 

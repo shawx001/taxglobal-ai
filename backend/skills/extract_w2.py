@@ -54,6 +54,11 @@ class ExtractW2(TaxSkill):
             return {"status": "invalid_input", "reason": input_error}
 
         if media_type == "application/pdf":
+            from backend.llm.vision import is_pdf_renderer_available
+
+            if not is_pdf_renderer_available():
+                # Server misconfiguration, not user error — surfaces as 503.
+                return {"status": "vision_unavailable", "reason": "pdf_renderer_unavailable"}
             rendered = pdf_first_page_to_png(image_base64)
             if rendered is None:
                 return {"status": "invalid_input", "reason": "pdf_render_failed"}

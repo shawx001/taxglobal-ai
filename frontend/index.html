@@ -707,7 +707,7 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
 <div class="wrap">
   <div class="eyebrow">📄 W-2 报税</div>
   <h1 class="h1">上传 W-2，<em>一键生成</em> Form 1040</h1>
-  <p class="sub">AI 自动识别全部字段（敏感信息脱敏保护），填写报税表草稿，实时计算退税金额。</p>
+  <p class="sub">照片发送至 AI 识别服务提取金额字段（仅本次识别使用、不存储；SSN/姓名不提取），识别结果需你逐项确认后再计算。</p>
   <div class="w2-grid">
     <div class="card">
       <div class="ch"><div class="ct">上传税务文件</div><span class="badge bg">VLM 识别</span></div>
@@ -734,9 +734,9 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
             <div class="w2f"><div class="wf-box">BOX 12a</div><div class="wf-label">401(k) 供款</div><div class="wf-val">$15,000</div></div>
             <div class="w2f"><div class="wf-box">BOX 16</div><div class="wf-label">州税代扣</div><div class="wf-val">$7,800</div></div>
           </div>
-          <div style="margin-top:10px;padding:9px 11px;background:var(--gbg);border-radius:8px;font-size:11px;color:var(--g)">✓ 雇主：Google LLC · EIN 77-0493581 · California</div>
-          <div style="margin-top:8px;padding:9px 11px;background:var(--bluebg);border-radius:8px;font-size:11px;color:var(--blue)">💡 检测到 401(k) 供款 $15,000，已自动计入扣除项</div>
-          <button class="btn pri" style="width:100%;margin-top:12px" onclick="generateReport()">生成 Form 1040 →</button>
+          <div data-w2-note="1" style="margin-top:10px;padding:9px 11px;background:var(--gbg);border-radius:8px;font-size:11px;color:var(--g)">✓ 雇主：Google LLC · EIN 77-0493581 · California（模拟演示数据）</div>
+          <div data-w2-note="1" style="margin-top:8px;padding:9px 11px;background:var(--bluebg);border-radius:8px;font-size:11px;color:var(--blue)">💡 检测到 401(k) 供款 $15,000，已自动计入扣除项（模拟演示数据）</div>
+          <button data-w2-note="1" class="btn pri" style="width:100%;margin-top:12px" onclick="generateReport()">生成 Form 1040 →</button>
         </div>
       </div>
     </div>

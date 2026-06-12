@@ -28,7 +28,7 @@ def _safe_validation_details(exc: ValidationError) -> list[dict[str, Any]]:
 def list_skills() -> dict[str, Any]:
     """List all available tax calculation skills with input schemas."""
 
-    skills = get_all_skills()
+    skills = [skill for skill in get_all_skills() if getattr(skill, "expose_via_api", True)]
     return {
         "skills": [
             {
@@ -48,6 +48,8 @@ def invoke_skill(skill_name: str, request: Request, body: dict[str, Any]) -> dic
 
     skill = get_skill(skill_name)
     request_id = _request_id(request)
+    if skill is not None and not getattr(skill, "expose_via_api", True):
+        skill = None  # extraction-type skills are served via their own route
     if skill is None:
         return JSONResponse(
             status_code=404,

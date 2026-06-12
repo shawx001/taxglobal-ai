@@ -53,6 +53,11 @@ class TaxSkill(LangChainBaseTool):
 
     source_attribution: ClassVar[str] = ""
     engine_function_name: ClassVar[str] = ""
+    # Calculation skills are served via the generic /api/skills/{name} route,
+    # whose guardrail validates the engine envelope. Extraction-type skills
+    # (vision output, not engine truth) set this False and get their own
+    # route with their own checks.
+    expose_via_api: ClassVar[bool] = True
 
     def _run(self, **kwargs: Any) -> dict[str, Any]:
         """Call the engine and wrap the result in a standard envelope."""

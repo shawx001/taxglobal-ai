@@ -7,13 +7,14 @@ from backend.skills.assess_feie import AssessFeie
 from backend.skills.base import TaxSkill
 from backend.skills.calculate_income_tax import CalculateIncomeTax
 from backend.skills.detect_nexus import DetectNexus
+from backend.skills.extract_w2 import ExtractW2
 from backend.skills.track_crypto import TrackCrypto
 
 _SKILLS: dict[str, TaxSkill] = {}
 
 
 def _register_defaults() -> None:
-    for skill_cls in (CalculateIncomeTax, AssessFeie, AnalyzeRsu, TrackCrypto, DetectNexus):
+    for skill_cls in (CalculateIncomeTax, AssessFeie, AnalyzeRsu, TrackCrypto, DetectNexus, ExtractW2):
         instance = skill_cls()
         _SKILLS[instance.name] = instance
 

@@ -424,6 +424,7 @@ class TestGuardrailIntegration(unittest.TestCase):
         response = self.client.get("/api/skills")
 
         self.assertEqual(response.status_code, 200)
+        # 5 calculation skills public; extract_w2 served via /api/documents.
         self.assertEqual(response.json()["total"], 5)
 
 

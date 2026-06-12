@@ -48,6 +48,7 @@ _REDACT_FIELDS: frozenset[str] = frozenset(
         "token",
         "api_key",
         "secret",
+        "image_base64",
     }
 )
 
@@ -55,7 +56,13 @@ _REDACT_FIELDS: frozenset[str] = frozenset(
 # "dependent_1_email").  Checked when exact match against _REDACT_FIELDS
 # misses.
 _PII_SUBSTRINGS: frozenset[str] = frozenset(
-    {"ssn", "ein", "itin", "email", "phone", "bank_account", "routing", "password", "token", "secret", "api_key"}
+    {
+        "ssn", "ein", "itin", "email", "phone", "bank_account", "routing",
+        "password", "token", "secret", "api_key",
+        # W-2 photos (M3.6): the image itself is PII — redact at the last
+        # line before storage, wherever it is nested.
+        "image_base64",
+    }
 )
 
 

@@ -267,7 +267,7 @@ python -m ruff check engine backend tests
   - 缺失字段标记为 null + 置信度 0
   - PII 测试：上传请求日志不含图片原始数据
 
-**状态**：🔲 未开始
+**状态**：✅ 本地完成（branch m3/local-completion，多agent评审通过：1 Blocker + 8 Major 全修）。实现说明：`backend/llm/vision.py`（OpenAI 兼容 vision 调用 + 全防御解析，金额 ROUND_HALF_UP、严格千分位、SSN 结构性不可提取）；`extract_w2` Skill 注册但 `expose_via_api=False`（vision 输出非引擎真相，不走通用 skills 路由的 guardrail，仅 `/api/documents/extract-w2`）；图片三重防泄漏（不入日志/不入审计-含嵌套兜底/不落盘，openai+httpx 日志钉 WARNING）；前端真实上传 + 低置信度警示 + 一键填入计算器，模拟演示明确标注。`TAXGLOBAL_VISION_MODEL` 默认空=关闭；**vision 供应商选择（DeepSeek-VL 数据出境 vs GPT-4o）待 Shaw 拍板后配置**。路由文件实际为 `backend/routes/documents.py`。
 
 ---
 
@@ -304,8 +304,8 @@ python -m ruff check engine backend tests
 | **M3.2** | LLM 意图分类 | M3.1 | 1 天 | ✅ PR #67 |
 | **M3.3** | LLM 自然语言响应 | M3.1 | 1 天 | ✅ PR #69 |
 | **M3.4** | Fact-checker Guardrail | M3.3 | 1 天 | 🚧 |
-| **M3.5** | 前端 Copilot 聊天 UI | M3.2 + M3.3 + M3.4 | 2 天 | 🔲 |
-| **M3.6** | W-2 拍照识别 | M3.1 | 2 天 | 🔲 |
+| **M3.5** | 前端 Copilot 聊天 UI | M3.2 + M3.3 + M3.4 | 2 天 | ✅ 本地 |
+| **M3.6** | W-2 拍照识别 | M3.1 | 2 天 | ✅ 本地 |
 | **M3.7** | Token 优化 + 成本监控 | M3.1 | 1 天 | 🔲 |
 
 **总计：~9 个工作日**

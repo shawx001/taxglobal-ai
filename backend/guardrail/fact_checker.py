@@ -22,9 +22,28 @@ _CENT = Decimal("0.01")
 # after an integer amount ("$99,999, including...") must not abort the
 # match, or tampered amounts would evade extraction entirely.
 _DOLLAR_AMOUNT_PATTERN = re.compile(
-    r"(?P<paren>\()?\s*(?P<prefix>-)?\$\s*(?P<post>-)?\s*"
+    r"(?P<paren>\()?\s*(?P<prefix>-)?\s*\$\s*(?P<post>-)?\s*"
     r"(?P<number>(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)(?!\d)\)?"
 )
+
+# Chinese-format USD amounts: "12万美元" / "200,000美金" / "1.5萬 美刀".
+# Without this, an LLM writing "约12万美元" from memory slips past the
+# $-only pattern (found live 2026-06-11).
+_CN_USD_AMOUNT_PATTERN = re.compile(
+    r"(?P<number>(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(?P<wan>[万萬])?\s*美[元金刀]"
+)
+
+# "USD 130,000" prefix form.
+_USD_PREFIX_PATTERN = re.compile(r"USD\s*(?P<number>(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)", re.IGNORECASE)
+
+# "130k" / "$130k" shorthand (×1000). Well-known retirement-plan numbers
+# (401k/403b/457b/529) are NOT amounts.
+_K_SUFFIX_PATTERN = re.compile(r"(?<![\d.])(?P<number>\d+(?:\.\d+)?)[kK](?![A-Za-z0-9])")
+_PLAN_NUMBERS = {"401", "403", "457", "529"}
+
+# Chinese-numeral amounts ("十三万美元") can't be reliably converted —
+# fail closed: their presence alone is unverifiable.
+_CN_NUMERAL_USD_PATTERN = re.compile(r"[一二两三四五六七八九十百千]+\s*[万萬]?\s*美[元金刀]")
 _NON_MONEY_KEYS = {
     "confidence",
     "count",
@@ -65,6 +84,7 @@ _MONEY_KEY_MARKERS = (
     "taxable",
     "threshold",
     "ubia",
+    "up_to",
     "value",
     "wage",
     "withheld",
@@ -121,6 +141,22 @@ def _extract_dollar_amounts(text: str) -> list[Decimal]:
             if match.group("paren") or match.group("prefix") or match.group("post"):
                 amount = -amount
             amounts.append(amount)
+    for match in _CN_USD_AMOUNT_PATTERN.finditer(text):
+        amount = _to_exact_decimal(match.group("number"))
+        if amount is not None:
+            if match.group("wan"):
+                amount *= Decimal("10000")
+            amounts.append(amount)
+    for match in _USD_PREFIX_PATTERN.finditer(text):
+        amount = _to_exact_decimal(match.group("number"))
+        if amount is not None:
+            amounts.append(amount)
+    for match in _K_SUFFIX_PATTERN.finditer(text):
+        if match.group("number") in _PLAN_NUMBERS:
+            continue
+        amount = _to_exact_decimal(match.group("number"))
+        if amount is not None:
+            amounts.append(amount * Decimal("1000"))
     return amounts
 
 
@@ -187,6 +223,10 @@ def check_response_fidelity(answer_text: str, answer: dict[str, Any], sources: l
 
     engine_numbers: set[Decimal] = set()
     _collect_engine_numbers(answer, engine_numbers)
+
+    if _CN_NUMERAL_USD_PATTERN.search(answer_text):
+        # "十三万美元" — unverifiable spelled-out amount; fail closed.
+        return FactCheckResult(verdict=VERDICT_BLOCK, issues=["unverifiable_cn_numeral_amount"])
 
     for amount in _extract_dollar_amounts(answer_text):
         if amount not in engine_numbers:

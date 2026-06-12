@@ -75,7 +75,8 @@ class TestFactCheckerUnit(unittest.TestCase):
         from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
 
         answer = {"data": {"capital_gain": "-1000.00"}}
-        for text in ("亏损 -$1,000.00。", "亏损 $-1,000.00。", "亏损 ($1,000.00)。"):
+        # incl. spaced negative "- $1,000.00" (Copilot PR #70 finding)
+        for text in ("亏损 -$1,000.00。", "亏损 $-1,000.00。", "亏损 ($1,000.00)。", "亏损 - $1,000.00。"):
             with self.subTest(text=text):
                 result = check_response_fidelity(text, answer, [])
                 self.assertEqual(result.verdict, VERDICT_PASS)
@@ -186,6 +187,44 @@ class TestFactCheckerUnit(unittest.TestCase):
         result = check_response_fidelity("$24,734.5, 包括州税。", {"data": {"total_tax": 24734.0}}, [])
         self.assertEqual(result.verdict, VERDICT_BLOCK)
 
+    def test_blocks_chinese_format_memory_amounts(self) -> None:
+        """Regression (live 2026-06-11): '约12万美元' from LLM memory must not
+        slip past the $-only pattern."""
+        from backend.guardrail.fact_checker import VERDICT_BLOCK, check_response_fidelity
+
+        answer = {"data": {"total_tax": 24734.0}}
+        for text in ("最高可免约12万美元。", "免税额是 120,000美元。", "大约1.5万 美金。"):
+            with self.subTest(text=text):
+                self.assertEqual(check_response_fidelity(text, answer, []).verdict, VERDICT_BLOCK)
+
+    def test_chinese_format_engine_amount_passes(self) -> None:
+        from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
+
+        result = check_response_fidelity("总税额约2万美元。", {"data": {"total_tax": 20000.0}}, [])
+        self.assertEqual(result.verdict, VERDICT_PASS)
+
+    def test_blocks_k_usd_and_cn_numeral_bypasses(self) -> None:
+        """Regression: 130k / USD 130,000 / 十三万美元 / 13萬美刀 must not slip."""
+        from backend.guardrail.fact_checker import VERDICT_BLOCK, check_response_fidelity
+
+        answer = {"data": {"total_tax": 24734.0}}
+        for text in (
+            "上限大约是130k。",
+            "上限大约是 USD 130,000。",
+            "上限大约是十三万美元。",
+            "上限大约是13萬美刀。",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(check_response_fidelity(text, answer, []).verdict, VERDICT_BLOCK)
+
+    def test_401k_mention_is_not_an_amount(self) -> None:
+        from backend.guardrail.fact_checker import VERDICT_PASS, check_response_fidelity
+
+        result = check_response_fidelity(
+            "可以考虑 401k 和 529 计划。", {"data": {"total_tax": 24734.0}}, []
+        )
+        self.assertEqual(result.verdict, VERDICT_PASS)
+
     def test_blocks_sub_cent_tamper(self) -> None:
         """Regression: text amounts compare exactly — no rounding on the text
         side. ROUND_HALF_EVEN would collapse .005 onto .00 and PASS; even
@@ -285,6 +324,7 @@ class TestFactCheckerIntegration(unittest.TestCase):
             cfg.ENABLE_LLM = True
             provider = MockProvider()
             provider.enqueue("你的联邦税是 $99,999.00。来源：IRS Rev. Proc. 2024-40。")
+            provider.enqueue("重写后仍是 $99,999.00。")  # retry also tampered
             mock_get_provider.return_value = provider
 
             with self.assertLogs("taxglobal.orchestrator", level=logging.WARNING):
@@ -293,6 +333,25 @@ class TestFactCheckerIntegration(unittest.TestCase):
             self.assertNotIn("answer_text", result["response"])
             self.assertNotIn("fact_check", result["response"])
             self.assertEqual(result["response"]["answer"]["data"]["total_tax"], "24734.00")
+        finally:
+            cfg.ENABLE_LLM = original
+
+    @patch("backend.llm.client.get_provider")
+    def test_blocked_draft_rescued_by_feedback_retry(self, mock_get_provider) -> None:
+        """First draft tampered → retry with feedback → clean draft attaches."""
+        original = cfg.ENABLE_LLM
+        try:
+            cfg.ENABLE_LLM = True
+            provider = MockProvider()
+            provider.enqueue("最高可免约12万美元。来源：IRS Rev. Proc. 2024-40。")  # blocked
+            provider.enqueue("你的联邦税是 $24,734.00。来源：IRS Rev. Proc. 2024-40。")  # retry clean
+            mock_get_provider.return_value = provider
+
+            result = format_node(_skill_state())
+
+            self.assertIn("answer_text", result["response"])
+            self.assertIn("$24,734.00", result["response"]["answer_text"])
+            self.assertEqual(result["response"]["fact_check"]["verdict"], "pass")
         finally:
             cfg.ENABLE_LLM = original
 
@@ -333,6 +392,7 @@ class TestFactCheckerIntegration(unittest.TestCase):
             cfg.ENABLE_LLM = True
             provider = MockProvider()
             provider.enqueue("敏感原文 $99,999.00")
+            provider.enqueue("重写仍含 $99,999.00")  # retry also tampered
             mock_get_provider.return_value = provider
 
             with self.assertLogs("taxglobal.orchestrator", level=logging.WARNING) as logs:

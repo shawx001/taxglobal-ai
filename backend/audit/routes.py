@@ -108,6 +108,23 @@ async def verify_audit_chain(
     return _verify_records(records)
 
 
+@router.get("/llm-usage", response_model=None)
+def llm_usage(
+    request: Request,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict[str, Any] | JSONResponse:
+    """M3.7: aggregated LLM token usage + cost estimate (admin only)."""
+
+    request_id = str(getattr(request.state, "request_id", "unknown"))
+    auth_error = _authorize_admin(request_id, x_admin_token)
+    if auth_error is not None:
+        return auth_error
+
+    from backend.llm.usage_tracker import usage_summary
+
+    return usage_summary()
+
+
 def _build_query(
     *,
     user_id: uuid.UUID | None,

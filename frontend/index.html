@@ -707,23 +707,23 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
 <div class="wrap">
   <div class="eyebrow">📄 W-2 报税</div>
   <h1 class="h1">上传 W-2，<em>一键生成</em> Form 1040</h1>
-  <p class="sub">AI 自动识别全部字段（敏感信息脱敏保护），填写报税表草稿，实时计算退税金额。</p>
+  <p class="sub">照片发送至 AI 识别服务提取金额字段（仅本次识别使用、不存储；SSN/姓名不提取），识别结果需你逐项确认后再计算。</p>
   <div class="w2-grid">
     <div class="card">
       <div class="ch"><div class="ct">上传税务文件</div><span class="badge bg">VLM 识别</span></div>
       <div class="cb">
-        <div class="drop-zone" id="dropZone" onclick="startUpload()">
+        <div class="drop-zone" id="dropZone" onclick="TaxGlobalW2.pickAndExtract()">
           <div class="drop-icon">📄</div>
-          <div class="drop-title">点击模拟上传 W-2</div>
-          <div class="drop-sub">AI 自动识别 Box 1-17 全部字段<br>数据本地处理，不发送外部服务器</div>
-          <div class="drop-fmts"><span class="dfmt">PDF</span><span class="dfmt">JPG</span><span class="dfmt">PNG</span><span class="dfmt">HEIC</span></div>
+          <div class="drop-title">点击上传 W-2 照片</div>
+          <div class="drop-sub">AI 自动识别 Box 1-17 金额字段<br>图片仅用于本次识别、不存储；SSN/姓名等不提取</div>
+          <div class="drop-fmts"><span class="dfmt">JPG</span><span class="dfmt">PNG</span><span class="dfmt">WEBP</span></div>
         </div>
         <div class="prog-wrap" id="progWrap">
           <div class="prog-label2"><span id="progLabel">VLM 初始化…</span><span id="progPct">0%</span></div>
           <div class="prog-track"><div class="prog-fill2" id="progFill"></div></div>
         </div>
         <div class="or-div"><div class="or-line"></div><span class="or-txt">或</span><div class="or-line"></div></div>
-        <button class="btn ghost" style="width:100%" onclick="startUpload()">✏️ 手动填写 W-2 字段</button>
+        <button class="btn ghost" style="width:100%" onclick="startUpload()">🎬 模拟上传演示（无需后端）</button>
         <div class="w2-preview" id="w2Preview">
           <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:12px 0 7px">W-2 解析结果</div>
           <div class="w2fg">
@@ -734,9 +734,9 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
             <div class="w2f"><div class="wf-box">BOX 12a</div><div class="wf-label">401(k) 供款</div><div class="wf-val">$15,000</div></div>
             <div class="w2f"><div class="wf-box">BOX 16</div><div class="wf-label">州税代扣</div><div class="wf-val">$7,800</div></div>
           </div>
-          <div style="margin-top:10px;padding:9px 11px;background:var(--gbg);border-radius:8px;font-size:11px;color:var(--g)">✓ 雇主：Google LLC · EIN 77-0493581 · California</div>
-          <div style="margin-top:8px;padding:9px 11px;background:var(--bluebg);border-radius:8px;font-size:11px;color:var(--blue)">💡 检测到 401(k) 供款 $15,000，已自动计入扣除项</div>
-          <button class="btn pri" style="width:100%;margin-top:12px" onclick="generateReport()">生成 Form 1040 →</button>
+          <div data-w2-note="1" style="margin-top:10px;padding:9px 11px;background:var(--gbg);border-radius:8px;font-size:11px;color:var(--g)">✓ 雇主：Google LLC · EIN 77-0493581 · California（模拟演示数据）</div>
+          <div data-w2-note="1" style="margin-top:8px;padding:9px 11px;background:var(--bluebg);border-radius:8px;font-size:11px;color:var(--blue)">💡 检测到 401(k) 供款 $15,000，已自动计入扣除项（模拟演示数据）</div>
+          <button data-w2-note="1" class="btn pri" style="width:100%;margin-top:12px" onclick="generateReport()">生成 Form 1040 →</button>
         </div>
       </div>
     </div>
@@ -942,7 +942,9 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
 
 <div class="toast" id="toast"></div>
 
-<script src="api.js"></script>
+<script src="api.js?v=m3"></script>
+<script src="copilot.js?v=m3"></script>
+<script src="w2-upload.js?v=m3"></script>
 <script>
 /* ════════ 类型配置（对应链路图逻辑）════════ */
 const TYPES = {
@@ -2406,7 +2408,7 @@ function toggleChat(){
 }
 function initCopilot(){
   document.getElementById('cpMsgs').innerHTML='';
-  addMsg('你好 👋 我是 TaxGlobal Copilot，由<b>我们自有的税务模型</b>驱动，答案全部检索自<b>自有税务知识库</b>——速度快、附法条、可审计。问我任何税务问题吧。','ai');
+  addMsg('你好 👋 我是 TaxGlobal Copilot。<b>所有金额由规则引擎计算</b>、知识答案检索自税务知识库，AI 只负责理解问题和组织语言，每个数字都经过核查、可审计。问我任何税务问题吧。','ai');
   setCopilotContext('dash');
 }
 function setCopilotContext(tab){
@@ -2469,17 +2471,39 @@ function kbAnswer(q){
   const lower=q.toLowerCase();
   if(/方案|规划|计划|整体|安排|怎么省|节税|plan|strategy|optimi/i.test(q)) return {a:planReply(), src:'跨身份规划引擎'};
   for(const [kws,src,a] of KB){ if(kws.some(k=>lower.includes(k.toLowerCase())||q.includes(k))) return {a,src}; }
-  return {a:`关于"${q}"——结合你的档案（${profileBrief()}）来看，税务结论因管辖区而异。建议在对应功能页输入参数获取精确数字，每项结论都可追溯到法条 <span class="cp-cite">可审计</span>。想要我给一份覆盖你全部身份的整体方案吗？`, src:'通用税务条目'};
+  const safeQ=(window.TaxGlobalCopilot&&TaxGlobalCopilot.escapeHtml)?TaxGlobalCopilot.escapeHtml(q):q.replace(/[<>&"']/g,'');
+  return {a:`关于"${safeQ}"——结合你的档案（${profileBrief()}）来看，税务结论因管辖区而异。建议在对应功能页输入参数获取精确数字，每项结论都可追溯到法条 <span class="cp-cite">可审计</span>。想要我给一份覆盖你全部身份的整体方案吗？`, src:'通用税务条目'};
 }
 function handleQ(q){
-  addMsg(q,'u'); chatHistory.push({role:'user',content:q});
+  addMsg(TaxGlobalCopilot.escapeHtml(q),'u'); chatHistory.push({role:'user',content:q});
   addTyping();
-  // 模拟自有知识库的毫秒级检索
-  setTimeout(()=>{
-    const {a,src}=kbAnswer(q);
-    removeTyping(); addMsg(a,'ai',src);
-    chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,'')});
-  }, 420);
+  // 整体方案类问题仍由前端规划引擎回答（基于本地档案的演示估算，后端暂无此能力）。
+  // 仅当是纯方案类问题（不含具体算税意图/金额）时才走本地规划，避免劫持引擎可答的问题。
+  const isPlanQ=/方案|规划|整体|安排|怎么省|节税|plan|strategy|optimi/i.test(q);
+  const isCalcQ=/所得税|税额|交多少税|算|计算|多少钱|\d/.test(q);
+  if(isPlanQ && !isCalcQ){
+    setTimeout(()=>{
+      const a=planReply();
+      removeTyping(); addMsg(a,'ai','规划演示（本地档案估算，非引擎核查数字）');
+      chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,''),local:true});
+    },420);
+    return;
+  }
+  // M3.5: 真后端 — 规则引擎计算 + GraphRAG 检索 + (可选) LLM 表达, SSE 流式返回。
+  // 多轮记忆: 把当前消息之前的对话一起发给后端做查询改写。
+  TaxGlobalCopilot.ask(q,{
+    history: chatHistory.slice(0,-1),
+    removeTyping: removeTyping,
+    onDone: function(plainText){
+      chatHistory.push({role:'assistant',content:plainText});
+    },
+    onUnavailable: function(){
+      // 后端不可达 → 退回本地演示知识库，并明确标注离线。
+      const {a,src}=kbAnswer(q);
+      removeTyping(); addMsg(a,'ai','离线演示 · '+src);
+      chatHistory.push({role:'assistant',content:a.replace(/<[^>]+>/g,''),local:true});
+    },
+  });
 }
 function sendMsg(){const v=document.getElementById('cpInp').value.trim();if(!v)return;document.getElementById('cpInp').value='';handleQ(v);}
 function askCopilot(q){ if(!chatOpen) toggleChat(); setTimeout(()=>handleQ(q),chatOpen?0:350); }

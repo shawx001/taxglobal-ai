@@ -176,23 +176,23 @@ python -m ruff check engine backend tests
 
 **交付**：
 - `backend/guardrail/fact_checker.py` — 新增
-  - `check_response_fidelity(llm_response: str, engine_result: dict) → FactCheckResult`
-  - 5 步验证：
-    1. **数字匹配**：提取 LLM 响应中所有 $ 金额，比对引擎输出
-    2. **来源追溯**：引用的来源 ID 必须在引擎 citations 中存在
-    3. **无幻觉金额**：LLM 响应中出现的金额，引擎输出中不存在 → 告警
-    4. **无虚假建议**：不得包含"建议投资/买保险/开公司"等越界内容
-    5. **合规检查**：不得包含"保证/确定/一定"等绝对性表述
-  - 结果：PASS / WARN（轻微偏差，附注释）/ BLOCK（金额篡改，返回引擎原始结果）
-- `backend/guardrail/validator.py` 修改 — 集成 fact-checker
+  - `check_response_fidelity(answer_text: str, answer: dict, sources: list) → FactCheckResult`
+  - 验证逻辑（实际实现比原计划更严格）：
+    1. **数字匹配**：提取 LLM 响应中所有金额（$/中文格式/USD/k 后缀），与引擎输出 Decimal 逐分比对
+    2. **篡改与幻觉金额一律 BLOCK**（不是 WARN）：任何引擎输出中不存在的金额 → 丢弃整段文本，fail-closed
+    3. **无虚假建议**：包含"建议投资/买保险/开公司"等越界内容 → WARN
+    4. **合规检查**：包含"保证/一定能"等绝对性表述 → WARN
+    5. **来源提示**：有来源但文本未引用 → WARN
+  - 结果：PASS / WARN（附注释不拦截）/ BLOCK（丢弃 answer_text，保留 M2 模板）
+- 集成点为 `backend/orchestrator/nodes.py`（`answer_text` 在 format_node 产生，就地核查），**不是** `validator.py`（那是引擎路径的 guardrail，保持不动）
 
 **测试**：
 - `test_m3_4_fact_checker.py`
   - 正常响应 → PASS
   - 金额被修改 $24,734 → $24,700 → BLOCK
-  - 凭空出现引擎没有的金额 → WARN
+  - 凭空出现引擎没有的金额 → BLOCK（fail-closed）
   - 包含"保证"→ WARN
-  - 来源 ID 不存在 → WARN
+  - 来源未引用 → WARN
 
 **状态**：🚧 PR 进行中（codex/m3-4-fact-checker）。实现说明：新增 `backend/guardrail/fact_checker.py`，用 Decimal 归一化比对 LLM `answer_text` 中所有 `$` 金额与结构化引擎输出；金额不匹配则 fail-closed 丢弃 LLM 文本，WARN 仅附注不拦截。
 
@@ -224,7 +224,7 @@ python -m ruff check engine backend tests
   - 流式输出包含 intent + answer + sources
   - `ENABLE_LLM=false` → 降级到同步 JSON 响应
 
-**状态**：🔲 未开始
+**状态**：✅ 本地完成（branch m3/local-completion，多agent评审通过）。实现说明：`POST /api/assistant/stream` 始终 SSE（flag 关闭时无 text 事件，`/query` 保持纯 JSON）；**fact-check 完成后才开始流式**（不转发原始 LLM token），通过的 `answer_text` 重新切块给前端打字效果；前端复用原型已有聊天壳（`frontend/copilot.js` 为新传输层，全部动态文本 HTML 转义），假大脑 KB 仅作"离线演示"兜底；tax_year 未显式传时从问题文本解析（"2025年…"→2025 规则）；审计中间件新增 SSE 响应重建（meta+answer 入审计，action=assistant:stream）。测试文件实际为 `test_m3_5_stream.py`，13 个测试。
 
 ---
 
@@ -267,7 +267,7 @@ python -m ruff check engine backend tests
   - 缺失字段标记为 null + 置信度 0
   - PII 测试：上传请求日志不含图片原始数据
 
-**状态**：🔲 未开始
+**状态**：✅ 本地完成（branch m3/local-completion，多agent评审通过：1 Blocker + 8 Major 全修）。实现说明：`backend/llm/vision.py`（OpenAI 兼容 vision 调用 + 全防御解析，金额 ROUND_HALF_UP、严格千分位、SSN 结构性不可提取）；`extract_w2` Skill 注册但 `expose_via_api=False`（vision 输出非引擎真相，不走通用 skills 路由的 guardrail，仅 `/api/documents/extract-w2`）；图片三重防泄漏（不入日志/不入审计-含嵌套兜底/不落盘，openai+httpx 日志钉 WARNING）；前端真实上传 + 低置信度警示 + 一键填入计算器，模拟演示明确标注。`TAXGLOBAL_VISION_MODEL` 默认空=关闭。**2026-06-11 实测：api.deepseek.com（v4-flash/v4-pro）不接受 image_url 输入——官方端点无视觉能力**；Shaw 原拍板"用 DeepSeek"前提不成立，待二次决策：(a) 第三方托管的 DeepSeek-VL（如 SiliconFlow，需新账号 key，图片经其服务器）或 (b) OpenAI GPT-4o（需 OpenAI key）。决策前 W-2 识别保持禁用（503 诚实提示）。路由文件实际为 `backend/routes/documents.py`。
 
 ---
 
@@ -292,7 +292,7 @@ python -m ruff check engine backend tests
   - CacheAligner prefix 稳定性测试
   - Token 计数器准确性
 
-**状态**：🔲 未开始
+**状态**：✅ 本地完成（branch m3/local-completion，多agent评审通过：1 Blocker + 多个 Major 全修）。实现说明：`token_optimizer.py`（知识路径 chunk 压缩——截断永不切断金额中间、引擎数字零压缩；token 估算器 tiktoken/CJK 启发式）；`usage_tracker.py`（线程安全按日×模型聚合 + Decimal 成本估算，定价 env 可覆写且解析防御——配置打错字不会拖垮引擎；vision 调用也计入）；`GET /api/admin/llm-usage`（复用 X-Admin-Token 鉴权，仅计数无内容）。CacheAligner 以"系统提示词=常量模块字符串置于消息首位"实现，无独立模块。**挂账：/api/assistant/* 无限流，单条消息最多 5 次 LLM 调用，公网部署前必须加 per-IP 限流（M4）**。
 
 ---
 
@@ -304,9 +304,9 @@ python -m ruff check engine backend tests
 | **M3.2** | LLM 意图分类 | M3.1 | 1 天 | ✅ PR #67 |
 | **M3.3** | LLM 自然语言响应 | M3.1 | 1 天 | ✅ PR #69 |
 | **M3.4** | Fact-checker Guardrail | M3.3 | 1 天 | 🚧 |
-| **M3.5** | 前端 Copilot 聊天 UI | M3.2 + M3.3 + M3.4 | 2 天 | 🔲 |
-| **M3.6** | W-2 拍照识别 | M3.1 | 2 天 | 🔲 |
-| **M3.7** | Token 优化 + 成本监控 | M3.1 | 1 天 | 🔲 |
+| **M3.5** | 前端 Copilot 聊天 UI | M3.2 + M3.3 + M3.4 | 2 天 | ✅ 本地 |
+| **M3.6** | W-2 拍照识别 | M3.1 | 2 天 | ✅ 本地 |
+| **M3.7** | Token 优化 + 成本监控 | M3.1 | 1 天 | ✅ 本地 |
 
 **总计：~9 个工作日**
 

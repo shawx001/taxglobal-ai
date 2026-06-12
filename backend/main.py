@@ -24,11 +24,16 @@ from backend.knowledge.tips_routes import router as tips_router
 from backend.orchestrator.routes import router as orchestrator_router
 from backend.profiles.routes import router as profiles_router
 from backend.routes.calc import router as calc_router
+from backend.routes.documents import router as documents_router
 from backend.skills.routes import router as skills_router
 from engine.rules_loader import RuleLoadError, load_rule_file
 
 logger = logging.getLogger("taxglobal.api")
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+# SDK debug logging can dump full request payloads (including W-2 image data
+# URLs) — pin these above INFO regardless of the root level.
+logging.getLogger("openai").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 DEFAULT_DEV_CORS_ORIGINS = [
     "http://127.0.0.1",
@@ -176,6 +181,7 @@ def create_app() -> FastAPI:
     app.include_router(profiles_router)
     app.include_router(skills_router)
     app.include_router(orchestrator_router)
+    app.include_router(documents_router)
     app.include_router(audit_router)
 
     @app.get("/api/states", response_model=None)

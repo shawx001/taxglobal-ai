@@ -365,7 +365,11 @@ class M2CrossComponentIntegration(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
 
     def test_skills_list_endpoint(self) -> None:
-        """GET /api/skills lists all 5 registered skills."""
+        """GET /api/skills lists the 5 public calculation skills.
+
+        extract_w2 is registered but intentionally NOT exposed here — vision
+        output is not engine truth, so it is served via /api/documents.
+        """
         with TestClient(create_app()) as client:
             resp = client.get("/api/skills")
 

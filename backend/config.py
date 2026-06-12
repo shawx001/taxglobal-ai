@@ -48,3 +48,12 @@ LLM_TIMEOUT: float = _env_float("TAXGLOBAL_LLM_TIMEOUT", 30.0)
 LLM_FAILOVER_PROVIDER: str = _env("TAXGLOBAL_LLM_FAILOVER_PROVIDER", "openai")
 LLM_FAILOVER_API_KEY: str = _env("TAXGLOBAL_LLM_FAILOVER_API_KEY", "")
 LLM_FAILOVER_MODEL: str = _env("TAXGLOBAL_LLM_FAILOVER_MODEL", "gpt-4o-mini")
+
+# === M3.6: Vision (W-2 OCR) ===
+# Empty model = vision disabled. Uses the same provider credentials as the
+# text LLM ("mock" provider enables the deterministic test extractor).
+VISION_MODEL: str = _env("TAXGLOBAL_VISION_MODEL", "")
+
+# === M3.7: LLM cost tracking (USD per 1M tokens, env-overridable) ===
+LLM_PRICE_INPUT_MTOK: str = _env("TAXGLOBAL_LLM_PRICE_INPUT_MTOK", "0.14")
+LLM_PRICE_OUTPUT_MTOK: str = _env("TAXGLOBAL_LLM_PRICE_OUTPUT_MTOK", "0.28")

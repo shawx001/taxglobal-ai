@@ -31,6 +31,8 @@ def _extract_action(method: str, path: str) -> str:
         skill_name = path.removeprefix("/api/skills/").split("/", 1)[0]
         return f"skill:{skill_name}" if skill_name else "skill:list"
     if path.startswith("/api/assistant/"):
+        if normalized.endswith("/stream"):
+            return "assistant:stream"
         return "assistant:query"
     if normalized == "/api/tips":
         return "tips:list"
@@ -163,7 +165,20 @@ def _schedule_log(
 
 def _request_payload(method: str, request_body: bytes, query_string: bytes) -> dict[str, Any] | None:
     if method in {"POST", "PUT", "PATCH"}:
-        return _json_payload(request_body)
+        payload = _json_payload(request_body)
+        if payload is not None:
+            # W-2 photos (M3.6) must never land in the audit store — the
+            # image itself is PII (SSN/name are printed on the form).
+            if "image_base64" in payload:
+                payload = dict(payload)
+                payload["image_base64"] = "[image redacted]"
+            # Chat history re-sends the whole conversation every turn; the
+            # current query is already captured, so persisting history would
+            # store the same PII N times for an N-turn chat.
+            if isinstance(payload.get("history"), list):
+                payload = dict(payload)
+                payload["history"] = f"[{len(payload['history'])} messages elided]"
+        return payload
     if not query_string:
         return None
     try:
@@ -173,7 +188,40 @@ def _request_payload(method: str, request_body: bytes, query_string: bytes) -> d
     return {key: values[0] if len(values) == 1 else values for key, values in parsed.items()}
 
 
+def _sse_payload(raw_body: bytes) -> dict[str, Any] | None:
+    """Reconstruct an auditable payload from an assistant SSE stream body.
+
+    The ``meta`` and ``answer`` events carry the engine-truth content the
+    audit trail must preserve (M2.9 guarantee); LLM text deltas are not
+    re-assembled — the fact-check verdict in ``meta`` covers them.
+    """
+
+    try:
+        text = raw_body.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+    payload: dict[str, Any] = {}
+    for block in text.split("\n\n"):
+        name = ""
+        data = ""
+        for line in block.split("\n"):
+            if line.startswith("event: "):
+                name = line[len("event: "):]
+            elif line.startswith("data: "):
+                data = line[len("data: "):]
+        if name in {"meta", "answer"} and data:
+            try:
+                payload[name] = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+    return payload or None
+
+
 def _response_payload(path: str, response_body: bytes) -> dict[str, Any] | None:
+    if response_body.lstrip().startswith(b"event:"):
+        sse = _sse_payload(response_body)
+        if sse is not None:
+            return sse
     payload = _json_payload(response_body)
     if path.startswith("/api/admin/audit") and payload is not None:
         # Only summarize successful responses (those with a "records" list).

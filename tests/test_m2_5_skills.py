@@ -45,10 +45,10 @@ class TestSkillBase(unittest.TestCase):
 
 
 class TestSkillRegistry(unittest.TestCase):
-    def test_registry_has_five_skills(self) -> None:
+    def test_registry_has_six_skills(self) -> None:
         from backend.skills.registry import get_all_skills
 
-        self.assertEqual(len(get_all_skills()), 5)
+        self.assertEqual(len(get_all_skills()), 6)
 
     def test_registry_skill_names(self) -> None:
         from backend.skills.registry import get_all_skills
@@ -60,6 +60,7 @@ class TestSkillRegistry(unittest.TestCase):
                 "assess_feie",
                 "calculate_income_tax",
                 "detect_nexus",
+                "extract_w2",
                 "track_crypto",
             ],
         )
@@ -208,6 +209,8 @@ class TestSkillRoutes(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.json()
+        # extract_w2 is registered but NOT exposed via the generic API
+        # (vision output bypasses the calc-engine guardrail) — 5 public.
         self.assertEqual(body["total"], 5)
         self.assertEqual(len(body["skills"]), 5)
         for skill in body["skills"]:

@@ -35,7 +35,9 @@ def init_llm() -> None:
     model = config.LLM_MODEL
 
     if provider_name == "mock":
-        _provider = MockProvider()
+        from backend.llm.usage_tracker import TrackedProvider
+
+        _provider = TrackedProvider(MockProvider())
         logger.info("LLM provider: mock")
         return
 
@@ -67,7 +69,11 @@ def init_llm() -> None:
         _provider = None
         return
 
-    _provider = SanitizedProvider(inner)
+    from backend.llm.usage_tracker import TrackedProvider
+
+    # Order matters: sanitize first (innermost call sees clean messages),
+    # track outermost so every call is counted exactly once.
+    _provider = TrackedProvider(SanitizedProvider(inner))
     logger.info("LLM provider: %s (model=%s, base_url=%s)", provider_name, model, base_url or "default")
 
 

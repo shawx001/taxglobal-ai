@@ -204,7 +204,7 @@
     if (!fileInput) {
       fileInput = document.createElement("input");
       fileInput.type = "file";
-      fileInput.accept = "image/jpeg,image/png,image/webp";
+      fileInput.accept = "image/jpeg,image/png,image/webp,application/pdf";
       fileInput.style.display = "none";
       fileInput.addEventListener("change", function () {
         if (fileInput.files && fileInput.files[0]) extract(fileInput.files[0]);

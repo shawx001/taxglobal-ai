@@ -30,7 +30,11 @@ logger = logging.getLogger("taxglobal.llm")
 # Decoded image size cap (8 MB) — defends the API and the vision bill.
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
-_ALLOWED_MEDIA_TYPES = {"image/jpeg", "image/png", "image/webp"}
+_ALLOWED_MEDIA_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
+
+# Render scale for PDF page 1 → PNG: W-2 PDFs are letter-size; 2x gives
+# the vision model legible box text without ballooning the payload.
+_PDF_RENDER_SCALE = 2.0
 
 # W-2 amount boxes we extract. box15_state is a 2-letter state code.
 W2_AMOUNT_BOXES = ("box1", "box2", "box3", "box4", "box5", "box6", "box16", "box17")
@@ -86,11 +90,25 @@ def set_mock_extractor(extractor: MockVisionExtractor | None) -> None:
     _mock_extractor = extractor
 
 
+def _vision_credentials() -> tuple[str, str | None]:
+    """(api_key, base_url) for the vision provider, falling back to the
+    text-LLM credentials when no dedicated vision config is set."""
+
+    api_key = config.VISION_API_KEY or config.LLM_API_KEY
+    if config.VISION_BASE_URL:
+        return api_key, config.VISION_BASE_URL
+    from backend.llm.client import DEEPSEEK_BASE_URL
+
+    base_url = config.LLM_BASE_URL or (DEEPSEEK_BASE_URL if config.LLM_PROVIDER == "deepseek" else None)
+    return api_key, base_url
+
+
 def is_vision_available() -> bool:
     if _mock_extractor is not None:
         return True
     # Real calls need a key — the "mock" text provider has no vision path.
-    return bool(config.ENABLE_LLM and config.VISION_MODEL and config.LLM_API_KEY)
+    api_key, _ = _vision_credentials()
+    return bool(config.ENABLE_LLM and config.VISION_MODEL and api_key)
 
 
 def _vision_complete(image_base64: str, media_type: str) -> str | None:
@@ -102,10 +120,8 @@ def _vision_complete(image_base64: str, media_type: str) -> str | None:
     try:
         from openai import OpenAI
 
-        from backend.llm.client import DEEPSEEK_BASE_URL
-
-        base_url = config.LLM_BASE_URL or (DEEPSEEK_BASE_URL if config.LLM_PROVIDER == "deepseek" else None)
-        client = OpenAI(api_key=config.LLM_API_KEY, base_url=base_url, timeout=config.LLM_TIMEOUT)
+        api_key, base_url = _vision_credentials()
+        client = OpenAI(api_key=api_key, base_url=base_url, timeout=config.LLM_TIMEOUT)
         response = client.chat.completions.create(
             model=config.VISION_MODEL,
             messages=[
@@ -163,7 +179,44 @@ def validate_image(image_base64: str, media_type: str) -> str | None:
         return "empty_image"
     if len(decoded) > MAX_IMAGE_BYTES:
         return "image_too_large"
+    if media_type == "application/pdf" and not decoded.startswith(b"%PDF"):
+        return "invalid_pdf"
     return None
+
+
+def pdf_first_page_to_png(pdf_base64: str) -> str | None:
+    """Render page 1 of a W-2 PDF to PNG base64 (in memory, never on disk).
+
+    Returns ``None`` on any failure (corrupt PDF, renderer unavailable,
+    oversized render) so the caller reports a structured error. W-2 forms
+    live on page 1; extra pages (instructions/copies) are ignored.
+    """
+
+    try:
+        import io
+
+        import pypdfium2
+
+        pdf_bytes = base64.b64decode(pdf_base64, validate=True)
+        document = pypdfium2.PdfDocument(pdf_bytes)
+        try:
+            if len(document) < 1:
+                return None
+            page = document[0]
+            bitmap = page.render(scale=_PDF_RENDER_SCALE)
+            image = bitmap.to_pil()
+            buffer = io.BytesIO()
+            image.save(buffer, format="PNG")
+        finally:
+            document.close()
+        png_bytes = buffer.getvalue()
+        if not png_bytes or len(png_bytes) > MAX_IMAGE_BYTES:
+            return None
+        return base64.b64encode(png_bytes).decode("ascii")
+    except Exception as exc:
+        # Never log document content — type name only (PII discipline).
+        logger.warning("PDF render failed (error=%s)", type(exc).__name__)
+        return None
 
 
 # Commas are stripped ONLY when they form valid US thousands grouping —

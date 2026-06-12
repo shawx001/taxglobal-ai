@@ -37,7 +37,12 @@ class ExtractW2(TaxSkill):
     expose_via_api: ClassVar[bool] = False
 
     def _execute_engine(self, params: dict[str, Any]) -> dict[str, Any]:
-        from backend.llm.vision import extract_w2_fields, is_vision_available, validate_image
+        from backend.llm.vision import (
+            extract_w2_fields,
+            is_vision_available,
+            pdf_first_page_to_png,
+            validate_image,
+        )
 
         if not is_vision_available():
             return {"status": "vision_unavailable", "reason": "Vision model is not configured."}
@@ -47,6 +52,12 @@ class ExtractW2(TaxSkill):
         input_error = validate_image(image_base64, media_type)
         if input_error is not None:
             return {"status": "invalid_input", "reason": input_error}
+
+        if media_type == "application/pdf":
+            rendered = pdf_first_page_to_png(image_base64)
+            if rendered is None:
+                return {"status": "invalid_input", "reason": "pdf_render_failed"}
+            image_base64, media_type = rendered, "image/png"
 
         extracted = extract_w2_fields(image_base64, media_type)
         if extracted is None:

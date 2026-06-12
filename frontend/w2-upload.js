@@ -87,7 +87,7 @@
     var note = document.createElement("div");
     note.setAttribute("data-w2-note", "1");
     note.setAttribute("style", "margin-top:10px;padding:9px 11px;background:var(--gbg);border-radius:8px;font-size:11px;color:var(--g)");
-    note.textContent = "✓ 识别完成 — 请逐项核对后再填入计算器；图片未被存储。";
+    note.textContent = "✓ 识别完成 — 请逐项核对后再填入计算器；文件未被存储。";
     preview.appendChild(note);
     if (lowConfidence.length) {
       var warn = document.createElement("div");
@@ -150,12 +150,12 @@
   function extract(file) {
     if (!file || busy) return;
     if (file.size > MAX_FILE_BYTES) {
-      showError("图片超过 8MB 上限，请压缩后重试。");
+      showError("文件超过 8MB 上限，请压缩后重试。");
       return;
     }
     busy = true;
     function finishBusy() { busy = false; }
-    setProgress("读取图片…", 15);
+    setProgress("读取文件…", 15);
     var reader = new FileReader();
     reader.onerror = function () { showError("无法读取这个文件。"); finishBusy(); };
     reader.onload = function () {
@@ -163,7 +163,7 @@
       var comma = dataUrl.indexOf(",");
       var base64 = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
       var mediaType = file.type || "image/jpeg";
-      setProgress("AI 识别中（图片不会被存储）…", 55);
+      setProgress("AI 识别中（文件不会被存储）…", 55);
       window.fetch(API_BASE_URL + "/api/documents/extract-w2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -204,7 +204,7 @@
     if (!fileInput) {
       fileInput = document.createElement("input");
       fileInput.type = "file";
-      fileInput.accept = "image/jpeg,image/png,image/webp";
+      fileInput.accept = "image/jpeg,image/png,image/webp,application/pdf";
       fileInput.style.display = "none";
       fileInput.addEventListener("change", function () {
         if (fileInput.files && fileInput.files[0]) extract(fileInput.files[0]);

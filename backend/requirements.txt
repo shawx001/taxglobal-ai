@@ -31,3 +31,9 @@ langgraph-checkpoint==4.1.1
 # === M3: LLM Provider ===
 openai==1.82.0
 tiktoken==0.9.0
+
+# === M3.6: W-2 document handling ===
+# PDF page-1 rendering for W-2 uploads (bundled pdfium binaries, no
+# system poppler needed).
+pypdfium2==5.9.0
+pillow==12.2.0

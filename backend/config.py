@@ -50,9 +50,13 @@ LLM_FAILOVER_API_KEY: str = _env("TAXGLOBAL_LLM_FAILOVER_API_KEY", "")
 LLM_FAILOVER_MODEL: str = _env("TAXGLOBAL_LLM_FAILOVER_MODEL", "gpt-4o-mini")
 
 # === M3.6: Vision (W-2 OCR) ===
-# Empty model = vision disabled. Uses the same provider credentials as the
-# text LLM ("mock" provider enables the deterministic test extractor).
+# Empty model = vision disabled. Vision may run on a DIFFERENT provider
+# than the text LLM (api.deepseek.com has no image support — verified
+# 2026-06-12), so key/base_url are separately configurable and fall back
+# to the text-LLM credentials when unset.
 VISION_MODEL: str = _env("TAXGLOBAL_VISION_MODEL", "")
+VISION_API_KEY: str = _env("TAXGLOBAL_VISION_API_KEY", "")
+VISION_BASE_URL: str = _env("TAXGLOBAL_VISION_BASE_URL", "")
 
 # === M3.7: LLM cost tracking (USD per 1M tokens, env-overridable) ===
 LLM_PRICE_INPUT_MTOK: str = _env("TAXGLOBAL_LLM_PRICE_INPUT_MTOK", "0.14")

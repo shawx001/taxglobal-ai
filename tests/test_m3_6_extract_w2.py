@@ -128,7 +128,7 @@ class TestValidateImage(unittest.TestCase):
         self.assertIsNone(validate_image(_TINY_PNG, "image/png"))
 
     def test_unsupported_media_type(self) -> None:
-        self.assertEqual(validate_image(_TINY_PNG, "application/pdf"), "unsupported_media_type")
+        self.assertEqual(validate_image(_TINY_PNG, "image/gif"), "unsupported_media_type")
 
     def test_invalid_base64(self) -> None:
         self.assertEqual(validate_image("not-base64!!!", "image/png"), "invalid_base64")
@@ -257,6 +257,90 @@ class TestExtractW2Route(unittest.TestCase):
 
         huge = "A" * (MAX_IMAGE_BYTES * 4 // 3 + 100)
         self.assertEqual(validate_image(huge, "image/png"), "image_too_large")
+
+
+_MINIMAL_PDF = base64.b64encode(
+    b"%PDF-1.4\n"
+    b"1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
+    b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
+    b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\n"
+    b"trailer<</Root 1 0 R>>\n"
+).decode("ascii")
+
+
+class TestPdfSupport(unittest.TestCase):
+    """W-2 PDFs: page 1 renders to PNG before vision extraction."""
+
+    def tearDown(self) -> None:
+        set_mock_extractor(None)
+
+    def test_pdf_media_type_accepted_by_validation(self) -> None:
+        self.assertIsNone(validate_image(_MINIMAL_PDF, "application/pdf"))
+
+    def test_non_pdf_bytes_with_pdf_media_type_rejected(self) -> None:
+        self.assertEqual(validate_image(_TINY_PNG, "application/pdf"), "invalid_pdf")
+
+    def test_pdf_with_leading_bytes_accepted(self) -> None:
+        """Real-world PDFs may carry bytes before %PDF (spec: scan 1KB)."""
+        with_bom = base64.b64encode(b"\xef\xbb\xbf\n" + base64.b64decode(_MINIMAL_PDF)).decode("ascii")
+        self.assertIsNone(validate_image(with_bom, "application/pdf"))
+
+    def test_pdf_first_page_renders_to_png(self) -> None:
+        from backend.llm.vision import pdf_first_page_to_png
+
+        rendered = pdf_first_page_to_png(_MINIMAL_PDF)
+        self.assertIsNotNone(rendered)
+        self.assertTrue(base64.b64decode(rendered).startswith(b"\x89PNG"))
+
+    def test_corrupt_pdf_render_returns_none(self) -> None:
+        from backend.llm.vision import pdf_first_page_to_png
+
+        corrupt = base64.b64encode(b"%PDF-1.4 garbage no objects").decode("ascii")
+        self.assertIsNone(pdf_first_page_to_png(corrupt))
+
+    def test_skill_converts_pdf_before_extraction(self) -> None:
+        """The vision model must receive a PNG, never the raw PDF."""
+        from backend.llm import vision
+        from backend.skills.registry import get_skill
+
+        captured = {}
+
+        class CapturingExtractor(MockVisionExtractor):
+            def complete_vision(self, image_base64: str, media_type: str) -> str | None:
+                captured["media_type"] = media_type
+                captured["is_png"] = base64.b64decode(image_base64).startswith(b"\x89PNG")
+                return _w2_json()
+
+        vision.set_mock_extractor(CapturingExtractor())
+        result = get_skill("extract_w2").invoke(
+            {"image_base64": _MINIMAL_PDF, "media_type": "application/pdf"}
+        )
+        self.assertEqual(result["result"]["status"], "ok")
+        self.assertEqual(captured["media_type"], "image/png")
+        self.assertTrue(captured["is_png"])
+
+    def test_route_accepts_pdf(self) -> None:
+        extractor = MockVisionExtractor()
+        extractor.enqueue(_w2_json())
+        set_mock_extractor(extractor)
+        client = TestClient(create_app())
+        response = client.post(
+            "/api/documents/extract-w2",
+            json={"image_base64": _MINIMAL_PDF, "media_type": "application/pdf"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["fields"]["box1"]["value"], "85000.00")
+
+    def test_route_rejects_corrupt_pdf(self) -> None:
+        set_mock_extractor(MockVisionExtractor(default_response=_w2_json()))
+        client = TestClient(create_app())
+        corrupt = base64.b64encode(b"%PDF-1.4 garbage no objects").decode("ascii")
+        response = client.post(
+            "/api/documents/extract-w2",
+            json={"image_base64": corrupt, "media_type": "application/pdf"},
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()["error"]["message"], "pdf_render_failed")
 
 
 if __name__ == "__main__":

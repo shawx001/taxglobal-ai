@@ -159,9 +159,11 @@ class TestFormatNodeLLMText(unittest.TestCase):
             provider = MockProvider()
             provider.enqueue("乱改的数字 $99,999.00")
             mock_get_provider.return_value = provider
-            result = format_node(_skill_state())
+            with self.assertLogs("taxglobal.orchestrator", level="WARNING"):
+                result = format_node(_skill_state())
             self.assertEqual(result["response"]["answer"]["data"]["total_tax"], "24734.00")
             self.assertEqual(result["response"]["sources"], ["IRS Rev. Proc. 2024-40"])
+            self.assertNotIn("answer_text", result["response"])
         finally:
             cfg.ENABLE_LLM = original
 

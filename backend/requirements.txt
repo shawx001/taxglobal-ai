@@ -12,7 +12,10 @@ asyncpg==0.31.0
 neo4j==5.28.4
 
 # Chroma (vector store)
-chromadb==0.6.3
+# 0.6.x depends on chroma-hnswlib, which ships no Windows cp312 wheel and
+# fails to build without MSVC; 1.x uses Rust bindings with full wheel
+# coverage and a compatible PersistentClient API (verified 2026-06-11).
+chromadb==1.5.9
 
 # Embedding (local inference)
 sentence-transformers==5.5.1

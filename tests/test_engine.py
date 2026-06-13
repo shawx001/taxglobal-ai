@@ -712,7 +712,11 @@ class EngineTests(unittest.TestCase):
             92_915,
         )
 
-    def test_state_taxable_base_federal_tax_subtraction_from_federal_taxable_income(self):
+    def test_state_taxable_base_or_uses_federal_agi_minus_std_and_federal_tax_subtraction(self):
+        # Oregon Form OR-40 starts from federal AGI, then subtracts the Oregon
+        # standard deduction and the (phased-out) federal tax liability subtraction.
+        # It does NOT start from federal taxable income, so the federal_taxable_income
+        # argument below is deliberately distinct and must be ignored.
         oregon = load_state_rules(2025)["states"]["OR"]
 
         self.assertEqual(
@@ -725,7 +729,9 @@ class EngineTests(unittest.TestCase):
                 filing="single",
                 federal_income_tax=13_614,
             ),
-            76_500,
+            # 100_000 federal AGI - 2_835 OR standard deduction - 8_500 federal tax
+            # liability subtraction (min(13_614, 8_500)) = 88_665.
+            88_665,
         )
 
     def test_income_tax_summary_or_w2_uses_federal_tax_subtraction(self):
@@ -744,14 +750,17 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(result["result"]["total_tax"], 28_268.19)
         self.assertIn("State federal-tax subtraction", "\n".join(result["assumptions"]))
 
-    def test_income_tax_summary_or_2025_subtracts_federal_tax_from_federal_taxable_income(self):
+    def test_income_tax_summary_or_2025_uses_federal_agi_base(self):
+        # 2025 Oregon now matches 2026: federal AGI minus OR standard deduction minus
+        # the federal tax liability subtraction (consistent with Form OR-40 and the
+        # rule file's own citation). Only the 2025 federal income tax differs by year.
         result = income_tax_summary(w2_wages=100_000, filing_status="single", state_code="OR", tax_year=2025)
 
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["result"]["federal_income_tax_liability"], 13_614.00)
-        self.assertEqual(result["result"]["state_taxable_base"], 76_500.00)
-        self.assertEqual(result["result"]["state_income_tax"]["tax"], 6_383.75)
-        self.assertEqual(result["result"]["total_tax"], 27_647.75)
+        self.assertEqual(result["result"]["state_taxable_base"], 88_665.00)
+        self.assertEqual(result["result"]["state_income_tax"]["tax"], 7_448.19)
+        self.assertEqual(result["result"]["total_tax"], 28_712.19)
 
     def test_income_tax_summary_state_specific_base_is_not_covered(self):
         result = income_tax_summary(w2_wages=100_000, filing_status="single", state_code="MS", tax_year=2025)

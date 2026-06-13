@@ -978,12 +978,12 @@
         "start_from": "federal_taxable_income",
         "allows_qbi": false,
         "capital_gains_treatment": "ordinary_income",
-        "qbi_addback": true,
+        "qbi_addback": false,
         "citation": "Colorado Individual Income Tax Guide states Colorado income tax is based on federal taxable income and describes a qualified business income deduction addback that may apply.",
         "source_ids": [
           "co_individual_income_tax_guide"
         ],
-        "notes": "Colorado additions/subtractions are not modeled. The QBI addback has statutory conditions, including AGI and entity-specific rules; later engine steps must not treat this flag as a complete unconditional addback model without those inputs."
+        "notes": "Colorado starts from federal taxable income which is post-QBI deduction. No separate QBI addback needed for the base computation. Colorado additions/subtractions are otherwise not modeled."
       },
       "state_parameter_year": 2025
     },
@@ -1333,7 +1333,7 @@
       ],
       "citation": "Mississippi Department of Revenue states the 2025 individual income tax rate is 4.4 percent on taxable income above $10,000.",
       "tax_base": {
-        "start_from": "federal_agi",
+        "start_from": "state_specific",
         "allows_qbi": false,
         "standard_deduction": {
           "single": 8300,
@@ -3686,15 +3686,8 @@
         ]
       },
       "tax_base": {
-        "start_from": "federal_agi",
-        "allows_qbi": false,
-        "standard_deduction": {
-          "single": 12950,
-          "married_filing_jointly": 25900,
-          "married_filing_separately": 12950,
-          "head_of_household": 16750,
-          "qualifying_surviving_spouse": 20600
-        }
+        "start_from": "federal_taxable_income",
+        "allows_qbi": false
       },
       "source_ids": [
         "vt_tax_income_tax_2025"
@@ -4426,7 +4419,7 @@
         ]
       },
       "tax_base": {
-        "start_from": "federal_agi",
+        "start_from": "federal_taxable_income",
         "allows_qbi": false,
         "standard_deduction": {
           "single": 14950,

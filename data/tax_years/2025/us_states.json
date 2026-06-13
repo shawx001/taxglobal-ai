@@ -678,7 +678,7 @@
       "citation": "Oregon Department of Revenue 2025 Form OR-40 instructions, Publication OR-17, and estimated tax instructions list Oregon tax rate charts, standard deductions, and the federal tax liability subtraction AGI phaseout table.",
       "notes": "Full-year resident state income tax approximation only; Oregon additions/subtractions, itemized deductions, exemption credits, kicker, other credits, local taxes, and resident/source allocation are not modeled.",
       "tax_base": {
-        "start_from": "federal_taxable_income",
+        "start_from": "federal_agi",
         "allows_qbi": false,
         "capital_gains_treatment": "ordinary_income",
         "standard_deduction": {

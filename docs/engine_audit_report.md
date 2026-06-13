@@ -7,18 +7,27 @@
 > **Design Spec:** `docs/superpowers/specs/2026-06-09-skill-integration-design.md`
 
 > **STATUS (2026-06-13)**: The PR-1 data fixes (`audit_pr1_data_fixes.md`)
-> were applied to the **2025** data and are live. Two open items remain,
-> tracked and fixed separately (NOT by blindly re-running the old prompt):
-> 1. **2026 (default tax year) divergence** — the structural year-independent
->    fields (CO `qbi_addback`, MN/MS/VT `start_from`, VT std-ded) were never
->    propagated to `data/tax_years/2026/`, so the default path used stale
->    pre-fix values. Being corrected against official sources.
-> 2. **Audit vs Step B2b conflict (OR) + year-dependent rate (IN)** — the
->    prompt's S4 (OR→federal_taxable_income) contradicts the later, officially
->    sourced Step B2b (OR = federal AGI − OR std ded − federal-tax subtraction);
->    and IN's flat rate is a scheduled annual cut (not a fixed value), so the
->    prompt's `0.0305` is suspect. **OpenAccountants is a third-party source,
->    not authoritative** — these are verified against state DOR before any edit.
+> were applied to the **2025** data and are live. Follow-up structural fixes
+> are now also done (tracked separately, NOT by blindly re-running the old prompt):
+> 1. **2026 (default tax year) divergence — RESOLVED.** The structural
+>    year-independent fields were propagated to `data/tax_years/2026/` so the
+>    default path matches the audited-correct 2025 structure: CO `qbi_addback`
+>    → `false`; MN/VT `start_from` → `federal_taxable_income` (VT std-ded removed
+>    as the FTI branch ignores it); MS `start_from` → `state_specific` (the
+>    combined summary now honestly declines instead of computing from federal AGI).
+> 2. **Audit vs Step B2b conflict (OR) — RESOLVED in favour of Step B2b.** The
+>    prompt's S4 (OR→federal_taxable_income) was rejected: Form OR-40 and the rule
+>    file's own citation/notes describe OR = federal AGI − OR std ded − federal-tax
+>    subtraction, and 2026 already used `federal_agi`. **2025 OR `start_from` was
+>    changed `federal_taxable_income` → `federal_agi`**, making both years
+>    consistent (single $100k → state base $88,665, OR tax $7,448.19, verified to
+>    the cent). Two stale OR tests that had codified the FTI behaviour were renamed
+>    and updated to assert the federal-AGI result.
+> 3. **Year-dependent rate (IN) — STILL DEFERRED.** IN's flat rate is a scheduled
+>    annual cut (2024 3.05% / 2025 3.00% / 2026 2.95%), so the prompt's fixed
+>    `0.0305` is wrong as a single value; needs per-year official DOR figures.
+>    Bracket-value discrepancies likewise stay deferred pending official
+>    verification — **OpenAccountants is a third-party source, not authoritative.**
 
 ---
 

@@ -41,6 +41,14 @@ CHROMA_COLLECTION: str = _env("CHROMA_COLLECTION", "tax_knowledge")
 EMBEDDING_MODEL: str = _env("EMBEDDING_MODEL", "BAAI/bge-small-zh-v1.5")
 EMBEDDING_DEVICE: str = _env("EMBEDDING_DEVICE", "cpu")
 
+# === Phase C.1: cross-encoder reranking ===
+# Default on, but degrades silently to vector order when the model is not
+# cached (e.g. CI). Disable explicitly to skip loading the ~1GB model.
+ENABLE_RERANK: bool = _env_bool("TAXGLOBAL_ENABLE_RERANK", True)
+RERANK_MODEL: str = _env("TAXGLOBAL_RERANK_MODEL", "BAAI/bge-reranker-base")
+# Candidate pool retrieved before reranking, then trimmed to top_k.
+RERANK_POOL: int = _env_int("TAXGLOBAL_RERANK_POOL", 20)
+
 ENABLE_POSTGRES: bool = _env_bool("ENABLE_POSTGRES", True)
 ENABLE_NEO4J: bool = _env_bool("ENABLE_NEO4J", True)
 ENABLE_CHROMA: bool = _env_bool("ENABLE_CHROMA", True)

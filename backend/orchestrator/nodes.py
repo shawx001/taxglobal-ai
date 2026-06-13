@@ -426,7 +426,14 @@ def format_node(state: AssistantState) -> dict[str, Any]:
     query = next_state.get("query", "")
     if next_state.get("intent") == INTENT_KNOWLEDGE:
         kb_results = next_state.get("kb_results", {"results": [], "total": 0})
-        answer = {"type": "knowledge", "results": kb_results.get("results", []), "total": kb_results.get("total", 0)}
+        answer = {
+            "type": "knowledge",
+            "results": kb_results.get("results", []),
+            "total": kb_results.get("total", 0),
+            # CRAG retrieval confidence (C.2) — drives honest "no KB entry"
+            # phrasing downstream when low/unknown.
+            "confidence": kb_results.get("query_metadata", {}).get("confidence", "unknown"),
+        }
         response = _base_response(next_state, answer, _sources_from_kb(kb_results))
         return {
             "response": _attach_llm_answer_text(response, query),

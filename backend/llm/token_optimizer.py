@@ -68,4 +68,13 @@ def compress_knowledge_context(answer: dict[str, Any]) -> dict[str, Any]:
             slim["sources"] = item["sources"]
         compressed.append(slim)
 
-    return {"type": "knowledge", "results": compressed, "total": answer.get("total", len(compressed))}
+    slimmed: dict[str, Any] = {
+        "type": "knowledge",
+        "results": compressed,
+        "total": answer.get("total", len(compressed)),
+    }
+    # Preserve the CRAG confidence (C.2) so the knowledge prompt can act on
+    # low/unknown retrieval — compression must not strip this signal.
+    if "confidence" in answer:
+        slimmed["confidence"] = answer["confidence"]
+    return slimmed

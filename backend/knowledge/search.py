@@ -7,7 +7,7 @@ import logging
 from typing import Any
 
 from backend import config
-from backend.knowledge import embedder, neo4j_client, reranker, vector_store
+from backend.knowledge import crag, embedder, neo4j_client, reranker, vector_store
 
 logger = logging.getLogger("taxglobal.knowledge.search")
 
@@ -288,16 +288,21 @@ def hybrid_search(
                 "graph_expansions": 0,
                 "retrieval_method": "none",
                 "reranked": False,
+                "confidence": crag.CONFIDENCE_UNKNOWN,
             },
         }
 
     ranked_hits, reranked = _maybe_rerank(query, vector_hits)
-    # One batched graph query over the pool ids (cheap; UNWIND of <=20 ids).
-    graph_expansions = graph_search([hit["knowledge_id"] for hit in ranked_hits])
+    # CRAG: grade relevance and drop clearly-irrelevant candidates BEFORE the
+    # top_k cap, so the cap keeps top_k *relevant* hits (not the top_k of a
+    # noisy set). No-op (confidence="unknown") when not reranked.
+    confidence, graded_hits = crag.grade_hits(ranked_hits, reranked)
+    # One batched graph query over the graded pool ids (cheap; UNWIND <=20).
+    graph_expansions = graph_search([hit["knowledge_id"] for hit in graded_hits])
     results: list[dict[str, Any]] = []
     seen: set[str] = set()
 
-    for hit in ranked_hits:
+    for hit in graded_hits:
         if len(results) >= clamped_top_k:
             break
         knowledge_id = hit["knowledge_id"]
@@ -338,9 +343,15 @@ def hybrid_search(
                 "related_jurisdictions": related_jurisdictions,
                 "score": hit["score"],
                 "rerank_score": hit.get("rerank_score"),
+                "relevance": hit.get("relevance"),
                 "tax_year": metadata.get("tax_year"),
             }
         )
+
+    # If the no-sources drop in the build loop emptied a graded set, the
+    # label must follow (never "high" with zero results).
+    if not results and confidence != crag.CONFIDENCE_UNKNOWN:
+        confidence = crag.CONFIDENCE_LOW
 
     return {
         "results": results,
@@ -350,5 +361,6 @@ def hybrid_search(
             "graph_expansions": len(graph_expansions),
             "retrieval_method": _retrieval_method(vector_hits, graph_expansions),
             "reranked": reranked,
+            "confidence": confidence,
         },
     }

@@ -51,6 +51,16 @@ RERANK_MODEL: str = _env("TAXGLOBAL_RERANK_MODEL", "BAAI/bge-reranker-base")
 # Candidate pool retrieved before reranking, then trimmed to top_k.
 RERANK_POOL: int = _env_int("TAXGLOBAL_RERANK_POOL", 20)
 
+# === Phase C.2: Corrective RAG relevance grading ===
+# Only active when results were reranked (rerank score = relevance signal).
+# Thresholds are sigmoid([0,1]) of the cross-encoder logit; conservative
+# defaults — calibrate against real queries once the reranker is cached.
+ENABLE_CRAG: bool = _env_bool("TAXGLOBAL_ENABLE_CRAG", True)
+CRAG_RELEVANT: float = _env_float("TAXGLOBAL_CRAG_RELEVANT", 0.5)
+CRAG_AMBIGUOUS: float = _env_float("TAXGLOBAL_CRAG_AMBIGUOUS", 0.2)
+# Guard the band: ambiguous (drop floor) must not exceed relevant (high bar).
+CRAG_AMBIGUOUS = min(CRAG_AMBIGUOUS, CRAG_RELEVANT)
+
 ENABLE_POSTGRES: bool = _env_bool("ENABLE_POSTGRES", True)
 ENABLE_NEO4J: bool = _env_bool("ENABLE_NEO4J", True)
 ENABLE_CHROMA: bool = _env_bool("ENABLE_CHROMA", True)

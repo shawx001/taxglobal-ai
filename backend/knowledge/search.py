@@ -176,8 +176,9 @@ def graph_search(knowledge_ids: list[str]) -> dict[str, dict[str, Any]]:
         return {}
 
     # C.3 multi-hop: aggregate 1-hop facets first (one row per rule), then a
-    # per-rule CALL subquery pulls same-topic sibling rules with a LIMIT so a
-    # popular topic can't explode the result. Arbitrary order within the limit.
+    # per-rule CALL subquery pulls same-topic sibling rules, ORDER BY id +
+    # LIMIT so the set is deterministic and a popular topic can't explode it.
+    # (Relevance ranking by topic-overlap is a future refinement.)
     cypher = """
     UNWIND $ids AS kid
     MATCH (r:TaxRule {id: kid})

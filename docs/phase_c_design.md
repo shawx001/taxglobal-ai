@@ -88,7 +88,7 @@ TAXGLOBAL_RERANK_POOL=20                      # 召回候选池大小（重排�
 - 结果 `related_rules` 字段供前端"相关条目"展示与 LLM 补充上下文（仍只是知识，不参与计算）。
 - 多跳查询加 `LIMIT` 防爆炸；批量单查询（现有模式）；Neo4j 不在线 → 跳过（现有降级）。
 - **本环境 Neo4j 未运行**，C.3 先**设计 + 写代码 + 单元测试（mock run_query）**，真实多跳验证待 Neo4j 起服务（与 W-2 vision 同理：代码就绪、外部依赖待开）。
-- **已实现**（2026-06-12）：`graph_search` 先聚合 1 跳 facet（每规则一行）再 `CALL {}` 子查询取同主题兄弟规则，`WITH DISTINCT related LIMIT $max_related` 封顶（`GRAPH_RELATED_LIMIT` 默认 3）防热门主题爆炸；`related_rules`（`[{id,title}]`）解析进 expansions、透传到每条 result。Neo4j 不在线 → 空扩展（现有降级，`related_rules=[]`）。Cypher 仅 mock 单测覆盖，未对真实 Neo4j 跑过。
+- **已实现**（2026-06-12）：`graph_search` 先聚合 1 跳 facet（每规则一行）再 `CALL {}` 子查询取同主题兄弟规则，`WITH DISTINCT related ORDER BY related.id LIMIT $max_related` 确定性封顶（`GRAPH_RELATED_LIMIT` 默认 3、钳制 [0,20]）防热门主题爆炸；`related_rules`（`[{id,title}]`）解析进 expansions、透传到每条 result。Neo4j 不在线 → 空扩展（现有降级，`related_rules=[]`）。Cypher 仅 mock 单测覆盖，未对真实 Neo4j 跑过。
 
 ### 测试
 

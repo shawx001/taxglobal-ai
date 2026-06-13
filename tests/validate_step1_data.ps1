@@ -458,8 +458,8 @@ if ($states.states.PA.tax_base.start_from -ne "gross_income") {
 if ($states.states.PA.flat_rate -ne 0.0307) {
   throw "Unexpected PA flat_rate"
 }
-if ($states.states.OR.tax_base.start_from -ne "federal_taxable_income") {
-  throw "Oregon tax_base must start from federal_taxable_income"
+if ($states.states.OR.tax_base.start_from -ne "federal_agi") {
+  throw "Oregon tax_base must start from federal_agi"
 }
 if ($states.states.OR.tax_base.standard_deduction.single -ne 2835) {
   throw "Unexpected OR single standard deduction"

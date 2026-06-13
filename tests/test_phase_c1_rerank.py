@@ -165,6 +165,20 @@ class TestHybridSearchRerank(unittest.TestCase):
             search.hybrid_search("q", top_k=3)
         self.assertEqual(captured["top_k"], 20)  # RERANK_POOL
 
+    def test_rerank_pool_honors_config_above_max_top_k(self) -> None:
+        """RERANK_POOL > MAX_TOP_K (20) is honored up to MAX_RERANK_POOL, not
+        silently clipped to 20."""
+        with patch.object(search.reranker, "is_reranker_available", lambda: True):
+            cfg.RERANK_POOL = 50
+            self.assertEqual(search._rerank_pool_size(5), 50)
+            cfg.RERANK_POOL = 999
+            self.assertEqual(search._rerank_pool_size(5), search.MAX_RERANK_POOL)
+
+    def test_rerank_pool_never_below_top_k(self) -> None:
+        with patch.object(search.reranker, "is_reranker_available", lambda: True):
+            cfg.RERANK_POOL = 3
+            self.assertEqual(search._rerank_pool_size(10), 10)
+
 
 if __name__ == "__main__":
     unittest.main()

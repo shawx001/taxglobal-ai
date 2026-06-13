@@ -28,6 +28,12 @@ def init_reranker() -> None:
     if not config.ENABLE_RERANK:
         logger.warning("Reranker disabled via ENABLE_RERANK=false")
         return
+    if not config.ENABLE_CHROMA:
+        # Reranking reorders vector-retrieval results; with Chroma off there is
+        # nothing to rerank, so skip loading the large model (calc-only/store-
+        # disabled deployments).
+        logger.info("Reranker skipped: vector retrieval disabled (ENABLE_CHROMA=false)")
+        return
     try:
         import os
 

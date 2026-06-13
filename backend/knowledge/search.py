@@ -13,14 +13,27 @@ logger = logging.getLogger("taxglobal.knowledge.search")
 
 DEFAULT_TOP_K = 5
 MAX_TOP_K = 20
+# Reranking may retrieve a wider candidate pool than the final top_k cap;
+# bounded separately so a big RERANK_POOL is honored (not silently clipped
+# to MAX_TOP_K) while cross-encoder compute stays bounded.
+MAX_RERANK_POOL = 80
+
+
+def _clamp_pool(n: int) -> int:
+    return max(1, min(MAX_RERANK_POOL, n))
 
 
 def _rerank_pool_size(clamped_top_k: int) -> int:
-    """Candidate count to retrieve before reranking (>= top_k, <= MAX_TOP_K)."""
+    """Candidate count to retrieve before reranking.
+
+    >= top_k so reranking never shrinks the result set, <= MAX_RERANK_POOL
+    so the cross-encoder cost is bounded. RERANK_POOL is honored up to that
+    ceiling. Without reranking, just top_k (no wider retrieval needed).
+    """
 
     if not config.ENABLE_RERANK or not reranker.is_reranker_available():
         return clamped_top_k
-    return max(clamped_top_k, min(MAX_TOP_K, config.RERANK_POOL))
+    return _clamp_pool(max(clamped_top_k, config.RERANK_POOL))
 
 
 def _maybe_rerank(query: str, hits: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], bool]:
@@ -107,7 +120,9 @@ def vector_search(
         embedding = embedder.embed_text(query)
         result = collection.query(
             query_embeddings=[embedding],
-            n_results=_clamp_top_k(top_k),
+            # Clamp to the rerank-pool ceiling (>= MAX_TOP_K) so hybrid_search
+            # can fetch a wider candidate pool for reranking.
+            n_results=_clamp_pool(top_k),
             where=_build_where(filters),
         )
     except Exception as exc:

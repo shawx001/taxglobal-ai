@@ -42,8 +42,10 @@ EMBEDDING_MODEL: str = _env("EMBEDDING_MODEL", "BAAI/bge-small-zh-v1.5")
 EMBEDDING_DEVICE: str = _env("EMBEDDING_DEVICE", "cpu")
 
 # === Phase C.1: cross-encoder reranking ===
-# Default on, but degrades silently to vector order when the model is not
-# cached (e.g. CI). Disable explicitly to skip loading the ~1GB model.
+# Default on, but degrades gracefully to vector order when the model is not
+# cached (e.g. CI logs one load-failure traceback, then falls back). Disable
+# explicitly to skip loading the ~1GB model. Also skipped when ENABLE_CHROMA
+# is false (reranking needs vector retrieval).
 ENABLE_RERANK: bool = _env_bool("TAXGLOBAL_ENABLE_RERANK", True)
 RERANK_MODEL: str = _env("TAXGLOBAL_RERANK_MODEL", "BAAI/bge-reranker-base")
 # Candidate pool retrieved before reranking, then trimmed to top_k.

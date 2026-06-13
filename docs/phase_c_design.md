@@ -36,7 +36,7 @@ query → embedder.embed_text → Chroma.query(top_k, cosine) → (可选 Neo4j 
 
 - 新模块 `backend/knowledge/reranker.py`，镜像 `embedder.py` 的生命周期：`init_reranker()` / `close_reranker()` / `is_reranker_available()` / `rerank(query, passages) → list[float]`。懒加载、`local_files_only`、加载失败优雅降级（与 embedder 完全一致）。
 - 模型：`BAAI/bge-reranker-base`（中英双语 cross-encoder，与现有 `BAAI/bge-small-zh-v1.5` 嵌入器同系，覆盖 zh 查询 + en KB 内容）。可经 `TAXGLOBAL_RERANK_MODEL` 覆写。
-- `vector_search` 召回**更宽的候选池**（`rerank_pool`，默认 `max(top_k*4, 20)`，上限 `MAX_TOP_K*4`）；`hybrid_search` 在向量召回后、图扩展前，对候选 `(query, content)` 跑 cross-encoder，按重排分数排序，再截断到 `top_k`。
+- `vector_search` 召回**更宽的候选池**：池大小 = `min(MAX_RERANK_POOL, max(top_k, RERANK_POOL))`，其中 `RERANK_POOL` 默认 20、`MAX_RERANK_POOL=80`（与最终 `top_k` 上限 `MAX_TOP_K=20` 解耦，使 `RERANK_POOL>20` 真正生效而非被静默裁到 20，同时把 cross-encoder 计算量封顶）。`hybrid_search` 在向量召回后、图扩展前，对候选 `(query, content)` 跑 cross-encoder，按重排分数排序，再截断到 `top_k`。
 - **降级**：`ENABLE_RERANK=true`（默认开，但模型不可用即静默回退到向量序——CI 无模型时自动走这条，测试不破）。`ENABLE_RERANK=false` 时完全走原向量路径，零行为变化。
 - 重排分数写进结果 `rerank_score` 字段，`query_metadata.reranked: bool` 标记是否实际重排过。原 `score`（向量 cosine）保留，供对照/审计。
 

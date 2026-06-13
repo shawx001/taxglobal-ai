@@ -65,6 +65,8 @@ M3 + Phase C 已交付。候选下一步:
 2. **打通外部依赖看真实效果**:起 Neo4j(Docker)验 C.3 真实多跳;或确认 vision 供应商(OpenAI 数据出境 vs 境内 SiliconFlow)。
 3. **M4**:训练闭环(Trace 回流 + LoRA + Eval Harness)+ 计划书原 M3 推迟的连接器(OAuth/Shopify/Amazon)。
 4. **挂账清理**:见 §6 backlog + Phase 1 PR2/PR3 数据补全。
+   - ✅ **结构性数据挂账已清(PR #85, 2026-06-13)**:把审计 PR-1 的"计税方法"字段补到 **2026 默认税年**(CO `qbi_addback`→false、VT/MN `start_from`→federal_taxable_income+VT 删 std_ded、MS→state_specific),并修正 **2025 OR** `start_from`→federal_agi(否决审计 S4,采 Step B2b/OR-40;单 $100k→州税基 88,665、OR 税 7,448.19,到分核过)。**全部 51 州两年结构性字段现 100% 一致**。640 测试+ruff+数据校验全绿。三处编码旧 OR-FTI 假设的地方(2 单测 + `validate_step1_data.ps1`)同步修正。
+   - 🔲 **仍 deferred(需官方 DOR 逐年核对,OpenAccountants 非权威)**:IN flat_rate 年度递减(2024 3.05%/2025 3.00%/2026 2.95%,审计固定值 0.0305 错);各州 bracket 阈值/标准扣除的 value 级差异。
 
 **未完成/受阻(非代码,等外部)**:W-2 vision 真实用需 vision key(OpenAI 已验证但出境美国);C.1/C.2 重排需 `bge-reranker-base` 缓存(本机已下,生产需同样缓存);C.3 真实多跳需 Neo4j 起服务;限流生产需开 `TAXGLOBAL_ENABLE_RATE_LIMIT=true`。
 

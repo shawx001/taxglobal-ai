@@ -53,11 +53,14 @@ RERANK_POOL: int = _env_int("TAXGLOBAL_RERANK_POOL", 20)
 
 # === Phase C.2: Corrective RAG relevance grading ===
 # Only active when results were reranked (rerank score = relevance signal).
-# Thresholds are sigmoid([0,1]) of the cross-encoder logit; conservative
-# defaults — calibrate against real queries once the reranker is cached.
+# Thresholds are sigmoid([0,1]) of the cross-encoder logit. Calibrated
+# 2026-06-12 on bge-reranker-base over the live OA KB: clearly on-topic
+# chunks sigmoid ~0.65-0.73, off-topic ~0.500 (logit ~0). The drop floor
+# sits just above that noise floor so off-topic queries grade "low"
+# (honest "no KB entry") rather than keeping the least-irrelevant chunk.
 ENABLE_CRAG: bool = _env_bool("TAXGLOBAL_ENABLE_CRAG", True)
-CRAG_RELEVANT: float = _env_float("TAXGLOBAL_CRAG_RELEVANT", 0.5)
-CRAG_AMBIGUOUS: float = _env_float("TAXGLOBAL_CRAG_AMBIGUOUS", 0.2)
+CRAG_RELEVANT: float = _env_float("TAXGLOBAL_CRAG_RELEVANT", 0.62)
+CRAG_AMBIGUOUS: float = _env_float("TAXGLOBAL_CRAG_AMBIGUOUS", 0.52)
 # Guard the band: ambiguous (drop floor) must not exceed relevant (high bar).
 CRAG_AMBIGUOUS = min(CRAG_AMBIGUOUS, CRAG_RELEVANT)
 

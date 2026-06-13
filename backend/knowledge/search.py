@@ -6,12 +6,59 @@ import json
 import logging
 from typing import Any
 
-from backend.knowledge import embedder, neo4j_client, vector_store
+from backend import config
+from backend.knowledge import embedder, neo4j_client, reranker, vector_store
 
 logger = logging.getLogger("taxglobal.knowledge.search")
 
 DEFAULT_TOP_K = 5
 MAX_TOP_K = 20
+# Reranking may retrieve a wider candidate pool than the final top_k cap;
+# bounded separately so a big RERANK_POOL is honored (not silently clipped
+# to MAX_TOP_K) while cross-encoder compute stays bounded.
+MAX_RERANK_POOL = 80
+
+
+def _clamp_pool(n: int) -> int:
+    return max(1, min(MAX_RERANK_POOL, n))
+
+
+def _rerank_pool_size(clamped_top_k: int) -> int:
+    """Candidate count to retrieve before reranking.
+
+    >= top_k so reranking never shrinks the result set, <= MAX_RERANK_POOL
+    so the cross-encoder cost is bounded. RERANK_POOL is honored up to that
+    ceiling. Without reranking, just top_k (no wider retrieval needed).
+    """
+
+    if not config.ENABLE_RERANK or not reranker.is_reranker_available():
+        return clamped_top_k
+    return _clamp_pool(max(clamped_top_k, config.RERANK_POOL))
+
+
+def _maybe_rerank(query: str, hits: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], bool]:
+    """Reorder hits by cross-encoder relevance; fall back to vector order.
+
+    Returns (ordered_hits, reranked). On any failure or when the reranker
+    is unavailable, returns the hits sorted by vector score with
+    reranked=False — never raises, never drops a hit.
+    """
+
+    vector_order = sorted(hits, key=lambda item: item["score"], reverse=True)
+    if not config.ENABLE_RERANK or not reranker.is_reranker_available():
+        return vector_order, False
+    try:
+        passages = [str(hit.get("content", "")) for hit in hits]
+        scores = reranker.rerank_scores(query, passages)
+    except Exception as exc:
+        logger.warning("Rerank failed; using vector order: %s", exc.__class__.__name__)
+        return vector_order, False
+    if len(scores) != len(hits):
+        logger.warning("Rerank score count mismatch; using vector order")
+        return vector_order, False
+    for hit, score in zip(hits, scores, strict=False):
+        hit["rerank_score"] = round(float(score), 6)
+    return sorted(hits, key=lambda item: item["rerank_score"], reverse=True), True
 
 
 def _clamp_top_k(top_k: int) -> int:
@@ -73,7 +120,9 @@ def vector_search(
         embedding = embedder.embed_text(query)
         result = collection.query(
             query_embeddings=[embedding],
-            n_results=_clamp_top_k(top_k),
+            # Clamp to the rerank-pool ceiling (>= MAX_TOP_K) so hybrid_search
+            # can fetch a wider candidate pool for reranking.
+            n_results=_clamp_pool(top_k),
             where=_build_where(filters),
         )
     except Exception as exc:
@@ -227,7 +276,9 @@ def hybrid_search(
         }.items()
         if value is not None
     }
-    vector_hits = vector_search(query, top_k=clamped_top_k, filters=filters)
+    # Retrieve a wider candidate pool when reranking so the cross-encoder
+    # has more to choose from; otherwise just top_k.
+    vector_hits = vector_search(query, top_k=_rerank_pool_size(clamped_top_k), filters=filters)
     if not vector_hits:
         return {
             "results": [],
@@ -236,15 +287,19 @@ def hybrid_search(
                 "vector_hits": 0,
                 "graph_expansions": 0,
                 "retrieval_method": "none",
+                "reranked": False,
             },
         }
 
-    knowledge_ids = [hit["knowledge_id"] for hit in vector_hits]
-    graph_expansions = graph_search(knowledge_ids)
+    ranked_hits, reranked = _maybe_rerank(query, vector_hits)
+    # One batched graph query over the pool ids (cheap; UNWIND of <=20 ids).
+    graph_expansions = graph_search([hit["knowledge_id"] for hit in ranked_hits])
     results: list[dict[str, Any]] = []
     seen: set[str] = set()
 
-    for hit in sorted(vector_hits, key=lambda item: item["score"], reverse=True):
+    for hit in ranked_hits:
+        if len(results) >= clamped_top_k:
+            break
         knowledge_id = hit["knowledge_id"]
         if knowledge_id in seen:
             continue
@@ -282,17 +337,18 @@ def hybrid_search(
                 "sources": sources,
                 "related_jurisdictions": related_jurisdictions,
                 "score": hit["score"],
+                "rerank_score": hit.get("rerank_score"),
                 "tax_year": metadata.get("tax_year"),
             }
         )
 
-    capped = results[:clamped_top_k]
     return {
-        "results": capped,
-        "total": len(capped),
+        "results": results,
+        "total": len(results),
         "query_metadata": {
             "vector_hits": len(vector_hits),
             "graph_expansions": len(graph_expansions),
             "retrieval_method": _retrieval_method(vector_hits, graph_expansions),
+            "reranked": reranked,
         },
     }

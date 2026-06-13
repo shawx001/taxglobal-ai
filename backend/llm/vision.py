@@ -144,6 +144,9 @@ def _vision_complete(image_base64: str, media_type: str) -> str | None:
             ],
             temperature=0.0,
             max_tokens=512,
+            # Guarantee parseable JSON (the prompt already says "JSON object");
+            # avoids GPT-4o occasionally wrapping the object in markdown fences.
+            response_format={"type": "json_object"},
         )
         if response.usage is not None:
             from backend.llm.usage_tracker import record_usage

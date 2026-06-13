@@ -123,6 +123,57 @@ class TestVisionExtraction(unittest.TestCase):
         self.assertNotIn(_TINY_PNG[:16], joined)
 
 
+class TestVisionCredentials(unittest.TestCase):
+    """Cross-provider vision credentials (DeepSeek has no vision, so the
+    vision endpoint is a different service needing its own key)."""
+
+    def tearDown(self) -> None:
+        set_mock_extractor(None)
+
+    def test_dedicated_base_url_requires_own_key_no_fallback(self) -> None:
+        import backend.config as cfg
+        from backend.llm.vision import _vision_credentials, is_vision_available
+
+        saved = (cfg.ENABLE_LLM, cfg.LLM_API_KEY, cfg.VISION_BASE_URL, cfg.VISION_API_KEY, cfg.VISION_MODEL)
+        try:
+            cfg.ENABLE_LLM = True
+            cfg.LLM_API_KEY = "sk-deepseek-text"
+            cfg.VISION_BASE_URL = "https://api.siliconflow.cn/v1"
+            cfg.VISION_MODEL = "Qwen/Qwen2.5-VL-72B-Instruct"
+            cfg.VISION_API_KEY = ""  # no vision key yet
+            set_mock_extractor(None)
+            # MUST NOT borrow the DeepSeek text key for a different provider.
+            api_key, base_url = _vision_credentials()
+            self.assertEqual(api_key, "")
+            self.assertEqual(base_url, "https://api.siliconflow.cn/v1")
+            # Honest unavailability → endpoint 503s, never a 502 auth failure.
+            self.assertFalse(is_vision_available())
+
+            cfg.VISION_API_KEY = "sk-siliconflow-vision"
+            api_key, base_url = _vision_credentials()
+            self.assertEqual(api_key, "sk-siliconflow-vision")
+            self.assertTrue(is_vision_available())
+        finally:
+            (cfg.ENABLE_LLM, cfg.LLM_API_KEY, cfg.VISION_BASE_URL, cfg.VISION_API_KEY, cfg.VISION_MODEL) = saved
+
+    def test_same_endpoint_shares_text_llm_key(self) -> None:
+        import backend.config as cfg
+        from backend.llm.vision import _vision_credentials
+
+        saved = (cfg.LLM_API_KEY, cfg.LLM_PROVIDER, cfg.LLM_BASE_URL, cfg.VISION_BASE_URL, cfg.VISION_API_KEY)
+        try:
+            cfg.LLM_API_KEY = "sk-shared"
+            cfg.LLM_PROVIDER = "deepseek"
+            cfg.LLM_BASE_URL = ""
+            cfg.VISION_BASE_URL = ""  # no dedicated vision endpoint
+            cfg.VISION_API_KEY = ""
+            api_key, base_url = _vision_credentials()
+            self.assertEqual(api_key, "sk-shared")
+            self.assertEqual(base_url, "https://api.deepseek.com")
+        finally:
+            (cfg.LLM_API_KEY, cfg.LLM_PROVIDER, cfg.LLM_BASE_URL, cfg.VISION_BASE_URL, cfg.VISION_API_KEY) = saved
+
+
 class TestValidateImage(unittest.TestCase):
     def test_valid_image_passes(self) -> None:
         self.assertIsNone(validate_image(_TINY_PNG, "image/png"))

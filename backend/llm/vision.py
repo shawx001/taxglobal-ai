@@ -91,14 +91,20 @@ def set_mock_extractor(extractor: MockVisionExtractor | None) -> None:
 
 
 def _vision_credentials() -> tuple[str, str | None]:
-    """(api_key, base_url) for the vision provider, falling back to the
-    text-LLM credentials when no dedicated vision config is set."""
+    """(api_key, base_url) for the vision provider.
 
-    api_key = config.VISION_API_KEY or config.LLM_API_KEY
+    A dedicated VISION_BASE_URL means a DIFFERENT provider than the text
+    LLM (api.deepseek.com has no vision, so vision lives elsewhere) — the
+    text-LLM key would never authenticate there, so DO NOT fall back to it:
+    require an explicit VISION_API_KEY. Only when vision shares the text
+    LLM's endpoint do the credentials fall back.
+    """
+
     if config.VISION_BASE_URL:
-        return api_key, config.VISION_BASE_URL
+        return config.VISION_API_KEY, config.VISION_BASE_URL
     from backend.llm.client import DEEPSEEK_BASE_URL
 
+    api_key = config.VISION_API_KEY or config.LLM_API_KEY
     base_url = config.LLM_BASE_URL or (DEEPSEEK_BASE_URL if config.LLM_PROVIDER == "deepseek" else None)
     return api_key, base_url
 

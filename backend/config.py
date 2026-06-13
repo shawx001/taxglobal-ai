@@ -64,6 +64,11 @@ CRAG_AMBIGUOUS: float = _env_float("TAXGLOBAL_CRAG_AMBIGUOUS", 0.52)
 # Guard the band: ambiguous (drop floor) must not exceed relevant (high bar).
 CRAG_AMBIGUOUS = min(CRAG_AMBIGUOUS, CRAG_RELEVANT)
 
+# === Phase C.3: Neo4j multi-hop related-rule expansion ===
+# Per hit, pull at most this many same-topic sibling rules. Clamped to
+# [0,20] so a misconfigured env can't defeat the explosion guard.
+GRAPH_RELATED_LIMIT: int = max(0, min(20, _env_int("TAXGLOBAL_GRAPH_RELATED_LIMIT", 3)))
+
 ENABLE_POSTGRES: bool = _env_bool("ENABLE_POSTGRES", True)
 ENABLE_NEO4J: bool = _env_bool("ENABLE_NEO4J", True)
 ENABLE_CHROMA: bool = _env_bool("ENABLE_CHROMA", True)

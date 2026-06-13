@@ -318,3 +318,20 @@ python -m ruff check engine backend tests
 全部 7 项验收标准通过 + 所有测试绿 + ruff 绿 + ARCHITECTURE.md 更新 + feature_status.md 更新 = M3 正式关闭。
 
 Phase C（KB 增强：CRAG / Neo4j 多跳 / Cross-encoder）和 Phase D（OAuth / 连接器）推迟到 M3.5 或 M4。
+
+---
+
+## ✅ M3 正式关闭（2026-06-13）
+
+M3.1–3.8 + Phase C（C.1–C.3）全部合并（PR #66–#81），640+ tests + ruff + CI 全绿（每 PR CI 绿才合并），ARCHITECTURE.md（§2.7/2.8/3/4）+ feature_status.md（§E）+ roadmap_skills_status.md + handoff_context.md 已同步。Phase C 已实现（不再推迟）。Phase D（连接器）+ 自训模型归 M4。
+
+**7 项验收标准对账**：
+1. ✅ 前端 Copilot 聊天窗 + 自然语言回答（M3.5，真实 DeepSeek 验证）
+2. ✅ "加州年薪 15 万交多少税" → 人话 + 引擎到分金额 + 来源（M3.3/3.5）
+3. ✅ 意图分类准确率 ≥95%：**50 条测试集 100%**（`docs/eval/intent_accuracy_report.json`）
+4. ✅ Fact-checker 拦截 100% 金额篡改（M3.4，含中文/k/USD 格式）
+5. ✅ 拍 W-2 → 提取字段：**GPT-4o 真实 W-2 PDF 9/9 字段到分准**（M3.6）
+6. ✅ `ENABLE_LLM=false` → 降级 M2 关键词模式，现有测试不变
+7. ✅ PII 发 LLM 前脱敏（SanitizedProvider；W-2 图片不存/不审计/不日志）
+
+**诚实边界（外部依赖待开，非代码）**：W-2 vision 真实用需 vision key（OpenAI 已验证，数据出境美国；境内合规可切 SiliconFlow）；C.1/C.2 需 `bge-reranker-base` 缓存（已下，生产需同样缓存）；C.3 真实多跳需 Neo4j 起服务；限流生产需 `TAXGLOBAL_ENABLE_RATE_LIMIT=true`。**范围分歧**：计划书原 M3 的 OAuth/Shopify/Amazon 连接器 + 自训模型未做 → 归 M4。

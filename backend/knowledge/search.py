@@ -175,19 +175,37 @@ def graph_search(knowledge_ids: list[str]) -> dict[str, dict[str, Any]]:
         logger.debug("Neo4j unavailable; graph expansion skipped")
         return {}
 
+    # C.3 multi-hop: aggregate 1-hop facets first (one row per rule), then a
+    # per-rule CALL subquery pulls same-topic sibling rules, ORDER BY id +
+    # LIMIT so the set is deterministic and a popular topic can't explode it.
+    # (Relevance ranking by topic-overlap is a future refinement.)
     cypher = """
     UNWIND $ids AS kid
     MATCH (r:TaxRule {id: kid})
     OPTIONAL MATCH (r)-[:APPLIES_TO]->(j:Jurisdiction)
     OPTIONAL MATCH (r)-[:ABOUT]->(t:Topic)
     OPTIONAL MATCH (r)-[:CITED_FROM]->(s:Source)
+    WITH r,
+         collect(DISTINCT j) AS jurisdictions,
+         collect(DISTINCT t) AS topics,
+         collect(DISTINCT s) AS sources
+    CALL {
+        WITH r
+        MATCH (r)-[:ABOUT]->(:Topic)<-[:ABOUT]-(related:TaxRule)
+        WHERE related.id <> r.id
+        WITH DISTINCT related ORDER BY related.id LIMIT $max_related
+        RETURN collect({id: related.id, title: related.title}) AS related_rules
+    }
     RETURN r.id AS id,
-           collect(DISTINCT j) AS jurisdictions,
-           collect(DISTINCT t) AS topics,
-           collect(DISTINCT s) AS sources
+           jurisdictions,
+           topics,
+           sources,
+           related_rules
     """
     try:
-        rows = neo4j_client.run_query(cypher, {"ids": knowledge_ids})
+        rows = neo4j_client.run_query(
+            cypher, {"ids": knowledge_ids, "max_related": config.GRAPH_RELATED_LIMIT}
+        )
     except Exception as exc:
         logger.warning("Graph expansion failed; degrading to vector-only results: %s", exc.__class__.__name__)
         return {}
@@ -196,6 +214,8 @@ def graph_search(knowledge_ids: list[str]) -> dict[str, dict[str, Any]]:
         knowledge_id = row.get("id")
         if not knowledge_id:
             continue
+        # `... or []` (not .get(key, [])): a present-but-None value must also
+        # coalesce to a list before iteration (defensive — AGENTS.md §12/18).
         expansions[knowledge_id] = {
             "jurisdictions": [
                 {
@@ -203,7 +223,7 @@ def graph_search(knowledge_ids: list[str]) -> dict[str, dict[str, Any]]:
                     "name": _node_value(node, "name"),
                     "type": _node_value(node, "type"),
                 }
-                for node in row.get("jurisdictions", [])
+                for node in (row.get("jurisdictions") or [])
                 if node
             ],
             "topics": [
@@ -211,13 +231,18 @@ def graph_search(knowledge_ids: list[str]) -> dict[str, dict[str, Any]]:
                     "id": _node_value(node, "id"),
                     "name": _node_value(node, "name"),
                 }
-                for node in row.get("topics", [])
+                for node in (row.get("topics") or [])
                 if node
             ],
             "sources": [
                 source
-                for source in (_source_from_node(node) for node in row.get("sources", []) if node)
+                for source in (_source_from_node(node) for node in (row.get("sources") or []) if node)
                 if source.get("source_id")
+            ],
+            "related_rules": [
+                {"id": _node_value(rule, "id"), "title": _node_value(rule, "title")}
+                for rule in (row.get("related_rules") or [])
+                if rule and _node_value(rule, "id")
             ],
         }
     return expansions
@@ -332,6 +357,10 @@ def hybrid_search(
         if not related_jurisdictions and metadata.get("jurisdiction"):
             related_jurisdictions = [metadata["jurisdiction"]]
 
+        related_rules = [
+            rule for rule in graph_data.get("related_rules", []) if rule.get("id")
+        ]
+
         results.append(
             {
                 "knowledge_id": knowledge_id,
@@ -341,6 +370,7 @@ def hybrid_search(
                 "topics": topics,
                 "sources": sources,
                 "related_jurisdictions": related_jurisdictions,
+                "related_rules": related_rules,
                 "score": hit["score"],
                 "rerank_score": hit.get("rerank_score"),
                 "relevance": hit.get("relevance"),

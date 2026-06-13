@@ -141,7 +141,9 @@ class TestGraphSearch(unittest.TestCase):
 
         run_query.assert_called_once()
         self.assertIn("UNWIND $ids", run_query.call_args.args[0])
-        self.assertEqual(run_query.call_args.args[1], {"ids": ["a", "b", "c"]})
+        # C.3 added the multi-hop related-rule limit param alongside ids.
+        self.assertEqual(run_query.call_args.args[1]["ids"], ["a", "b", "c"])
+        self.assertIn("max_related", run_query.call_args.args[1])
 
     def test_graph_search_runtime_failure_returns_empty(self):
         with (

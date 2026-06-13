@@ -74,6 +74,11 @@ LLM_PRICE_OUTPUT_MTOK: str = _env("TAXGLOBAL_LLM_PRICE_OUTPUT_MTOK", "0.28")
 # chat message fans out to up to 5 LLM calls, so an unthrottled client can
 # burn the API budget. Per-client sliding window over RATE_LIMIT_WINDOW_S.
 ENABLE_RATE_LIMIT: bool = _env_bool("TAXGLOBAL_ENABLE_RATE_LIMIT", False)
-RATE_LIMIT_WINDOW_S: int = _env_int("TAXGLOBAL_RATE_LIMIT_WINDOW_S", 60)
-RATE_LIMIT_ASSISTANT: int = _env_int("TAXGLOBAL_RATE_LIMIT_ASSISTANT", 20)
-RATE_LIMIT_DOCUMENTS: int = _env_int("TAXGLOBAL_RATE_LIMIT_DOCUMENTS", 6)
+# Clamp to >=1 so enabling the limiter can never silently no-op (a 0/negative
+# window makes every hit expire instantly). Disable via ENABLE_RATE_LIMIT.
+RATE_LIMIT_WINDOW_S: int = max(1, _env_int("TAXGLOBAL_RATE_LIMIT_WINDOW_S", 60))
+RATE_LIMIT_ASSISTANT: int = max(1, _env_int("TAXGLOBAL_RATE_LIMIT_ASSISTANT", 20))
+RATE_LIMIT_DOCUMENTS: int = max(1, _env_int("TAXGLOBAL_RATE_LIMIT_DOCUMENTS", 6))
+# X-Forwarded-For is trivially spoofable by a direct caller, so only trust it
+# when explicitly running behind a proxy that overwrites it. Default: peer IP.
+RATE_LIMIT_TRUST_FORWARDED_FOR: bool = _env_bool("TAXGLOBAL_RATE_LIMIT_TRUST_FORWARDED_FOR", False)

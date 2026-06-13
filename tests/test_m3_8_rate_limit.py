@@ -35,10 +35,20 @@ class TestSlidingWindowLimiter(unittest.TestCase):
 class TestRateLimitMiddleware(unittest.TestCase):
     def setUp(self) -> None:
         reset_limiters()
-        self._saved = (cfg.ENABLE_RATE_LIMIT, cfg.RATE_LIMIT_ASSISTANT, cfg.RATE_LIMIT_DOCUMENTS)
+        self._saved = (
+            cfg.ENABLE_RATE_LIMIT,
+            cfg.RATE_LIMIT_ASSISTANT,
+            cfg.RATE_LIMIT_DOCUMENTS,
+            cfg.RATE_LIMIT_TRUST_FORWARDED_FOR,
+        )
 
     def tearDown(self) -> None:
-        (cfg.ENABLE_RATE_LIMIT, cfg.RATE_LIMIT_ASSISTANT, cfg.RATE_LIMIT_DOCUMENTS) = self._saved
+        (
+            cfg.ENABLE_RATE_LIMIT,
+            cfg.RATE_LIMIT_ASSISTANT,
+            cfg.RATE_LIMIT_DOCUMENTS,
+            cfg.RATE_LIMIT_TRUST_FORWARDED_FOR,
+        ) = self._saved
         reset_limiters()
 
     def test_disabled_by_default_no_throttle(self) -> None:
@@ -69,6 +79,44 @@ class TestRateLimitMiddleware(unittest.TestCase):
         self.assertEqual(blocked.status_code, 429)
         self.assertEqual(blocked.json()["error"]["code"], "rate_limited")
         self.assertIn("Retry-After", blocked.headers)
+
+    def test_429_preserves_request_id(self) -> None:
+        """Middleware ordering guarantee: the throttled response still carries
+        a real request_id (body + X-Request-ID header), matching it."""
+        cfg.ENABLE_RATE_LIMIT = True
+        cfg.RATE_LIMIT_ASSISTANT = 1
+        client = TestClient(create_app())
+        client.post("/api/assistant/query", json={"query": "hi"})
+        blocked = client.post("/api/assistant/query", json={"query": "hi"})
+        body_id = blocked.json()["error"]["request_id"]
+        self.assertNotEqual(body_id, "unknown")
+        self.assertEqual(blocked.headers.get("X-Request-ID"), body_id)
+
+    def test_get_requests_not_throttled(self) -> None:
+        """Only token-spending POSTs are limited; safe methods pass through."""
+        cfg.ENABLE_RATE_LIMIT = True
+        cfg.RATE_LIMIT_ASSISTANT = 1
+        client = TestClient(create_app())
+        # A GET under the assistant prefix (404, but must NOT be a 429).
+        for _ in range(5):
+            self.assertNotEqual(client.get("/api/assistant/query").status_code, 429)
+
+    def test_spoofed_xff_ignored_by_default(self) -> None:
+        """XFF is not trusted by default, so a rotating spoofed header cannot
+        dodge the per-peer budget."""
+        cfg.ENABLE_RATE_LIMIT = True
+        cfg.RATE_LIMIT_ASSISTANT = 2
+        cfg.RATE_LIMIT_TRUST_FORWARDED_FOR = False
+        client = TestClient(create_app())
+        codes = [
+            client.post(
+                "/api/assistant/query",
+                json={"query": "hi"},
+                headers={"X-Forwarded-For": f"10.0.0.{i}"},
+            ).status_code
+            for i in range(4)
+        ]
+        self.assertEqual(codes[2], 429)  # same peer, spoofed XFF ignored
 
     def test_documents_have_own_limit(self) -> None:
         cfg.ENABLE_RATE_LIMIT = True

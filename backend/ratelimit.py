@@ -82,15 +82,18 @@ def reset_limiters() -> None:
 
 
 def _client_id(scope: Scope) -> str:
-    """Best-effort client identity. X-Forwarded-For (first hop) when behind a
-    proxy, else the socket peer. Spoofable at the app layer — a real edge/WAF
-    limit should sit in front; this is defence in depth for the API budget."""
+    """Best-effort client identity: the socket peer by default. X-Forwarded-For
+    is honored ONLY when RATE_LIMIT_TRUST_FORWARDED_FOR is set, because a direct
+    caller can spoof that header and dodge their budget otherwise. This is
+    defence in depth for the API budget; a real edge/WAF limit should sit in
+    front in production."""
 
-    for name, value in scope.get("headers", []):
-        if name == b"x-forwarded-for":
-            first = value.decode("latin-1").split(",")[0].strip()
-            if first:
-                return first
+    if config.RATE_LIMIT_TRUST_FORWARDED_FOR:
+        for name, value in scope.get("headers", []):
+            if name == b"x-forwarded-for":
+                first = value.decode("latin-1").split(",")[0].strip()
+                if first:
+                    return first
     client = scope.get("client")
     return client[0] if client else "unknown"
 
@@ -116,9 +119,9 @@ class RateLimitMiddleware:
 
         method = str(scope.get("method", "GET")).upper()
         group = _group_for_path(str(scope.get("path", "")))
-        # Only throttle the mutating calls that cost LLM tokens; let CORS
-        # preflight through.
-        if group is None or method == "OPTIONS":
+        # Only throttle the token-spending calls (POST). Safe/idempotent
+        # methods and CORS preflight pass through untouched.
+        if group is None or method in {"GET", "HEAD", "OPTIONS"}:
             await self.app(scope, receive, send)
             return
 

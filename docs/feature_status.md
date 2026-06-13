@@ -1,6 +1,6 @@
 # TaxGlobal AI 功能状态总表（实时打勾 + 可溯源）
 
-最后更新：2026-06-09（M2.10 集成测试 + M2 正式关闭）
+最后更新：2026-06-13（M3 对话式 AI + W-2 识别 + Phase C 检索增强 全部合并；见 §E）
 维护规则：每个 step 的 PR 经 Claude review 通过 / 合并后，更新本表"状态"列。每行可追溯到 **设计文档 + 实现 commit + 官方来源**。
 
 图例：✅ 已实现并测试 ｜ 🟡 已设计待实现 ｜ ⬜ 未开始
@@ -73,12 +73,38 @@
 | Guardrail 中间件（金额来源验证 + schema 校验 + 4级升级 + PII 脱敏审计） | ✅ | M2.6 PR #55 |
 | LangGraph Workflow 编排器（意图分类 → Skill/KB 路由 → Guardrail → 结构化响应） | ✅ | M2.7 PR #57 |
 | 知识库驱动提醒系统(KB-Driven Tips & Deadlines) | ✅ | M2.8 PR #59 |
-| Copilot（检索+引擎+guardrail） | ⬜ | 8 |
+| Copilot（检索+引擎+guardrail+前端聊天 UI） | ✅ | M3.5 PR #71（见 §E） |
 | 档案持久化 API（Profile CRUD + 优雅降级） | ✅ | M2.4 PR #51 |
 | 审计日志（PostgreSQL） | ✅ | M2.9 PR #61 merged |
 | 集成测试 + M2 关闭 | ✅ | M2.10 PR #63 |
 | 知识库定期更新 | ⬜ | 10 |
 | 美国 MVP 完整联调 | ⬜ | 11 |
+
+---
+
+## E. M3 对话式 AI + 文档识别 + 检索增强（2026-06-09 ~ 06-13）
+
+> 设计：`docs/m3_step_plan.md`（M3.1–3.8）+ `docs/phase_c_design.md`（C.1–C.3）。原则不变：LLM 只做"耳朵+嘴"，所有税额来自规则引擎并经 fact-checker 逐分核查。
+
+| 功能 | 状态 | Step | PR | 备注 |
+|---|---|---|---|---|
+| LLM Provider 抽象层（OpenAI 兼容 + SanitizedProvider PII 脱敏 + failover 配置） | ✅ | M3.1 | #66 | DeepSeek 默认，`ENABLE_LLM` 默认关 |
+| LLM 意图分类（7 意图，全防御解析，失败回退关键词） | ✅ | M3.2 | #67 | 50 条测试集准确率 100%（`docs/eval/intent_accuracy_report.json`） |
+| LLM 自然语言响应（`answer_text` 附加字段，结构化 answer 原样保留） | ✅ | M3.3 | #69 | |
+| Fact-checker Guardrail（金额逐分核查，篡改/幻觉 fail-closed） | ✅ | M3.4 | #70 | 含中文/k/USD 金额格式 + 反馈重试 |
+| 前端 Copilot 聊天 UI + SSE 流式 + 多轮记忆（查询改写）+ LLM 参数抽取 | ✅ | M3.5 | #71 | 含 tax-rate 概览（规则数据）、对话改写、场景化 prompt |
+| W-2 拍照/PDF 识别（Vision，Box 1-6/15-17，到分准确，PII 三重防泄漏） | ✅ | M3.6 | #71/#74/#75/#76 | GPT-4o 真实文件验证 9/9 准；DeepSeek 官方无视觉→改 OpenAI；PDF 首页渲染 |
+| Token 优化 + 用量/成本统计 + `GET /api/admin/llm-usage` | ✅ | M3.7 | #71 | |
+| LLM 端点限流（滑动窗口，per-client，默认关、生产开） | ✅ | M3.8 | #77 | |
+| C.1 Cross-encoder 重排（bge-reranker-base，召回池→精排→top_k） | ✅ | C.1 | #78/#80 | 真实 KB 验证：QBI 查询正文顶第一 |
+| C.2 CRAG 纠错层（重排分判级，低相关→剔除+诚实兜底） | ✅ | C.2 | #79/#80 | 真实验证：离题查询正确判 low/空 |
+| C.3 Neo4j 多跳（同主题相关规则，确定性 LIMIT） | ✅ | C.3 | #81 | 代码+mock 测试就绪；真实多跳待 Neo4j 起服务 |
+| CI pip-audit 无修复 CVE 豁免（torch/chromadb） | ✅ | — | #73 | 文档化 `--ignore-vuln` + 移除条件 |
+
+**诚实边界**：
+- **范围分歧**：v3.1 计划书的 M3 原指"OAuth/Shopify/Amazon 连接器 + 自训 Copilot 模型"；实际交付为"对话式 AI（外部 DeepSeek/OpenAI LLM）+ W-2 识别 + 检索增强"。**电商连接器、自训模型未做**（自训模型属 M4 训练闭环）。
+- **外部依赖待开（非代码问题）**：W-2 vision 需 vision-capable API key（OpenAI 已验证可用，但数据出境美国；境内合规可切 SiliconFlow）；C.1/C.2 重排+CRAG 需 `bge-reranker-base` 模型缓存（已下载，生产部署需同样缓存）；C.3 真实多跳需 Neo4j 起服务。
+- **限流默认关**：`TAXGLOBAL_ENABLE_RATE_LIMIT` 生产必须设 true。
 
 ---
 

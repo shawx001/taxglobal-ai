@@ -21,6 +21,13 @@ def _env_float(key: str, default: float) -> float:
         return default
 
 
+def _env_int(key: str, default: int) -> int:
+    try:
+        return int(_env(key, str(default)))
+    except ValueError:
+        return default
+
+
 DATABASE_URL: str = _env("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/taxglobal")
 DATABASE_SYNC_URL: str = _env("DATABASE_SYNC_URL", "postgresql://postgres:postgres@localhost:5432/taxglobal")
 
@@ -61,3 +68,12 @@ VISION_BASE_URL: str = _env("TAXGLOBAL_VISION_BASE_URL", "")
 # === M3.7: LLM cost tracking (USD per 1M tokens, env-overridable) ===
 LLM_PRICE_INPUT_MTOK: str = _env("TAXGLOBAL_LLM_PRICE_INPUT_MTOK", "0.14")
 LLM_PRICE_OUTPUT_MTOK: str = _env("TAXGLOBAL_LLM_PRICE_OUTPUT_MTOK", "0.28")
+
+# === M3.8: rate limiting on LLM-backed endpoints ===
+# Default OFF so dev/tests are unchanged; production MUST set true — one
+# chat message fans out to up to 5 LLM calls, so an unthrottled client can
+# burn the API budget. Per-client sliding window over RATE_LIMIT_WINDOW_S.
+ENABLE_RATE_LIMIT: bool = _env_bool("TAXGLOBAL_ENABLE_RATE_LIMIT", False)
+RATE_LIMIT_WINDOW_S: int = _env_int("TAXGLOBAL_RATE_LIMIT_WINDOW_S", 60)
+RATE_LIMIT_ASSISTANT: int = _env_int("TAXGLOBAL_RATE_LIMIT_ASSISTANT", 20)
+RATE_LIMIT_DOCUMENTS: int = _env_int("TAXGLOBAL_RATE_LIMIT_DOCUMENTS", 6)

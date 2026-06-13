@@ -23,6 +23,7 @@ from backend.knowledge.search_routes import router as search_router
 from backend.knowledge.tips_routes import router as tips_router
 from backend.orchestrator.routes import router as orchestrator_router
 from backend.profiles.routes import router as profiles_router
+from backend.ratelimit import RateLimitMiddleware
 from backend.routes.calc import router as calc_router
 from backend.routes.documents import router as documents_router
 from backend.skills.routes import router as skills_router
@@ -166,6 +167,12 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(title="TaxGlobal AI API", version="0.1.0", lifespan=lifespan)
+    # Middleware execution order is OUTER→INNER: RequestId → Audit → CORS →
+    # RateLimit → route. RateLimit is added first so it ends up innermost —
+    # request_id is already set (carried in the 429), CORS still wraps the
+    # 429 (browser can read it), and the throttle fires before the route's
+    # LLM calls. (Starlette wraps last-added = outermost.)
+    app.add_middleware(RateLimitMiddleware)
     # Dev default allows local frontend origins; production should set TAXGLOBAL_CORS_ORIGINS explicitly.
     app.add_middleware(
         CORSMiddleware,

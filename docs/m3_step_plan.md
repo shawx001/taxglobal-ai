@@ -303,10 +303,11 @@ python -m ruff check engine backend tests
 | **M3.1** | LLM Provider 抽象层 | 无 | 1 天 | ✅ PR #66 |
 | **M3.2** | LLM 意图分类 | M3.1 | 1 天 | ✅ PR #67 |
 | **M3.3** | LLM 自然语言响应 | M3.1 | 1 天 | ✅ PR #69 |
-| **M3.4** | Fact-checker Guardrail | M3.3 | 1 天 | 🚧 |
-| **M3.5** | 前端 Copilot 聊天 UI | M3.2 + M3.3 + M3.4 | 2 天 | ✅ 本地 |
-| **M3.6** | W-2 拍照识别 | M3.1 | 2 天 | ✅ 本地 |
-| **M3.7** | Token 优化 + 成本监控 | M3.1 | 1 天 | ✅ 本地 |
+| **M3.4** | Fact-checker Guardrail | M3.3 | 1 天 | ✅ PR #70 |
+| **M3.5** | 前端 Copilot 聊天 UI | M3.2 + M3.3 + M3.4 | 2 天 | ✅ PR #71 |
+| **M3.6** | W-2 拍照识别 | M3.1 | 2 天 | ✅ PR #71/#74（代码完成；真实识别待 vision 账户额度，OpenAI/SiliconFlow 三个环境变量即开） |
+| **M3.7** | Token 优化 + 成本监控 | M3.1 | 1 天 | ✅ PR #71 |
+| **M3.8** | LLM 端点限流 | M3.5 | 0.5 天 | ✅ 本地（生产防刷余额债，默认关、生产开） |
 
 **总计：~9 个工作日**
 

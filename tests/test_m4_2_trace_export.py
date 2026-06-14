@@ -91,8 +91,31 @@ class SftFormatTests(unittest.TestCase):
     def test_response_examples_skip_empty_answers(self):
         ex = to_sft_response_examples([_pass(), _pass(answer_text="")])
         self.assertEqual(len(ex), 1)
-        self.assertIn("QUESTION:", ex[0]["messages"][1]["content"])
+        user = ex[0]["messages"][1]["content"]
+        self.assertIn("QUESTION:", user)
+        self.assertIn("ENGINE_RESULT:", user)  # must mirror production layout
+        self.assertIn("SOURCES:", user)
         self.assertEqual(ex[0]["messages"][2]["content"], "您的联邦所得税约为 $24,734.00。")
+
+    def test_response_includes_engine_result_json(self):
+        t = _pass(answer={"federal_income_tax": 24734.0})
+        ex = to_sft_response_examples([t])
+        self.assertIn('"federal_income_tax": 24734.0', ex[0]["messages"][1]["content"])
+
+    def test_response_skips_blocked_answer_even_if_intent_corrected(self):
+        # Intent-corrected but the answer text was blocked and not rewritten:
+        # the intent example is kept (gold label), but no response example is
+        # emitted from the untrusted blocked text.
+        t = _pass(fact_check_verdict="block", corrected_intent="feie")
+        self.assertEqual(len(to_sft_intent_examples([t])), 1)
+        self.assertEqual(to_sft_intent_examples([t])[0]["messages"][2]["content"], "feie")
+        self.assertEqual(to_sft_response_examples([t]), [])
+
+    def test_response_emits_blocked_answer_when_user_rewrote_it(self):
+        t = _pass(fact_check_verdict="block", corrected_answer_text="人工改正后的答复")
+        ex = to_sft_response_examples([t])
+        self.assertEqual(len(ex), 1)
+        self.assertEqual(ex[0]["messages"][2]["content"], "人工改正后的答复")
 
 
 class MixTests(unittest.TestCase):
@@ -140,6 +163,20 @@ class RecordAndIoTests(unittest.TestCase):
         self.assertEqual(t.intent, "rsu")
         self.assertEqual(t.fact_check_verdict, "pass")
         self.assertEqual(t.sources, ("irc_83",))
+
+    def test_string_confidence_is_parsed_not_crashed(self):
+        # Production confidence is a string ("llm:0.95" / "keyword_match" /
+        # "fallback"); float() would crash on real audit logs.
+        def conf(value):
+            return traces_from_records(
+                [{"query": "q", "response": {"intent": "income_tax", "confidence": value}}]
+            )[0].confidence
+
+        self.assertAlmostEqual(conf("llm:0.95"), 0.95)
+        self.assertEqual(conf("keyword_match"), 1.0)
+        self.assertEqual(conf("fallback"), 0.0)
+        self.assertEqual(conf("unknown"), 0.0)
+        self.assertAlmostEqual(conf(0.8), 0.8)
 
     def test_flat_record_shape(self):
         traces = traces_from_records([{"query": "什么是QBI", "intent": "knowledge", "fact_check": "pass"}])

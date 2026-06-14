@@ -10,7 +10,8 @@ Usage:
   python scripts/export_training_data.py --traces traces.jsonl --kind intent \
       --out-intent docs/eval/sft_intent.jsonl
   python scripts/export_training_data.py --traces traces.jsonl --kind both \
-      --historical docs/eval/sft_intent_history.jsonl --new-ratio 0.2 \
+      --historical-intent docs/eval/sft_intent_history.jsonl \
+      --historical-response docs/eval/sft_response_history.jsonl --new-ratio 0.2 \
       --out-intent out_intent.jsonl --out-response out_response.jsonl
 """
 

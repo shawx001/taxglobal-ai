@@ -19,6 +19,7 @@ from .trace_export import (
     quality_filter,
     to_sft_intent_examples,
     to_sft_response_examples,
+    traces_from_jsonl,
     traces_from_records,
 )
 
@@ -35,5 +36,6 @@ __all__ = [
     "quality_filter",
     "to_sft_intent_examples",
     "to_sft_response_examples",
+    "traces_from_jsonl",
     "traces_from_records",
 ]

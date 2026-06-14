@@ -3,22 +3,25 @@
 Source-agnostic: a ``Trace`` can be built from an audit-log row pair
 (``request_payload`` + ``response_payload`` from ``/api/assistant/query``) or
 from a plain JSONL record. The pipeline only ever *filters* traces — it never
-edits an answer — and drops fact-check-blocked responses, so no fabricated
-number can enter the training set.
+edits an answer.
 
 Gold label precedence: an explicit user correction (``corrected_intent`` /
-``corrected_answer_text``) always wins over the model's own prediction. Without
-a correction, a predicted trace is admitted only as a weak positive when it was
-fact-check ``pass`` and classified with enough confidence — never reinforcing a
-``clarify`` punt. The new/historical mix (default 20% / 80%) follows the plan's
-incremental-finetune recipe (project plan v3.1 §6.6).
+``corrected_answer_text``) always wins over the model's own prediction and is
+the trusted signal. Without a correction, a predicted trace is admitted only as
+a weak positive when it was fact-check ``pass`` and classified with enough
+confidence — never reinforcing a ``clarify`` punt. A fact-check-``block``
+*prediction* is therefore never used as training text; a user-corrected trace is
+kept, but response examples only ever emit the correction or a ``pass`` answer
+(never the blocked original). The new/historical mix (default 20% / 80%) follows
+the plan's incremental-finetune recipe (project plan v3.1 §6.6).
 """
 
 from __future__ import annotations
 
 import json
+import math
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +34,33 @@ DEFAULT_ALLOWED_VERDICTS = frozenset({VERDICT_PASS})
 DEFAULT_NEW_RATIO = 0.2
 
 
+def _parse_confidence(value: Any) -> float:
+    """Normalize a confidence value to a float in [0, 1].
+
+    Production stores confidence as a string: ``"llm:0.95"`` (LLM score),
+    ``"keyword_match"`` (deterministic keyword hit — treated as confident), or
+    ``"fallback"`` / ``"unknown"`` (no real signal -> 0.0). Numeric values pass
+    through. Anything unparseable degrades to 0.0 rather than raising.
+    """
+
+    if isinstance(value, bool):
+        return 0.0
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value or "").strip().lower()
+    if text.startswith("llm:"):
+        try:
+            return float(text[4:])
+        except ValueError:
+            return 0.0
+    if text == "keyword_match":
+        return 1.0
+    try:
+        return float(text)
+    except ValueError:
+        return 0.0
+
+
 @dataclass(frozen=True)
 class Trace:
     """One normalized production interaction."""
@@ -41,6 +71,7 @@ class Trace:
     answer_text: str = ""
     sources: tuple[str, ...] = ()
     fact_check_verdict: str = ""
+    answer: dict[str, Any] = field(default_factory=dict)
     corrected_intent: str | None = None
     corrected_answer_text: str | None = None
 
@@ -54,13 +85,15 @@ class Trace:
         else:
             verdict = str(fact_check or "")
         sources = response_payload.get("sources") or []
+        answer = response_payload.get("answer")
         return cls(
             query=str(request_payload.get("query") or ""),
             intent=str(response_payload.get("intent") or ""),
-            confidence=float(response_payload.get("confidence") or 0.0),
+            confidence=_parse_confidence(response_payload.get("confidence")),
             answer_text=str(response_payload.get("answer_text") or ""),
             sources=tuple(str(s) for s in sources),
             fact_check_verdict=verdict,
+            answer=answer if isinstance(answer, dict) else {},
             corrected_intent=request_payload.get("corrected_intent") or response_payload.get("corrected_intent"),
             corrected_answer_text=(
                 request_payload.get("corrected_answer_text") or response_payload.get("corrected_answer_text")
@@ -125,21 +158,33 @@ def to_sft_intent_examples(traces: Iterable[Trace]) -> list[dict[str, Any]]:
 
 
 def to_sft_response_examples(traces: Iterable[Trace]) -> list[dict[str, Any]]:
-    """Chat-format SFT examples for answer generation, matching the production
-    request layout (QUESTION / SOURCES). Only traces with answer text are kept."""
+    """Chat-format SFT examples for answer generation.
+
+    The user message mirrors ``llm_format_response`` exactly (QUESTION /
+    ENGINE_RESULT / SOURCES) so the system prompt's "match the engine numbers"
+    instruction is meaningful at train time. Only trustworthy answers are
+    emitted: an explicit user correction, or a fact-check ``pass`` original —
+    never a blocked answer (even if the trace was intent-corrected)."""
 
     examples: list[dict[str, Any]] = []
     for trace in traces:
-        answer = gold_answer_text(trace).strip()
-        if not answer:
+        answer_text = gold_answer_text(trace).strip()
+        if not answer_text:
             continue
-        user = f"QUESTION: {trace.query}\n\nSOURCES: {json.dumps(list(trace.sources), ensure_ascii=False)}"
+        trustworthy = bool(trace.corrected_answer_text) or trace.fact_check_verdict == VERDICT_PASS
+        if not trustworthy:
+            continue
+        user = (
+            f"QUESTION:\n{trace.query}\n\n"
+            f"ENGINE_RESULT:\n{json.dumps(trace.answer, ensure_ascii=False, default=str)}\n\n"
+            f"SOURCES:\n{json.dumps(list(trace.sources), ensure_ascii=False)}"
+        )
         examples.append(
             {
                 "messages": [
                     {"role": "system", "content": _RESPONSE_SYSTEM_PROMPT},
                     {"role": "user", "content": user},
-                    {"role": "assistant", "content": answer},
+                    {"role": "assistant", "content": answer_text},
                 ]
             }
         )
@@ -164,7 +209,8 @@ def mix_datasets(
         raise ValueError(f"new_ratio must be within (0, 1], got {new_ratio!r}")
     if not new:
         return list(historical)
-    target_total = round(len(new) / new_ratio)
+    # ceil so every new example is kept and the new share never exceeds new_ratio.
+    target_total = math.ceil(len(new) / new_ratio)
     historical_quota = max(0, target_total - len(new))
     chosen_historical = historical[:historical_quota]
     return list(new) + list(chosen_historical)

@@ -16,6 +16,7 @@ and is intentionally not folded into this model-quality score.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -113,23 +114,28 @@ def run_eval_harness(
     ``weights`` must use known dimension keys, be non-negative, and sum positive.
     """
 
-    if not 0.0 <= gate <= 1.0:
+    # Validate everything BEFORE running the (potentially model-backed, expensive)
+    # dimensions, so misconfiguration fails fast without wasting that compute.
+    if not 0.0 <= gate <= 1.0:  # also rejects NaN (all NaN comparisons are False)
         raise ValueError(f"gate must be within [0, 1], got {gate!r}")
 
     weights = dict(weights) if weights is not None else dict(DEFAULT_WEIGHTS)
+    valid_dimensions = set(DEFAULT_WEIGHTS)
+    unknown = set(weights) - valid_dimensions
+    if unknown:
+        raise ValueError(f"unknown weight keys {sorted(unknown)}; expected a subset of {sorted(valid_dimensions)}")
+    if not all(math.isfinite(value) for value in weights.values()):
+        raise ValueError(f"weights must be finite, got {weights!r}")
+    if any(value < 0 for value in weights.values()):
+        raise ValueError(f"weights must be non-negative, got {weights!r}")
+    total_weight = sum(weights.get(name, 0.0) for name in valid_dimensions)
+    if total_weight <= 0:
+        raise ValueError("weights must sum to a positive total over the eval dimensions")
+
     dimensions = {
         "intent": evaluate_intent(intent_classifier),
         "factcheck": evaluate_factcheck(),
     }
-    unknown = set(weights) - set(dimensions)
-    if unknown:
-        raise ValueError(f"unknown weight keys {sorted(unknown)}; expected a subset of {sorted(dimensions)}")
-    if any(value < 0 for value in weights.values()):
-        raise ValueError(f"weights must be non-negative, got {weights!r}")
-    total_weight = sum(weights.get(name, 0.0) for name in dimensions)
-    if total_weight <= 0:
-        raise ValueError("weights must sum to a positive total over the eval dimensions")
-
     overall = sum(dimensions[name].score * weights.get(name, 0.0) for name in dimensions) / total_weight
     return EvalReport(
         dimensions=dimensions,

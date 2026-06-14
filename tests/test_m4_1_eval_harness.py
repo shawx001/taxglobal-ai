@@ -84,6 +84,20 @@ class EvalHarnessTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             run_eval_harness(weights={"intent": 0.0, "factcheck": 0.0})
 
+    def test_nan_weight_raises(self):
+        with self.assertRaises(ValueError):
+            run_eval_harness(weights={"intent": float("nan"), "factcheck": 1.0})
+
+    def test_validation_runs_before_classifier(self):
+        # Misconfiguration must fail before the (possibly expensive) classifier runs.
+        def boom(_query):
+            raise AssertionError("classifier should not be called when config is invalid")
+
+        with self.assertRaises(ValueError):
+            run_eval_harness(intent_classifier=boom, weights={"intnet": 1.0})
+        with self.assertRaises(ValueError):
+            run_eval_harness(intent_classifier=boom, gate=2.0)
+
     def test_single_dimension_weight_is_allowed(self):
         # Weighting only one known dimension is valid (subset, positive sum).
         report = run_eval_harness(weights={"factcheck": 1.0})

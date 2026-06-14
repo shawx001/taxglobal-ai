@@ -14,9 +14,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from backend.orchestrator.intent import INTENT_CLARIFY
 from backend.training.lora_finetune import (
     DEFAULT_BASE_MODEL,
     LoraConfigSpec,
+    _extract_intent,
     build_peft_config,
     finetune,
     load_sft_examples,
@@ -84,12 +86,35 @@ class SftLoadingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 load_sft_examples(p)
 
+    def test_non_string_content_raises(self):
+        for bad_content in (None, {"x": 1}, 123):
+            with tempfile.TemporaryDirectory() as d:
+                p = Path(d) / "sft.jsonl"
+                _write_jsonl([{"messages": [{"role": "user", "content": bad_content}]}], p)
+                with self.assertRaises(ValueError):
+                    load_sft_examples(p)
+
     def test_empty_file_raises(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "sft.jsonl"
             p.write_text("", encoding="utf-8")
             with self.assertRaises(ValueError):
                 load_sft_examples(p)
+
+
+class ExtractIntentTests(unittest.TestCase):
+    def test_known_label_extracted(self):
+        self.assertEqual(_extract_intent("income_tax"), "income_tax")
+        self.assertEqual(_extract_intent('{"intent": "feie"}'), "feie")
+
+    def test_earliest_label_wins_deterministically(self):
+        # Two labels present -> the earliest-occurring one, every time.
+        self.assertEqual(_extract_intent("crypto then nexus"), "crypto")
+        self.assertEqual(_extract_intent("nexus then crypto"), "nexus")
+
+    def test_off_label_degrades_to_clarify(self):
+        self.assertEqual(_extract_intent("I have no idea"), INTENT_CLARIFY)
+        self.assertEqual(_extract_intent(""), INTENT_CLARIFY)
 
 
 class ConfigTests(unittest.TestCase):

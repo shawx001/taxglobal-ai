@@ -27,7 +27,9 @@ from backend.eval.harness import DEFAULT_GATE, run_eval_harness
 from backend.orchestrator.intent import _INTENT_SYSTEM_PROMPT, _VALID_INTENTS, INTENT_CLARIFY
 
 DEFAULT_BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
-_TRAINING_DEPS = ("peft", "trl", "datasets", "accelerate")
+# torch + transformers normally ship via sentence-transformers, but finetune()
+# and the classifier import them too, so the gate checks them as well.
+_TRAINING_DEPS = ("torch", "transformers", "peft", "trl", "datasets", "accelerate")
 _INSTALL_HINT = "pip install -r backend/requirements-training.txt"
 
 
@@ -62,6 +64,24 @@ def require_training_deps() -> None:
         raise ImportError(f"missing optional training deps {missing}; install with: {_INSTALL_HINT}")
 
 
+def _extract_intent(text: str) -> str:
+    """Map generated text to a known intent label.
+
+    The earliest-occurring known label wins, which is deterministic regardless of
+    ``_VALID_INTENTS`` (a frozenset) iteration order and robust to a model that
+    emits JSON or extra words. Off-label output degrades to ``clarify`` rather
+    than inventing a label.
+    """
+
+    lowered = text.lower()
+    best, best_pos = INTENT_CLARIFY, len(lowered) + 1
+    for intent in _VALID_INTENTS:
+        pos = lowered.find(intent)
+        if 0 <= pos < best_pos:
+            best, best_pos = intent, pos
+    return best
+
+
 def _lazy_import_error(exc: Exception) -> ImportError:
     """Wrap a lazy-import failure with the install hint.
 
@@ -92,8 +112,13 @@ def load_sft_examples(path: str | Path) -> list[dict[str, Any]]:
         if not isinstance(messages, list) or not messages:
             raise ValueError(f"line {line_no}: SFT example missing non-empty 'messages' list")
         for message in messages:
-            if not (isinstance(message, dict) and message.get("role") and "content" in message):
-                raise ValueError(f"line {line_no}: each message needs 'role' and 'content'")
+            if not (
+                isinstance(message, dict)
+                and isinstance(message.get("role"), str)
+                and message["role"]
+                and isinstance(message.get("content"), str)
+            ):
+                raise ValueError(f"line {line_no}: each message needs a string 'role' and string 'content'")
         examples.append(record)
     if not examples:
         raise ValueError(f"no SFT examples found in {path}")
@@ -148,14 +173,11 @@ def make_model_intent_classifier(model_dir: str | Path, base_model: str | None =
             {"role": "user", "content": query},
         ]
         prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        inputs = tokenizer(prompt, return_tensors="pt")
+        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         with torch.no_grad():
             generated = model.generate(**inputs, max_new_tokens=16, do_sample=False)
-        text = tokenizer.decode(generated[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True).lower()
-        for intent in _VALID_INTENTS:
-            if intent in text:
-                return intent
-        return INTENT_CLARIFY
+        text = tokenizer.decode(generated[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True)
+        return _extract_intent(text)
 
     return classify
 

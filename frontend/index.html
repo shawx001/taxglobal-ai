@@ -1258,46 +1258,12 @@ function caStateTax(t){ // 简化加州累进
   const br=[[10412,.01],[24684,.02],[38959,.04],[54081,.06],[68350,.08],[349137,.093],[418961,.103],[698271,.113],[Infinity,.123]];
   return bracketTax(t,br);
 }
-// 各州简化所得税模型：返回 {tax, label, cite, rate}
-const STATES={
-  CA:{name:'加州 CA',cite:'CA R&TC §17041'},
-  NY:{name:'纽约 NY',cite:'NY Tax Law §601'},
-  TX:{name:'德州 TX',flat:0,cite:'TX 无个人所得税'},
-  FL:{name:'佛州 FL',flat:0,cite:'FL 无个人所得税'},
-  WA:{name:'华盛顿 WA',flat:0,cite:'WA 无个人所得税'},
-  NV:{name:'内华达 NV',flat:0,cite:'NV 无个人所得税'},
-  IL:{name:'伊利诺伊 IL',flat:.0495,cite:'35 ILCS 5/201'},
-  MA:{name:'麻省 MA',flat:.05,cite:'MA G.L. c.62 §4'},
-  CO:{name:'科罗拉多 CO',flat:.044,cite:'C.R.S. §39-22-104'},
-  GA:{name:'乔治亚 GA',flat:.0539,cite:'O.C.G.A. §48-7-20'},
-};
-function nyStateTax(t){ const br=[[8500,.04],[11700,.045],[13900,.0525],[80650,.0585],[215400,.0625],[1077550,.0685],[5000000,.0965],[25000000,.103],[Infinity,.109]]; return bracketTax(t,br); }
-function stateTaxOf(code, taxable){
-  const s=STATES[code]||STATES.CA;
-  if(code==='CA') return {tax:caStateTax(taxable), name:s.name, cite:s.cite};
-  if(code==='NY') return {tax:nyStateTax(taxable), name:s.name, cite:s.cite};
-  return {tax:Math.round(taxable*(s.flat||0)), name:s.name, cite:s.cite};
-}
 function onTaxCountry(){ const us=document.getElementById('tx-country').value==='us'; document.getElementById('tx-state-wrap').style.display=us?'block':'none'; }
 function fica(wages){
   const ss=Math.min(wages,176100)*.062;
   const med=wages*.0145 + Math.max(0,wages-200000)*.009;
   return {ss,med,total:ss+med};
 }
-// 各国简化有效税率模型，返回 {tax, label, cites}
-function foreignTax(country, income, k401){
-  const taxable=income;
-  switch(country){
-    case 'ae': return {tax:0, eff:0, rows:[['应税收入',income],['迪拜个人所得税 (0%)',0]], note:'阿联酋无个人所得税', cite:'UAE Federal Decree-Law'};
-    case 'pt': { const t=income*0.20; return {tax:t, eff:0.20, rows:[['应税收入',income],['NHR 固定税率 20%',t]], note:'葡萄牙 NHR 制度对合资格职业收入适用 20% 固定税率', cite:'Portugal NHR Regime'};}
-    case 'sg': { const t=sgTax(income); return {tax:t, eff:t/income, rows:[['应税收入',income],['新加坡累进所得税',t]], note:'新加坡累进税率，最高 24%，无社保税（仅 CPF）', cite:'Singapore Income Tax Act'};}
-    case 'uk': { const t=ukTax(income); return {tax:t, eff:t/income, rows:[['应税收入',income],['英国所得税 + NI',t]], note:'含个人免税额 £12,570，最高 45%', cite:'UK Income Tax Act 2007'};}
-    case 'de': { const t=income*0.42; return {tax:t, eff:0.42, rows:[['应税收入',income],['德国所得税（含团结税）',t]], note:'德国累进税率，约 42%（含团结税与社保）', cite:'German EStG §32a'};}
-  }
-}
-function sgTax(i){ const br=[[20000,0],[30000,.02],[40000,.035],[80000,.07],[120000,.115],[160000,.15],[200000,.18],[240000,.19],[280000,.195],[320000,.20],[500000,.22],[1000000,.23],[Infinity,.24]]; return bracketTax(i,br); }
-function ukTax(i){ const pa=12570; const t=Math.max(0,i-pa); let tax=bracketTax(t,[[37700,.20],[112570-pa,.40],[Infinity,.45]]); return tax + Math.min(i,50270)*0.08; }
-
 function taxText(key){
   const copy={
     usOnly:"\u672c\u6b65\u5148\u63a5\u5165\u7f8e\u56fd\u4e2a\u4eba\u6240\u5f97\u7a0e API\u3002\u5176\u4ed6\u56fd\u5bb6\u7a0e\u52a1\u5bf9\u6bd4\u5c06\u5728\u77e5\u8bc6\u5e93\u4e0e\u66f4\u591a\u5b98\u65b9\u6570\u636e\u5165\u5e93\u540e\u63a5\u5165\u3002",
@@ -1499,7 +1465,6 @@ async function calcTax(){
 }
 function marginalRate(taxable,filing){ const table=FED[filing]||FED.single; for(const [cap,rate] of table){ if(taxable<=cap) return rate; } return .37; }
 function usTaxTotal(income,filing,k401){ const ded=(STD[filing]!=null?STD[filing]:STD.single); const taxable=Math.max(0,income-k401-ded); return bracketTax(taxable,FED[filing]||FED.single)+caStateTax(taxable)+fica(income).total; }
-function usEff(income,filing,k401){ return (usTaxTotal(income,filing,k401)/income*100).toFixed(1); }
 
 /* ════════ 子 Tab ════════ */
 function buildTaxSubtabs(){

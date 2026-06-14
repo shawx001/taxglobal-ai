@@ -20,7 +20,7 @@ M4 大部分**本地可自建**；少数环节的**真实运行**卡在外部依
 
 ## 步骤
 
-### M4.1 Eval Harness（本步）
+### M4.1 Eval Harness ✅（PR #90）
 - **目标**：统一评测「模型面向」质量并产出总分 + ≥0.80 部署门禁（计划书 §6.6）。
 - **维度**（离线确定性，无需真实 LLM，CI 可跑）：
   1. 意图分类准确率（复用 50 例 labeled set；harness 接受任意 classifier，默认关键词基线，
@@ -33,7 +33,7 @@ M4 大部分**本地可自建**；少数环节的**真实运行**卡在外部依
 - **说明**：引擎正确性由 `tests/golden/*.json` 单独保证（确定性规则码，非模型），不计入「模型质量」总分；
   门禁用于 LoRA 模型上线，而非关键词基线（基线可能低于 0.80，属正常）。
 
-### M4.2 Trace→SFT 数据管道
+### M4.2 Trace→SFT 数据管道 ✅（本步）
 - 审计日志（M2.9 `AuditLog`，PII 已脱敏）+ 文件 trace 双源 → 质量筛选（fact-check 通过、有引用、
   非 clarify 兜底）→ SFT JSONL（{messages:[...]} 或 {prompt,completion}）。新旧混合比例（新 20%/历史 80%）。
 - 交付：`backend/training/trace_export.py` + CLI + 测试（用合成 trace，不依赖 PG）。

@@ -182,6 +182,9 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins(),
+        # allow_credentials lets the session cookie (login) flow cross-origin from
+        # the dev frontend; safe because allow_origins is an explicit list, not "*".
+        allow_credentials=True,
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["Content-Type", "X-Admin-Token"],
     )

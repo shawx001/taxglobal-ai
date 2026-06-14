@@ -1,5 +1,9 @@
 (function () {
-  var API_BASE_URL = "http://127.0.0.1:8000";
+  // Match the page host so the API is same-site with the frontend (localhost vs
+  // 127.0.0.1 are different sites — a mismatch blocks the SameSite=Lax session
+  // cookie). Falls back to 127.0.0.1 when opened without a host (file://).
+  var API_HOST = (window.location && window.location.hostname) || "127.0.0.1";
+  var API_BASE_URL = "http://" + API_HOST + ":8000";
 
   function makeApiError(message, options) {
     var error = new Error(message);
@@ -77,9 +81,40 @@
       });
   }
 
+  function authFetch(path, options) {
+    var opts = Object.assign({ credentials: "include" }, options || {});
+    return window.fetch(API_BASE_URL + path, opts).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (body) {
+        return { status: response.status, ok: response.ok, body: body };
+      });
+    });
+  }
+
   window.TaxGlobalApi = {
     postCalc: postCalc,
     getStates: function () { return getJson("/api/states"); },
+    authMe: function () { return authFetch("/api/auth/me"); },
+    devLogin: function (email, name) {
+      return authFetch("/api/auth/dev-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, name: name || "" }),
+      });
+    },
+    logout: function () { return authFetch("/api/auth/logout", { method: "POST" }); },
+    googleLoginUrl: function () { return API_BASE_URL + "/api/auth/google/login"; },
+    // Detect whether Google OAuth is configured: a configured server 302-redirects
+    // (opaqueredirect under redirect:manual); otherwise it returns 503 JSON.
+    googleConfigured: function () {
+      return window.fetch(API_BASE_URL + "/api/auth/google/login", {
+        credentials: "include",
+        redirect: "manual",
+      }).then(function (response) {
+        return response.type === "opaqueredirect" || response.status === 0 || response.status === 302;
+      }).catch(function () { return false; });
+    },
+    connectors: function () { return getJson("/api/connectors"); },
+    connectorNexus: function (platform, payload) { return postCalc("/api/connectors/" + platform + "/nexus", payload); },
     federalIncome: function (payload) { return postCalc("/calc/federal-income", payload); },
     fica: function (payload) { return postCalc("/calc/fica", payload); },
     stateIncome: function (payload) { return postCalc("/calc/state-income", payload); },

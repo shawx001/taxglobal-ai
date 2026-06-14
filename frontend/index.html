@@ -792,6 +792,15 @@ nav{display:flex;align-items:center;gap:14px;padding:0 24px;height:54px;backgrou
     </div>
   </div>
 
+  <div class="card" id="connectorPanel" style="margin-bottom:18px">
+    <div class="ch"><div class="ct">电商连接器 · 后端 Sandbox</div><span class="badge bp">/api/connectors</span></div>
+    <div class="cb">
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:10px">点「Sandbox 同步」用样例销售数据调后端 <strong>nexus_estimate</strong> 规则引擎，按各州经济联结阈值判定。真实连接需平台 OAuth 凭据（生产）。</div>
+      <div id="connectorList" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"></div>
+      <div id="connectorResult"></div>
+    </div>
+  </div>
+
   <div id="ecomEmpty" class="card"><div class="cb"><div class="empty-state">
     <div class="es-ico">🔌</div>
     <div class="es-t">还没有连接任何平台。连接后这里会实时显示各州 Nexus 风险与待分类交易。</div>
@@ -1118,6 +1127,42 @@ function showSignedOut(){
   document.getElementById('gSignedOut').style.display='';
   const si=document.getElementById('gSignedIn'); if(si) si.style.display='none';
 }
+/* ════════ 电商连接器面板（后端 sandbox → nexus 引擎）════════ */
+async function renderConnectorPanel(){
+  const list=document.getElementById('connectorList'); if(!list) return;
+  list.innerHTML='<span style="color:var(--ink3);font-size:12px">加载连接器…</span>';
+  try{
+    const r=await TaxGlobalApi.connectors();
+    const conns=(r&&r.connectors)||[];
+    list.innerHTML=conns.map(c=>{
+      const fac=c.is_marketplace_facilitator?'平台代缴':'自申报';
+      const cfg=c.configured?'已配置':'sandbox';
+      return `<button class="btn" onclick="syncConnector('${c.platform}')" style="text-transform:capitalize">${c.platform} · ${fac} · ${cfg} 同步</button>`;
+    }).join('')||'<span style="color:var(--ink3);font-size:12px">无可用连接器</span>';
+  }catch(e){ list.innerHTML='<span style="color:var(--ink3);font-size:12px">后端不可用（确认 FastAPI 在 8000 运行）</span>'; }
+}
+async function syncConnector(platform){
+  const box=document.getElementById('connectorResult'); if(!box) return;
+  box.innerHTML='<div style="color:var(--ink3);font-size:12px;padding:8px 0">正在同步并按州判定 nexus…</div>';
+  try{
+    const s=await TaxGlobalApi.connectorNexus(platform,{tax_year:2025,sandbox:true});
+    if(!s||!s.states){ box.innerHTML='<div class="alert-box"><div class="alert-ico">!</div><div>同步失败</div></div>'; return; }
+    const badgeOf=l=>({triggered:'🔴 已触发',approaching:'🟡 接近',below:'⚪ 未达',not_covered:'— 未覆盖'}[l]||l||'—');
+    const rows=(s.states||[]).map(st=>{
+      const res=(st.nexus&&st.nexus.result)||{};
+      const label=res.status_label||(st.nexus&&st.nexus.status)||'—';
+      return `<tr style="border-top:0.5px solid var(--bd)"><td style="padding:7px 10px;font-weight:600">${st.state}</td><td style="padding:7px 10px;text-align:right" class="mono">$${f(st.sales_amount)}</td><td style="padding:7px 10px;text-align:right" class="mono">${st.transaction_count}</td><td style="padding:7px 10px">${badgeOf(label)}</td></tr>`;
+    }).join('');
+    box.innerHTML=`
+      <div style="font-size:12px;color:var(--ink2);margin-bottom:8px;text-transform:capitalize">${s.platform} · 总销售 <strong>$${f(s.total_sales)}</strong> · ${s.is_marketplace_facilitator?'平台代缴':'自申报'} · ${s.sandbox?'sandbox':'live'} · ${s.tax_year}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="color:var(--ink3);font-size:11px;text-align:left"><th style="padding:7px 10px">州</th><th style="padding:7px 10px;text-align:right">销售额</th><th style="padding:7px 10px;text-align:right">订单</th><th style="padding:7px 10px">Nexus 判定</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="font-size:11px;color:var(--ink4);margin-top:10px;line-height:1.5">${s.facilitator_note||''}</div>`;
+  }catch(e){ box.innerHTML='<div class="alert-box"><div class="alert-ico">!</div><div>后端不可用（确认 FastAPI 在 8000 运行）</div></div>'; }
+}
+
 async function refreshAuth(){
   if(!window.TaxGlobalApi||!TaxGlobalApi.authMe) return;
   try{
@@ -1181,7 +1226,7 @@ function go(tab, el){
   window.scrollTo({top:0,behavior:'smooth'});
   // lazy-init pages
   if(tab==='nomad') rankCities();
-  if(tab==='ecom'){ renderStores(); renderNexus(); }
+  if(tab==='ecom'){ renderStores(); renderNexus(); renderConnectorPanel(); }
   if(tab==='crypto') calcCrypto();
   if(tab==='biz'){ renderJur(); calcBiz(); }
   if(tab==='treaty') calcTreaty();

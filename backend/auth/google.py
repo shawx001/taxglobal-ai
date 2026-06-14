@@ -65,7 +65,8 @@ class GoogleOAuth:
     def build_authorize_url(self, state: str) -> str:
         if not self.configured:
             raise GoogleOAuthError(
-                "Google OAuth is not configured; set TAXGLOBAL_GOOGLE_CLIENT_ID/_CLIENT_SECRET/_REDIRECT_URI"
+                "Google OAuth is not configured; set the env vars TAXGLOBAL_GOOGLE_CLIENT_ID, "
+                "TAXGLOBAL_GOOGLE_CLIENT_SECRET and TAXGLOBAL_GOOGLE_REDIRECT_URI"
             )
         params = {
             "client_id": self.client_id,
@@ -85,20 +86,26 @@ class GoogleOAuth:
             raise GoogleOAuthError("Google OAuth is not configured")
         if not code:
             raise GoogleOAuthError("missing authorization code")
-        token_response = _http_post_form(
-            GOOGLE_TOKEN_ENDPOINT,
-            {
-                "code": code,
-                "client_id": self.client_id,
-                "client_secret": self.client_secret,
-                "redirect_uri": self.redirect_uri,
-                "grant_type": "authorization_code",
-            },
-        )
+        try:
+            token_response = _http_post_form(
+                GOOGLE_TOKEN_ENDPOINT,
+                {
+                    "code": code,
+                    "client_id": self.client_id,
+                    "client_secret": self.client_secret,
+                    "redirect_uri": self.redirect_uri,
+                    "grant_type": "authorization_code",
+                },
+            )
+        except Exception as exc:  # network / non-JSON / HTTP error -> clean login failure
+            raise GoogleOAuthError(f"token exchange request failed: {exc}") from exc
         access_token = token_response.get("access_token")
         if not access_token:
             raise GoogleOAuthError("token exchange did not return an access_token")
-        info = _http_get_json(GOOGLE_USERINFO_ENDPOINT, bearer=access_token)
+        try:
+            info = _http_get_json(GOOGLE_USERINFO_ENDPOINT, bearer=access_token)
+        except Exception as exc:
+            raise GoogleOAuthError(f"userinfo request failed: {exc}") from exc
         sub = info.get("sub")
         email = info.get("email")
         if not (sub and email):

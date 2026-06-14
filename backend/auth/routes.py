@@ -32,7 +32,7 @@ class DevLoginRequest(BaseModel):
 
 
 def _request_id(request: Request) -> str:
-    return str(getattr(request.state, "request_id", ""))
+    return str(getattr(request.state, "request_id", "unknown"))
 
 
 def _error(request: Request, *, status_code: int, code: str, message: str, details: list | None = None) -> JSONResponse:
@@ -85,7 +85,8 @@ def google_login(request: Request) -> Response:
             request,
             status_code=503,
             code="google_oauth_not_configured",
-            message="Google OAuth is not configured; set TAXGLOBAL_GOOGLE_CLIENT_ID/_CLIENT_SECRET/_REDIRECT_URI, "
+            message="Google OAuth is not configured; set the env vars TAXGLOBAL_GOOGLE_CLIENT_ID, "
+            "TAXGLOBAL_GOOGLE_CLIENT_SECRET and TAXGLOBAL_GOOGLE_REDIRECT_URI, "
             "or use POST /api/auth/dev-login in sandbox.",
             details=[{"dev_login_enabled": _dev_login_enabled()}],
         )

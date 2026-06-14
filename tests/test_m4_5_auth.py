@@ -102,6 +102,14 @@ class GoogleOAuthTests(unittest.TestCase):
             with self.assertRaises(GoogleOAuthError):
                 g.complete_login("authcode")
 
+    def test_complete_login_wraps_http_errors(self):
+        # A network/HTTP failure must surface as GoogleOAuthError (callback -> 400),
+        # not bubble up as a raw exception (which would be a 500).
+        g = GoogleOAuth(client_id="cid", client_secret="sec", redirect_uri="https://app/cb")
+        with mock.patch.object(google_mod, "_http_post_form", side_effect=OSError("connection refused")):
+            with self.assertRaises(GoogleOAuthError):
+                g.complete_login("authcode")
+
     def test_complete_login_rejects_unverified_email(self):
         g = GoogleOAuth(client_id="cid", client_secret="sec", redirect_uri="https://app/cb")
         with (

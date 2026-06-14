@@ -54,14 +54,11 @@ class SessionStore:
             return None
         ts = now_seconds() if now is None else now
         with self._lock:
+            self._prune(ts)  # drop all expired sessions, not just this token
             entry = self._sessions.get(token)
             if entry is None:
                 return None
-            user, expiry = entry
-            if expiry < ts:
-                self._sessions.pop(token, None)
-                return None
-            return user
+            return entry[0]
 
     def delete(self, token: str | None) -> None:
         if not token:

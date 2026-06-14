@@ -102,11 +102,11 @@
       });
     },
     logout: function () { return authFetch("/api/auth/logout", { method: "POST" }); },
-    googleLoginUrl: function () { return API_BASE_URL + "/api/auth/google/login"; },
-    // Detect whether Google OAuth is configured: a configured server 302-redirects
-    // (opaqueredirect under redirect:manual); otherwise it returns 503 JSON.
-    googleConfigured: function () {
-      return window.fetch(API_BASE_URL + "/api/auth/google/login", {
+    providerLoginUrl: function (provider) { return API_BASE_URL + "/api/auth/" + provider + "/login"; },
+    // Detect whether a provider's OAuth is configured: a configured server
+    // 302-redirects (opaqueredirect under redirect:manual); otherwise 503 JSON.
+    providerConfigured: function (provider) {
+      return window.fetch(API_BASE_URL + "/api/auth/" + provider + "/login", {
         credentials: "include",
         redirect: "manual",
       }).then(function (response) {

@@ -1,17 +1,26 @@
-"""Tests for the Google OAuth login + session subsystem (no network/DB)."""
+"""Tests for the multi-provider OAuth login + session subsystem (no network/DB)."""
 
 from __future__ import annotations
 
+import base64
+import json
 import unittest
 from unittest import mock
 
 from starlette.testclient import TestClient
 
+import backend.auth.providers as providers_mod
 import backend.auth.routes as auth_routes
 from backend.auth import google as google_mod
 from backend.auth.google import GoogleOAuth, GoogleOAuthError
+from backend.auth.providers import AppleOAuth, WeChatOAuth, get_provider
 from backend.auth.sessions import AuthUser, SessionStore, StateStore, session_store, state_store
 from backend.main import app
+
+
+def _fake_jwt(claims: dict) -> str:
+    payload = base64.urlsafe_b64encode(json.dumps(claims).encode()).decode().rstrip("=")
+    return f"header.{payload}.sig"
 
 
 class SessionStoreTests(unittest.TestCase):
@@ -124,7 +133,60 @@ class GoogleOAuthTests(unittest.TestCase):
                 g.complete_login("authcode")
 
 
-class _StubGoogle:
+class AppleWeChatProviderTests(unittest.TestCase):
+    def test_registry(self):
+        self.assertIsInstance(get_provider("apple"), AppleOAuth)
+        self.assertIsInstance(get_provider("wechat"), WeChatOAuth)
+        self.assertIsNone(get_provider("myspace"))
+
+    def test_apple_authorize_url(self):
+        a = AppleOAuth()
+        a.client_id, a.client_secret, a.redirect_uri = "cid", "sec", "https://app/cb"
+        url = a.build_authorize_url("st")
+        self.assertTrue(url.startswith("https://appleid.apple.com/auth/authorize?"))
+        self.assertIn("response_mode=form_post", url)
+        self.assertIn("state=st", url)
+
+    def test_apple_complete_login(self):
+        a = AppleOAuth()
+        a.client_id, a.client_secret, a.redirect_uri = "cid", "sec", "https://app/cb"
+        jwt = _fake_jwt({"sub": "apple-123", "email": "x@privaterelay.appleid.com"})
+        with mock.patch.object(providers_mod, "_http_post_form", return_value={"id_token": jwt}):
+            user = a.complete_login("code")
+        self.assertEqual(user.sub, "apple-123")
+        self.assertEqual(user.email, "x@privaterelay.appleid.com")
+        self.assertEqual(user.provider, "apple")
+
+    def test_wechat_authorize_url(self):
+        w = WeChatOAuth()
+        w.app_id, w.app_secret, w.redirect_uri = "appid", "sec", "https://app/cb"
+        url = w.build_authorize_url("st")
+        self.assertTrue(url.startswith("https://open.weixin.qq.com/connect/qrconnect?"))
+        self.assertIn("appid=appid", url)
+        self.assertTrue(url.endswith("#wechat_redirect"))
+
+    def test_wechat_complete_login(self):
+        w = WeChatOAuth()
+        w.app_id, w.app_secret, w.redirect_uri = "appid", "sec", "https://app/cb"
+        with mock.patch.object(
+            providers_mod,
+            "_http_get_json",
+            side_effect=[{"access_token": "at", "openid": "oid-1"}, {"openid": "oid-1", "nickname": "微信用户"}],
+        ):
+            user = w.complete_login("code")
+        self.assertEqual(user.sub, "oid-1")
+        self.assertEqual(user.name, "微信用户")
+        self.assertEqual(user.provider, "wechat")
+
+    def test_unconfigured_provider_not_configured_and_raises(self):
+        a = AppleOAuth()
+        a.client_id, a.client_secret, a.redirect_uri = "", "", ""
+        self.assertFalse(a.configured)
+        with self.assertRaises(GoogleOAuthError):  # AuthProviderError is GoogleOAuthError
+            a.build_authorize_url("s")
+
+
+class _StubProvider:
     def __init__(self, configured: bool):
         self.configured = configured
 
@@ -167,14 +229,19 @@ class AuthRoutesTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 403)
         self.assertEqual(resp.json()["error"]["code"], "dev_login_disabled")
 
-    def test_google_login_not_configured(self):
-        with mock.patch.object(auth_routes, "google_oauth", _StubGoogle(configured=False)):
+    def test_unknown_provider_404(self):
+        resp = self.client.get("/api/auth/myspace/login")
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.json()["error"]["code"], "unknown_provider")
+
+    def test_provider_login_not_configured(self):
+        with mock.patch.object(auth_routes, "get_provider", lambda name: _StubProvider(configured=False)):
             resp = self.client.get("/api/auth/google/login")
         self.assertEqual(resp.status_code, 503)
-        self.assertEqual(resp.json()["error"]["code"], "google_oauth_not_configured")
+        self.assertEqual(resp.json()["error"]["code"], "provider_not_configured")
 
-    def test_google_login_redirects_when_configured(self):
-        with mock.patch.object(auth_routes, "google_oauth", _StubGoogle(configured=True)):
+    def test_provider_login_redirects_when_configured(self):
+        with mock.patch.object(auth_routes, "get_provider", lambda name: _StubProvider(configured=True)):
             resp = self.client.get("/api/auth/google/login", follow_redirects=False)
         self.assertEqual(resp.status_code, 302)
         self.assertIn("accounts.google.com", resp.headers["location"])
@@ -188,7 +255,7 @@ class AuthRoutesTests(unittest.TestCase):
         from backend.auth.sessions import now_seconds
 
         valid_state = state_store.issue(now=now_seconds())
-        with mock.patch.object(auth_routes, "google_oauth", _StubGoogle(configured=True)):
+        with mock.patch.object(auth_routes, "get_provider", lambda name: _StubProvider(configured=True)):
             resp = self.client.get(
                 f"/api/auth/google/callback?code=authcode&state={valid_state}",
                 follow_redirects=False,

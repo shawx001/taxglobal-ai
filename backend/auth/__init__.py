@@ -9,13 +9,20 @@ Google's verified userinfo, never fabricated.
 """
 
 from .google import GoogleOAuth, GoogleOAuthError, google_oauth
+from .providers import PROVIDERS, AppleOAuth, AuthProviderError, OAuthProvider, WeChatOAuth, get_provider
 from .sessions import AuthUser, SessionStore, session_store
 
 __all__ = [
+    "PROVIDERS",
+    "AppleOAuth",
+    "AuthProviderError",
     "AuthUser",
     "GoogleOAuth",
     "GoogleOAuthError",
+    "OAuthProvider",
     "SessionStore",
+    "WeChatOAuth",
+    "get_provider",
     "google_oauth",
     "session_store",
 ]

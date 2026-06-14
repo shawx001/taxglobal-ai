@@ -1498,8 +1498,8 @@ async function updateDashTax(agg){
   const incomeBase=taxIncomeTotalFromPayload(payload);
   const key=JSON.stringify({p:[payload.w2_wages||0,payload.net_self_employment_profit||0,payload.long_term_capital_gain||0],f:filing,s:state});
   const setVal=(v,r)=>{ const ve=document.getElementById('dashTaxVal'), re=document.getElementById('dashTaxRate'); if(ve)ve.textContent=v; if(re)re.textContent=r; };
-  const rateLabel=(rate)=>'有效税率 '+rate+'%'+(state?'':'（未含州税）');
-  if(_dashTaxCache.key===key && _dashTaxCache.total!=null){ setVal('$'+f(_dashTaxCache.total), rateLabel(_dashTaxCache.rate)); return; }
+  const rateText=(rate,suffix)=>'有效税率 '+rate+'%'+(suffix||'');
+  if(_dashTaxCache.key===key && _dashTaxCache.total!=null){ setVal('$'+f(_dashTaxCache.total), rateText(_dashTaxCache.rate,_dashTaxCache.suffix)); return; }
   try{
     const summary=await TaxGlobalApi.incomeSummary(payload);
     if(myseq!==_dashTaxSeq) return; // 已被更新的渲染取代
@@ -1507,9 +1507,13 @@ async function updateDashTax(agg){
       throw new Error(summary&&summary.reason?summary.reason:'后端返回了无法渲染的合并计税结果。');
     }
     const total=Number(summary.result.total_tax);
+    // 标签据后端实际是否计入州税决定，而不仅看是否选了州：选了州但该州未覆盖时也要诚实标注未含州税。
+    const st=summary.result.state_income_tax;
+    const stateIncluded=!!(state && st && st.status==='ok');
+    const suffix=stateIncluded ? '' : (state ? '（未含州税：该州暂未覆盖）' : '（未含州税）');
     const rate=incomeBase>0?(total/incomeBase*100).toFixed(1):'0.0';
-    _dashTaxCache={key,total,rate};
-    setVal('$'+f(total), rateLabel(rate));
+    _dashTaxCache={key,total,rate,suffix};
+    setVal('$'+f(total), rateText(rate,suffix));
   }catch(e){
     if(myseq!==_dashTaxSeq) return;
     setVal('—', '后端不可用，见各模块');

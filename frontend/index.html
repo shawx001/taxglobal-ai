@@ -1254,16 +1254,8 @@ function bracketTax(taxable, br){
   for(const [cap,rate] of br){ if(taxable>cap){ tax+=(cap-prev)*rate; prev=cap; } else { tax+=(taxable-prev)*rate; break; } }
   return Math.max(0,tax);
 }
-function caStateTax(t){ // 简化加州累进
-  const br=[[10412,.01],[24684,.02],[38959,.04],[54081,.06],[68350,.08],[349137,.093],[418961,.103],[698271,.113],[Infinity,.123]];
-  return bracketTax(t,br);
-}
+function canonicalFiling(short){ return {single:'single',mfj:'married_filing_jointly',mfs:'married_filing_separately',hoh:'head_of_household'}[short]||short||'single'; }
 function onTaxCountry(){ const us=document.getElementById('tx-country').value==='us'; document.getElementById('tx-state-wrap').style.display=us?'block':'none'; }
-function fica(wages){
-  const ss=Math.min(wages,176100)*.062;
-  const med=wages*.0145 + Math.max(0,wages-200000)*.009;
-  return {ss,med,total:ss+med};
-}
 function taxText(key){
   const copy={
     usOnly:"\u672c\u6b65\u5148\u63a5\u5165\u7f8e\u56fd\u4e2a\u4eba\u6240\u5f97\u7a0e API\u3002\u5176\u4ed6\u56fd\u5bb6\u7a0e\u52a1\u5bf9\u6bd4\u5c06\u5728\u77e5\u8bc6\u5e93\u4e0e\u66f4\u591a\u5b98\u65b9\u6570\u636e\u5165\u5e93\u540e\u63a5\u5165\u3002",
@@ -1464,7 +1456,6 @@ async function calcTax(){
   }
 }
 function marginalRate(taxable,filing){ const table=FED[filing]||FED.single; for(const [cap,rate] of table){ if(taxable<=cap) return rate; } return .37; }
-function usTaxTotal(income,filing,k401){ const ded=(STD[filing]!=null?STD[filing]:STD.single); const taxable=Math.max(0,income-k401-ded); return bracketTax(taxable,FED[filing]||FED.single)+caStateTax(taxable)+fica(income).total; }
 
 /* ════════ 子 Tab ════════ */
 function buildTaxSubtabs(){
@@ -1488,6 +1479,46 @@ function goSub(s, el){
 }
 
 /* ════════ 仪表盘 ════════ */
+let _dashTaxSeq=0, _dashTaxCache={key:null,total:null,rate:null};
+// 仪表盘「预估年税额」改走后端规则引擎，按用户真实州计算（不再前端硬编码加州税）。
+async function updateDashTax(agg){
+  const myseq=++_dashTaxSeq;
+  const filing=canonicalFiling(profile.filing);
+  const state=String(profile.state||'').trim().toUpperCase();
+  // 按已勾选身份把综合收入拆进正确的收入桶，避免把自雇利润/资本利得错当 W-2 工资。
+  const payload={tax_year:2025, filing_status:filing};
+  if(selectedTypes.includes('tech')){ const w=Number(profile.wages)||0; if(w>0) payload.w2_wages=w; }
+  if(selectedTypes.includes('self')||selectedTypes.includes('ecom')){ const s=Number(profile.seInc)||0; if(s>0) payload.net_self_employment_profit=s; }
+  if(selectedTypes.includes('crypto')){ const c=Number(profile.cryptoGain)||0; if(c>0) payload.long_term_capital_gain=c; }
+  if(!payload.w2_wages && !payload.net_self_employment_profit && !payload.long_term_capital_gain){
+    const placeholder=Number(profile.wages)||Number(profile.income)||Number(agg)||0;
+    if(placeholder>0) payload.w2_wages=placeholder;
+  }
+  if(state) payload.state_code=state;
+  const incomeBase=taxIncomeTotalFromPayload(payload);
+  const key=JSON.stringify({p:[payload.w2_wages||0,payload.net_self_employment_profit||0,payload.long_term_capital_gain||0],f:filing,s:state});
+  const setVal=(v,r)=>{ const ve=document.getElementById('dashTaxVal'), re=document.getElementById('dashTaxRate'); if(ve)ve.textContent=v; if(re)re.textContent=r; };
+  const rateText=(rate,suffix)=>'有效税率 '+rate+'%'+(suffix||'');
+  if(_dashTaxCache.key===key && _dashTaxCache.total!=null){ setVal('$'+f(_dashTaxCache.total), rateText(_dashTaxCache.rate,_dashTaxCache.suffix)); return; }
+  try{
+    const summary=await TaxGlobalApi.incomeSummary(payload);
+    if(myseq!==_dashTaxSeq) return; // 已被更新的渲染取代
+    if(!summary||summary.status!=='ok'||!summary.result||!Number.isFinite(Number(summary.result.total_tax))){
+      throw new Error(summary&&summary.reason?summary.reason:'后端返回了无法渲染的合并计税结果。');
+    }
+    const total=Number(summary.result.total_tax);
+    // 标签据后端实际是否计入州税决定，而不仅看是否选了州：选了州但该州未覆盖时也要诚实标注未含州税。
+    const st=summary.result.state_income_tax;
+    const stateIncluded=!!(state && st && st.status==='ok');
+    const suffix=stateIncluded ? '' : (state ? '（未含州税：该州暂未覆盖）' : '（未含州税）');
+    const rate=incomeBase>0?(total/incomeBase*100).toFixed(1):'0.0';
+    _dashTaxCache={key,total,rate,suffix};
+    setVal('$'+f(total), rateText(rate,suffix));
+  }catch(e){
+    if(myseq!==_dashTaxSeq) return;
+    setVal('—', '后端不可用，见各模块');
+  }
+}
 function renderDash(){
   const primary=TYPES[selectedTypes[0]];
   const firstName = profile.name ? profile.name.split(' ')[0] : '';
@@ -1500,14 +1531,14 @@ function renderDash(){
   document.getElementById('dashSub').textContent='以下内容根据你勾选的全部身份与收入明细综合生成——身份、金额、所在地一变，方案与税额实时重算。';
   const agg=aggregateIncome();
   profile.income=agg;
-  const tot=usTaxTotal(agg,profile.filing,15000);
   const k401=Math.min(23500, selectedTypes.includes('tech')?23500:0);
   const save401=Math.round(k401*marginalRate(agg,profile.filing));
   document.getElementById('dashMetrics').innerHTML=`
     <div class="mcard"><div class="mac" style="background:var(--g)"></div><div class="mlabel">综合应税收入</div><div class="mval">$${f(agg)}</div><div class="msub">${selectedTypes.length} 个身份合并</div></div>
-    <div class="mcard"><div class="mac" style="background:var(--blue)"></div><div class="mlabel">预估年税额</div><div class="mval">$${f(tot)}</div><div class="msub">有效税率 ${(tot/agg*100).toFixed(1)}%</div></div>
+    <div class="mcard"><div class="mac" style="background:var(--blue)"></div><div class="mlabel">预估年税额</div><div class="mval" id="dashTaxVal">…</div><div class="msub" id="dashTaxRate">按所在州后端计算中…</div></div>
     <div class="mcard"><div class="mac" style="background:var(--gold)"></div><div class="mlabel">可优化节税</div><div class="mval">$${f(save401||8500)}</div><div class="msub">${k401?'填满 401(k)':'见定制方案'}</div></div>
     <div class="mcard"><div class="mac" style="background:var(--purple)"></div><div class="mlabel">开启功能</div><div class="mval">${computeTabs().length-1}</div><div class="msub">含 ${computeOwn().length} 个专属</div></div>`;
+  updateDashTax(agg);
   renderPlan();
   renderAlerts();
   // 合并多身份待办
@@ -1822,19 +1853,34 @@ function startUpload(){
     i++;
   },600);
 }
-function generateReport(){
-  // 用真实税率从 W-2 数据算 1040
-  const box1=120000, box2=18400, box16=7800, k401=15000;
-  const ded=STD.single;
-  const taxable=Math.max(0,box1-ded);
-  const fedTax=bracketTax(taxable,FED.single);
-  const stateTax=caStateTax(taxable);
-  const fedRefund=box2-fedTax;
-  const stateRefund=box16-stateTax;
+async function generateReport(){
+  // 用真实税率从 W-2 数据算 1040：联邦 + 加州州税均由后端规则引擎返回（不再前端硬编码）。
+  const box1=120000, box2=18400, box16=7800;
   document.getElementById('rph').style.display='none';
   document.getElementById('w2Skill').style.display='inline-block';
   const rc=document.getElementById('rcContent');
   rc.classList.add('show');
+  rc.innerHTML='<div style="padding:18px;color:var(--ink3);font-size:13px">正在调用后端规则引擎生成 Form 1040…</div>';
+  let fedTax, stateTax, taxable;
+  try{
+    const summary=await TaxGlobalApi.incomeSummary({tax_year:2025, filing_status:'single', w2_wages:box1, state_code:'CA'});
+    if(!summary||summary.status!=='ok'||!summary.result) throw new Error(summary&&summary.reason?summary.reason:'后端无法生成合并计税结果。');
+    const r=summary.result;
+    fedTax=Number(r.federal_income_tax_liability!=null?r.federal_income_tax_liability:r.federal_income_tax);
+    taxable=Number(r.taxable_income);
+    const st=r.state_income_tax;
+    if(!st||st.status!=='ok'||!Number.isFinite(Number(st.tax))) throw new Error('加州州税未覆盖或计算失败，无法生成可信的 CA 540 草稿。');
+    stateTax=Number(st.tax);
+    if(!Number.isFinite(fedTax)||!Number.isFinite(taxable)) throw new Error('后端响应缺少联邦税或应税收入。');
+  }catch(error){
+    const msg=error&&error.code==='service_unavailable'?'后端服务不可用，无法生成 Form 1040。请确认 FastAPI 正在 http://127.0.0.1:8000 运行。':(error&&error.message?error.message:'生成失败。');
+    rc.innerHTML='<div class="alert-box" style="border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08)"><div class="alert-ico">!</div><div><div class="alert-title">无法生成</div><div style="font-size:12px;color:var(--ink2)">'+escapeHtml(msg)+'</div></div></div>';
+    toast('后端不可用');
+    return;
+  }
+  const ded=box1-taxable;
+  const fedRefund=box2-fedTax;
+  const stateRefund=box16-stateTax;
   rc.innerHTML=`
     <div class="refund-banner">
       <div><div class="rb-label">预计联邦退税</div><div class="rb-amount">$${f(Math.abs(fedRefund))}</div><div class="rb-sub">${fedRefund>=0?'多代扣，将退还':'需补缴'}</div></div>

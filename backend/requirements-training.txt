@@ -1,0 +1,15 @@
+# Optional M4.3 LoRA fine-tuning extras — NOT installed by CI or the serving
+# runtime. The training pipeline (backend/training/lora_finetune.py) imports
+# these lazily and raises a clear hint if they are absent. Install only when you
+# actually fine-tune:
+#     pip install -r backend/requirements-training.txt
+#
+# torch + transformers already ship via backend/requirements.txt
+# (sentence-transformers); pinned here too so the training extra is standalone.
+# Qwen2.5-0.5B + LoRA is CPU-runnable (project plan v3.1 §6.6, §"训练").
+torch>=2.4,<3
+transformers>=4.44,<6
+peft>=0.13,<1
+trl>=0.12,<1
+datasets>=3.0,<5
+accelerate>=1.0,<2

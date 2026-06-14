@@ -38,7 +38,7 @@ M4 大部分**本地可自建**；少数环节的**真实运行**卡在外部依
   非 clarify 兜底）→ SFT JSONL（{messages:[...]} 或 {prompt,completion}）。新旧混合比例（新 20%/历史 80%）。
 - 交付：`backend/training/trace_export.py` + CLI + 测试（用合成 trace，不依赖 PG）。
 
-### M4.3 LoRA 训练管道（Qwen2.5-0.5B，CPU 可跑）
+### M4.3 LoRA 训练管道（Qwen2.5-0.5B，CPU 可跑）✅（本步，管道就绪）
 - HuggingFace PEFT + TRL：数据准备 → LoRA 增量微调（1 epoch）→ 调 M4.1 harness 做 ≥0.80 门禁 → 产出 adapter。
 - 新增依赖：`torch/peft/trl/datasets`（pin）。提供极小数据 CPU smoke test；真实微调需算力 + HF 下载。
 - 交付：`backend/training/lora_finetune.py` + 配置 + smoke 测试 + 文档化算力/下载依赖。

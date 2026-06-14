@@ -1485,20 +1485,29 @@ async function updateDashTax(agg){
   const myseq=++_dashTaxSeq;
   const filing=canonicalFiling(profile.filing);
   const state=String(profile.state||'').trim().toUpperCase();
-  const key=agg+'|'+filing+'|'+state;
+  // 按已勾选身份把综合收入拆进正确的收入桶，避免把自雇利润/资本利得错当 W-2 工资。
+  const payload={tax_year:2025, filing_status:filing};
+  if(selectedTypes.includes('tech')){ const w=Number(profile.wages)||0; if(w>0) payload.w2_wages=w; }
+  if(selectedTypes.includes('self')||selectedTypes.includes('ecom')){ const s=Number(profile.seInc)||0; if(s>0) payload.net_self_employment_profit=s; }
+  if(selectedTypes.includes('crypto')){ const c=Number(profile.cryptoGain)||0; if(c>0) payload.long_term_capital_gain=c; }
+  if(!payload.w2_wages && !payload.net_self_employment_profit && !payload.long_term_capital_gain){
+    const placeholder=Number(profile.wages)||Number(profile.income)||Number(agg)||0;
+    if(placeholder>0) payload.w2_wages=placeholder;
+  }
+  if(state) payload.state_code=state;
+  const incomeBase=taxIncomeTotalFromPayload(payload);
+  const key=JSON.stringify({p:[payload.w2_wages||0,payload.net_self_employment_profit||0,payload.long_term_capital_gain||0],f:filing,s:state});
   const setVal=(v,r)=>{ const ve=document.getElementById('dashTaxVal'), re=document.getElementById('dashTaxRate'); if(ve)ve.textContent=v; if(re)re.textContent=r; };
   const rateLabel=(rate)=>'有效税率 '+rate+'%'+(state?'':'（未含州税）');
   if(_dashTaxCache.key===key && _dashTaxCache.total!=null){ setVal('$'+f(_dashTaxCache.total), rateLabel(_dashTaxCache.rate)); return; }
   try{
-    const payload={tax_year:2025, filing_status:filing, w2_wages:agg};
-    if(state) payload.state_code=state;
     const summary=await TaxGlobalApi.incomeSummary(payload);
     if(myseq!==_dashTaxSeq) return; // 已被更新的渲染取代
     if(!summary||summary.status!=='ok'||!summary.result||!Number.isFinite(Number(summary.result.total_tax))){
       throw new Error(summary&&summary.reason?summary.reason:'后端返回了无法渲染的合并计税结果。');
     }
     const total=Number(summary.result.total_tax);
-    const rate=agg>0?(total/agg*100).toFixed(1):'0.0';
+    const rate=incomeBase>0?(total/incomeBase*100).toFixed(1):'0.0';
     _dashTaxCache={key,total,rate};
     setVal('$'+f(total), rateLabel(rate));
   }catch(e){
@@ -1856,7 +1865,8 @@ async function generateReport(){
     fedTax=Number(r.federal_income_tax_liability!=null?r.federal_income_tax_liability:r.federal_income_tax);
     taxable=Number(r.taxable_income);
     const st=r.state_income_tax;
-    stateTax=Number(st&&st.status==='ok'?st.tax:0);
+    if(!st||st.status!=='ok'||!Number.isFinite(Number(st.tax))) throw new Error('加州州税未覆盖或计算失败，无法生成可信的 CA 540 草稿。');
+    stateTax=Number(st.tax);
     if(!Number.isFinite(fedTax)||!Number.isFinite(taxable)) throw new Error('后端响应缺少联邦税或应税收入。');
   }catch(error){
     const msg=error&&error.code==='service_unavailable'?'后端服务不可用，无法生成 Form 1040。请确认 FastAPI 正在 http://127.0.0.1:8000 运行。':(error&&error.message?error.message:'生成失败。');

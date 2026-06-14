@@ -35,8 +35,9 @@ def _http_post_form(url: str, data: dict[str, str]) -> dict[str, Any]:  # pragma
         return json.loads(response.read().decode())
 
 
-def _http_get_json(url: str, *, bearer: str) -> dict[str, Any]:  # pragma: no cover - network
-    request = urllib.request.Request(url, headers={"Authorization": f"Bearer {bearer}"})  # noqa: S310
+def _http_get_json(url: str, *, bearer: str | None = None) -> dict[str, Any]:  # pragma: no cover - network
+    headers = {"Authorization": f"Bearer {bearer}"} if bearer else {}
+    request = urllib.request.Request(url, headers=headers)  # noqa: S310
     with urllib.request.urlopen(request, timeout=_HTTP_TIMEOUT) as response:  # noqa: S310
         return json.loads(response.read().decode())
 

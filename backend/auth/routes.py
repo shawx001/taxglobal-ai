@@ -1,9 +1,11 @@
-"""Auth routes: Google OAuth login, dev login, session check, logout.
+"""Auth routes: multi-provider OAuth login, dev login, session check, logout.
 
-The session token rides an httponly, SameSite=Lax cookie so client JS can never
-read it. The OAuth ``state`` is single-use and server-validated for CSRF. A
-configured Google client drives the real consent screen; otherwise the dev login
-(gated by ``TAXGLOBAL_ENABLE_DEV_LOGIN``) keeps the flow demonstrable.
+Provider-agnostic: ``/api/auth/{provider}/login`` and ``/callback`` work for
+google / apple / wechat via the provider registry. The session token rides an
+httponly, SameSite=Lax cookie so client JS can never read it. The OAuth
+``state`` is single-use and server-validated for CSRF. A configured provider
+drives its real consent screen; otherwise the dev login (gated by
+``TAXGLOBAL_ENABLE_DEV_LOGIN``) keeps every button demonstrable in sandbox.
 """
 
 from __future__ import annotations
@@ -16,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from backend.errors import error_response
 
-from .google import GoogleOAuthError, google_oauth
+from .providers import AuthProviderError, get_provider
 from .sessions import AuthUser, now_seconds, session_store, state_store
 
 router = APIRouter()
@@ -78,35 +80,47 @@ def auth_me(request: Request) -> dict[str, object]:
     return {"authenticated": True, "user": user.as_dict()}
 
 
-@router.get("/api/auth/google/login")
-def google_login(request: Request) -> Response:
-    if not google_oauth.configured:
+@router.get("/api/auth/{provider}/login")
+def provider_login(provider: str, request: Request) -> Response:
+    oauth = get_provider(provider)
+    if oauth is None:
+        return _error(
+            request, status_code=404, code="unknown_provider", message=f"Unknown login provider '{provider}'."
+        )
+    if not oauth.configured:
         return _error(
             request,
             status_code=503,
-            code="google_oauth_not_configured",
-            message="Google OAuth is not configured; set the env vars TAXGLOBAL_GOOGLE_CLIENT_ID, "
-            "TAXGLOBAL_GOOGLE_CLIENT_SECRET and TAXGLOBAL_GOOGLE_REDIRECT_URI, "
-            "or use POST /api/auth/dev-login in sandbox.",
-            details=[{"dev_login_enabled": _dev_login_enabled()}],
+            code="provider_not_configured",
+            message=f"{provider} OAuth is not configured; use POST /api/auth/dev-login in sandbox.",
+            details=[{"provider": provider, "dev_login_enabled": _dev_login_enabled()}],
         )
     state = state_store.issue(now=now_seconds())
-    return RedirectResponse(url=google_oauth.build_authorize_url(state), status_code=302)
+    return RedirectResponse(url=oauth.build_authorize_url(state), status_code=302)
 
 
-@router.get("/api/auth/google/callback")
-def google_callback(request: Request, code: str = "", state: str = "") -> Response:
-    if not state_store.consume(state, now=now_seconds()):
+@router.get("/api/auth/{provider}/callback")
+def provider_callback(provider: str, request: Request, code: str = "", state: str = "") -> Response:
+    oauth = get_provider(provider)
+    if oauth is None:
+        return _error(
+            request, status_code=404, code="unknown_provider", message=f"Unknown login provider '{provider}'."
+        )
+    if not oauth.configured:
         return _error(
             request,
-            status_code=400,
-            code="invalid_state",
-            message="OAuth state is missing, expired, or reused.",
+            status_code=503,
+            code="provider_not_configured",
+            message=f"{provider} OAuth is not configured.",
+        )
+    if not state_store.consume(state, now=now_seconds()):
+        return _error(
+            request, status_code=400, code="invalid_state", message="OAuth state is missing, expired, or reused."
         )
     try:
-        user = google_oauth.complete_login(code)
-    except GoogleOAuthError as exc:
-        return _error(request, status_code=400, code="google_login_failed", message=str(exc))
+        user = oauth.complete_login(code)
+    except AuthProviderError as exc:
+        return _error(request, status_code=400, code="login_failed", message=str(exc))
     token = session_store.create(user)
     response = RedirectResponse(url=_post_login_redirect(), status_code=302)
     _set_session_cookie(response, token)

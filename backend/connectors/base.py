@@ -66,18 +66,31 @@ class OAuthConfig:
     client_secret: str
     redirect_uri: str
     scopes: tuple[str, ...] = ()
+    shop: str = ""  # platform-specific tenant (e.g. a Shopify shop subdomain)
 
     @classmethod
     def from_env(cls, prefix: str) -> OAuthConfig | None:
-        """Build from ``{PREFIX}_CLIENT_ID`` etc., or ``None`` if not configured."""
+        """Build from ``{PREFIX}_CLIENT_ID`` etc.
+
+        Returns ``None`` unless the universal OAuth essentials — client id,
+        secret AND redirect URI — are all present, so a half-configured connector
+        never advertises itself as ready with an unusable authorize URL.
+        """
 
         client_id = os.environ.get(f"{prefix}_CLIENT_ID")
         client_secret = os.environ.get(f"{prefix}_CLIENT_SECRET")
-        if not (client_id and client_secret):
+        redirect_uri = os.environ.get(f"{prefix}_REDIRECT_URI")
+        if not (client_id and client_secret and redirect_uri):
             return None
-        redirect_uri = os.environ.get(f"{prefix}_REDIRECT_URI", "")
         scopes = tuple(s.strip() for s in os.environ.get(f"{prefix}_SCOPES", "").split(",") if s.strip())
-        return cls(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scopes=scopes)
+        shop = os.environ.get(f"{prefix}_SHOP", "")
+        return cls(
+            client_id=client_id,
+            client_secret=client_secret,
+            redirect_uri=redirect_uri,
+            scopes=scopes,
+            shop=shop,
+        )
 
 
 class EcommerceConnector(ABC):
@@ -100,6 +113,16 @@ class EcommerceConnector(ABC):
     def configured(self) -> bool:
         return self.oauth is not None
 
+    def _format_endpoint(self, endpoint: str) -> str:
+        """Substitute platform tenant placeholders (e.g. Shopify ``{shop}``)."""
+
+        if "{shop}" in endpoint:
+            shop = self.oauth.shop if self.oauth else ""
+            if not shop:
+                raise ConnectorNotConfigured(f"{self.platform} requires a shop domain; set {self.env_prefix()}_SHOP")
+            endpoint = endpoint.replace("{shop}", shop)
+        return endpoint
+
     def authorize_url(self, *, state: str = "") -> str:
         """Build the OAuth authorize redirect URL (the 'jump to platform' step)."""
 
@@ -116,7 +139,7 @@ class EcommerceConnector(ABC):
         }
         if state:
             params["state"] = state
-        return f"{self.authorize_endpoint}?{urlencode(params)}"
+        return f"{self._format_endpoint(self.authorize_endpoint)}?{urlencode(params)}"
 
     def env_prefix(self) -> str:
         return f"TAXGLOBAL_{self.platform.upper()}"

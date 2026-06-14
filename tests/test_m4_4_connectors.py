@@ -37,6 +37,15 @@ class OAuthConfigTests(unittest.TestCase):
         with mock.patch.dict("os.environ", {}, clear=True):
             self.assertIsNone(OAuthConfig.from_env("TAXGLOBAL_SHOPIFY"))
 
+    def test_from_env_requires_redirect_uri(self):
+        # id+secret without a redirect URI must NOT count as configured.
+        env = {
+            "TAXGLOBAL_SHOPIFY_CLIENT_ID": "id",
+            "TAXGLOBAL_SHOPIFY_CLIENT_SECRET": "secret",
+        }
+        with mock.patch.dict("os.environ", env, clear=True):
+            self.assertIsNone(OAuthConfig.from_env("TAXGLOBAL_SHOPIFY"))
+
 
 class ConnectorBehaviorTests(unittest.TestCase):
     def test_facilitator_flags(self):
@@ -56,6 +65,23 @@ class ConnectorBehaviorTests(unittest.TestCase):
     def test_authorize_url_requires_config(self):
         with self.assertRaises(ConnectorNotConfigured):
             ShopifyConnector().authorize_url()
+
+    def test_shopify_shop_substitution(self):
+        oauth = OAuthConfig(
+            client_id="cid",
+            client_secret="sec",
+            redirect_uri="https://app/cb",
+            scopes=("read_orders",),
+            shop="myshop",
+        )
+        url = ShopifyConnector(oauth=oauth).authorize_url()
+        self.assertIn("myshop.myshopify.com", url)
+        self.assertNotIn("{shop}", url)
+
+    def test_shopify_without_shop_raises(self):
+        oauth = OAuthConfig(client_id="cid", client_secret="sec", redirect_uri="https://app/cb")
+        with self.assertRaises(ConnectorNotConfigured):
+            ShopifyConnector(oauth=oauth).authorize_url()
 
     def test_authorize_url_builds_with_config(self):
         oauth = OAuthConfig(

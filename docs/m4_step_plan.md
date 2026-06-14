@@ -43,7 +43,7 @@ M4 大部分**本地可自建**；少数环节的**真实运行**卡在外部依
 - 新增依赖：`torch/peft/trl/datasets`（pin）。提供极小数据 CPU smoke test；真实微调需算力 + HF 下载。
 - 交付：`backend/training/lora_finetune.py` + 配置 + smoke 测试 + 文档化算力/下载依赖。
 
-### M4.4 连接器框架 + sandbox 适配器
+### M4.4 连接器框架 + sandbox 适配器 ✅（本步）
 - 统一抽象 `{platform, facilitator, salesByState, txns}`，对接既有 `nexus_estimate` 引擎；
   OAuth 跳转脚手架（授权 URL→回调→换 token 的接口，sandbox 模式返回样例数据）。
 - Shopify / Amazon SP-API 适配器（sandbox/mock）+ 测试；真实连接待 Shaw 提供 OAuth 凭据。

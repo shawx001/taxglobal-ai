@@ -69,6 +69,26 @@ class EvalHarnessTests(unittest.TestCase):
         self.assertEqual(report.overall, 1.0)
         self.assertTrue(report.passed)
 
+    def test_invalid_gate_raises(self):
+        for bad in (-0.1, 1.5):
+            with self.assertRaises(ValueError):
+                run_eval_harness(gate=bad)
+
+    def test_unknown_weight_key_raises(self):
+        with self.assertRaises(ValueError):
+            run_eval_harness(weights={"intnet": 1.0})  # typo
+
+    def test_negative_or_zero_sum_weights_raise(self):
+        with self.assertRaises(ValueError):
+            run_eval_harness(weights={"intent": -1.0, "factcheck": 1.0})
+        with self.assertRaises(ValueError):
+            run_eval_harness(weights={"intent": 0.0, "factcheck": 0.0})
+
+    def test_single_dimension_weight_is_allowed(self):
+        # Weighting only one known dimension is valid (subset, positive sum).
+        report = run_eval_harness(weights={"factcheck": 1.0})
+        self.assertEqual(report.overall, report.dimensions["factcheck"].score)
+
     def test_as_dict_is_json_serializable(self):
         import json
 

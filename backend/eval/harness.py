@@ -106,14 +106,30 @@ def run_eval_harness(
     weights: dict[str, float] | None = None,
     gate: float = DEFAULT_GATE,
 ) -> EvalReport:
-    """Run every dimension and apply the weighted deploy gate."""
+    """Run every dimension and apply the weighted deploy gate.
 
-    weights = weights or DEFAULT_WEIGHTS
+    Because this decides whether a model ships, misconfiguration must fail loudly
+    rather than silently skew ``overall``: ``gate`` must be within ``[0, 1]`` and
+    ``weights`` must use known dimension keys, be non-negative, and sum positive.
+    """
+
+    if not 0.0 <= gate <= 1.0:
+        raise ValueError(f"gate must be within [0, 1], got {gate!r}")
+
+    weights = dict(weights) if weights is not None else dict(DEFAULT_WEIGHTS)
     dimensions = {
         "intent": evaluate_intent(intent_classifier),
         "factcheck": evaluate_factcheck(),
     }
-    total_weight = sum(weights.get(name, 0.0) for name in dimensions) or 1.0
+    unknown = set(weights) - set(dimensions)
+    if unknown:
+        raise ValueError(f"unknown weight keys {sorted(unknown)}; expected a subset of {sorted(dimensions)}")
+    if any(value < 0 for value in weights.values()):
+        raise ValueError(f"weights must be non-negative, got {weights!r}")
+    total_weight = sum(weights.get(name, 0.0) for name in dimensions)
+    if total_weight <= 0:
+        raise ValueError("weights must sum to a positive total over the eval dimensions")
+
     overall = sum(dimensions[name].score * weights.get(name, 0.0) for name in dimensions) / total_weight
     return EvalReport(
         dimensions=dimensions,

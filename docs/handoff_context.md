@@ -71,7 +71,7 @@ M3 + Phase C 已交付。候选下一步:
 **未完成/受阻(非代码,等外部)**:W-2 vision 真实用需 vision key(OpenAI 已验证但出境美国);C.1/C.2 重排需 `bge-reranker-base` 缓存(本机已下,生产需同样缓存);C.3 真实多跳需 Neo4j 起服务;限流生产需开 `TAXGLOBAL_ENABLE_RATE_LIMIT=true`。
 
 ## 6. Backlog(`product_backlog.md`)
-REQ-001 收入分美国/海外｜002 档案→计算同步｜003 删前端 caStateTax/nyStateTax｜004 海外被动收入/FTC｜005 档案模型重构(身份≠收入类型)｜006 股票期权 NQSO/ISO/ESPP｜008 QBI(✅已由 2.4 实现)｜009 income_tax_summary(=下一步)｜010 自雇健保/退休扣除+季度预缴｜011 州级残余税基一致性(1.4 已做核心,残余待补)。
+REQ-001 收入分美国/海外｜002 档案→计算同步｜003 删前端 caStateTax/nyStateTax(✅ 2026-06-14 PR #87/#88：死原型清除 + 仪表盘/W-2演示州税改走后端)｜004 海外被动收入/FTC｜005 档案模型重构(身份≠收入类型)｜006 股票期权 NQSO/ISO/ESPP｜008 QBI(✅已由 2.4 实现)｜009 income_tax_summary(=下一步)｜010 自雇健保/退休扣除+季度预缴｜011 州级残余税基一致性(1.4 已做核心,残余待补)。
 **待补记**:REQ-007 确定性 crypto 税务优化器(HIFO/FIFO/LIFO 选最省 + 税损收割 + 持有期临界);仅税务优化,**非投资建议**(投资量化属受监管的另一产品,明确不做)。
 
 ## 7. 约定与踩过的坑

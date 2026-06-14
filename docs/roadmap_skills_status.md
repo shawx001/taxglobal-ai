@@ -12,7 +12,7 @@
 | **M1 引擎硬化** | 第 1–3 周 | tax-engine 后端服务 + 黄金测试集 + CI;前后端结果一致 | ✅ **已完成并正式关闭（2026-06-07）** |
 | **M2 Agent + 知识层** | 第 3–5 周 | **18 Skills**(LangChain 编排)+ GraphRAG(MVP) | ✅ **已完成并正式关闭（2026-06-09）** |
 | **M3 对话式 AI + 多模态 + 检索增强** | 第 5–7 周 | LLM 对话(意图/响应/fact-check)、Copilot 聊天 UI、W-2 识别、Phase C 检索增强 | 🟡 **核心已交付（2026-06-13）**；连接器/自训模型推迟（见下） |
-| **M4 训练闭环 + 连接器** | 第 7–8 周 | Trace 回流 + LoRA + Eval Harness + OAuth/Shopify/Amazon 连接器 | 🔲 未开始 |
+| **M4 训练闭环 + 连接器** | 第 7–8 周 | Trace 回流 + LoRA + Eval Harness + OAuth/Shopify/Amazon 连接器 | 🟡 **管道全交付（2026-06-14）**；真实训练/真实 OAuth 待外部(算力/凭据) |
 | **M5 合规与上线** | 第 9–10 周 | 安全/合规/可观测 + 限流上线 + Demo 联调 | 🔲 未开始 |
 
 **M1 关闭总结（2026-06-07）**:REQ-009 引擎三块已齐(Block 1/2/3 已合并);REQ-002 前端总览已接到单次 `income_tax_summary`;Step A 2026 税年数据;Step B 扩州(WA excise/NJ/PA/OR);Step C1–C4 全部 50 州+DC 覆盖(51 jurisdictions);PR #40 deepcopy→freeze 性能优化;PR #41 前端 50 州+DC 动态下拉。unittest + ruff 全绿。M1 正式关闭。下一阶段进入 M2 Skills/Agent + 知识层。
@@ -21,6 +21,9 @@
 
 **M3 交付总结（2026-06-13）**:M3.1 LLM Provider 抽象层(OpenAI 兼容+PII 脱敏装饰器+failover);M3.2 LLM 意图分类(7 意图,失败回退关键词,50 条测试集 100%);M3.3 LLM 自然语言响应(answer_text 附加,结构化 answer 原样保留);M3.4 Fact-checker(金额逐分核查,篡改/幻觉 fail-closed,含中文/k/USD 格式+反馈重试);M3.5 前端 Copilot 聊天 UI + SSE 流式 + 多轮记忆(查询改写)+ LLM 参数抽取 + tax-rate 概览;M3.6 W-2 拍照/PDF 识别(Vision,GPT-4o 真实文件 9/9 到分准,PII 三重防泄漏);M3.7 Token 优化 + 用量成本统计 + admin 端点;M3.8 LLM 端点限流。Phase C 检索增强:C.1 cross-encoder 重排、C.2 CRAG 纠错、C.3 Neo4j 多跳。共 PR #66–#81,640+ tests + ruff + CI 全绿,每 PR CI 绿才合并。
 **范围分歧(诚实记录)**:计划书原 M3="OAuth/Shopify/Amazon 连接器 + 自训 Copilot 模型";实际交付="对话式 AI(外部 DeepSeek/OpenAI LLM)+ W-2 识别 + 检索增强"。**电商连接器 + 自训模型未做**,归入 M4(自训模型本就属训练闭环)。**外部依赖待开**:vision key(OpenAI 已验证,境内合规可切 SiliconFlow)、重排模型缓存(已下)、Neo4j 多跳(待起服务)。
+
+**M4 交付总结（2026-06-14）**:M4.1 **Eval Harness**(意图准确率 + fact-check 保真度两维 + 加权总分 + ≥0.80 部署门禁;离线确定性、可接任意 classifier,PR #90);M4.2 **Trace→SFT 数据管道**(审计日志/JSONL 双源 → 质量筛选[用户纠正=gold、predicted 仅 fact-check pass+高置信、丢 block]→ chat 格式 SFT,新旧 20%/80% 混合,PR #91);M4.3 **LoRA 训练管道**(Qwen2.5-0.5B,TRL+PEFT,训练后过 M4.1 门禁才放行;训练依赖可选[requirements-training.txt]+惰性 import,不进 CI/serving,PR #92);M4.4 **连接器框架**(Shopify[自申报]/Amazon[平台代缴]sandbox 适配器 + OAuth 跳转脚手架 + 桥接 nexus_estimate + 路由,PR #93)。共 PR #90–#93,712 tests(1 smoke skip)+ ruff + CI 全绿,每 PR CI 绿+Copilot 处理后合并。
+**外部依赖待激活(诚实划线)**:① LoRA **真实训练**需算力 + HF 模型下载 + 安装训练 extras;② 连接器**真实连接**需 Shaw 注册的 OAuth 应用与凭据。二者均已建到"给凭据/算力即可跑"的可插拔边界;sandbox/纯逻辑全程可跑、CI 覆盖。规则引擎仍是唯一数字真相,LoRA 只调意图分类+措辞。
 
 ## 二、18 Skills 清单与现状
 

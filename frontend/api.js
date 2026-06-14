@@ -114,7 +114,21 @@
       }).catch(function () { return false; });
     },
     connectors: function () { return getJson("/api/connectors"); },
-    connectorNexus: function (platform, payload) { return postCalc("/api/connectors/" + platform + "/nexus", payload); },
+    // The connector evaluation has its own response shape (not the engine
+    // _response envelope), so it does not go through postCalc's status check.
+    connectorNexus: function (platform, payload) {
+      return authFetch("/api/connectors/" + platform + "/nexus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).then(function (r) {
+        if (!r.ok) {
+          var e = (r.body && r.body.error) || {};
+          throw makeApiError(e.message || "Connector request failed.", { code: e.code || "request_failed", status: r.status });
+        }
+        return r.body;
+      });
+    },
     federalIncome: function (payload) { return postCalc("/calc/federal-income", payload); },
     fica: function (payload) { return postCalc("/calc/fica", payload); },
     stateIncome: function (payload) { return postCalc("/calc/state-income", payload); },

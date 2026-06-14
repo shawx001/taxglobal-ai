@@ -18,6 +18,7 @@ from starlette.responses import Response
 
 from backend.audit.middleware import AuditMiddleware
 from backend.audit.routes import router as audit_router
+from backend.auth.routes import router as auth_router
 from backend.connectors.routes import router as connectors_router
 from backend.errors import error_response
 from backend.knowledge.search_routes import router as search_router
@@ -195,6 +196,7 @@ def create_app() -> FastAPI:
     app.include_router(documents_router)
     app.include_router(audit_router)
     app.include_router(connectors_router)
+    app.include_router(auth_router)
 
     @app.get("/api/states", response_model=None)
     def get_available_states(request: Request, tax_year: int = DEFAULT_TAX_YEAR) -> dict[str, Any] | JSONResponse:

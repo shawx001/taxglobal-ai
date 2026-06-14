@@ -18,6 +18,7 @@ import base64
 import binascii
 import json
 import os
+import time
 import urllib.parse
 from abc import ABC, abstractmethod
 
@@ -81,12 +82,13 @@ class AppleOAuth(OAuthProvider):
     def build_authorize_url(self, state: str) -> str:
         if not self.configured:
             raise AuthProviderError("Apple OAuth is not configured")
+        # No scope -> Apple uses response_mode=query, so the code/state arrive on
+        # our GET callback. (Requesting name/email scope would force form_post,
+        # which needs a POST callback — a documented future enhancement.)
         params = {
             "client_id": self.client_id,
             "redirect_uri": self.redirect_uri,
             "response_type": "code",
-            "scope": "name email",
-            "response_mode": "form_post",
             "state": state,
         }
         return f"{APPLE_AUTH_ENDPOINT}?{urllib.parse.urlencode(params)}"
@@ -113,6 +115,18 @@ class AppleOAuth(OAuthProvider):
         if not id_token:
             raise AuthProviderError("Apple token response missing id_token")
         claims = _decode_jwt_claims(id_token)
+        # Validate the standard OIDC claims (issuer / audience / expiry).
+        # PRODUCTION HARDENING REQUIRED: also verify the JWT *signature* against
+        # Apple's JWKS (https://appleid.apple.com/auth/keys) before trusting this
+        # token. This decode validates claims only and relies on the HTTPS
+        # server-to-server token exchange for transport integrity.
+        if claims.get("iss") != "https://appleid.apple.com":
+            raise AuthProviderError("Apple id_token has an unexpected issuer")
+        if claims.get("aud") != self.client_id:
+            raise AuthProviderError("Apple id_token audience does not match the client id")
+        exp = claims.get("exp")
+        if not isinstance(exp, (int, float)) or exp < time.time():
+            raise AuthProviderError("Apple id_token is missing or past its expiry")
         sub = claims.get("sub")
         email = claims.get("email", "")
         if not sub:

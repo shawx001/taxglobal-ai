@@ -144,18 +144,36 @@ class AppleWeChatProviderTests(unittest.TestCase):
         a.client_id, a.client_secret, a.redirect_uri = "cid", "sec", "https://app/cb"
         url = a.build_authorize_url("st")
         self.assertTrue(url.startswith("https://appleid.apple.com/auth/authorize?"))
-        self.assertIn("response_mode=form_post", url)
+        # No scope/form_post: code+state come back on our GET callback (query mode).
+        self.assertNotIn("response_mode=form_post", url)
+        self.assertIn("response_type=code", url)
         self.assertIn("state=st", url)
 
     def test_apple_complete_login(self):
         a = AppleOAuth()
         a.client_id, a.client_secret, a.redirect_uri = "cid", "sec", "https://app/cb"
-        jwt = _fake_jwt({"sub": "apple-123", "email": "x@privaterelay.appleid.com"})
+        jwt = _fake_jwt(
+            {
+                "iss": "https://appleid.apple.com",
+                "aud": "cid",
+                "exp": 9999999999,
+                "sub": "apple-123",
+                "email": "x@privaterelay.appleid.com",
+            }
+        )
         with mock.patch.object(providers_mod, "_http_post_form", return_value={"id_token": jwt}):
             user = a.complete_login("code")
         self.assertEqual(user.sub, "apple-123")
         self.assertEqual(user.email, "x@privaterelay.appleid.com")
         self.assertEqual(user.provider, "apple")
+
+    def test_apple_rejects_bad_audience(self):
+        a = AppleOAuth()
+        a.client_id, a.client_secret, a.redirect_uri = "cid", "sec", "https://app/cb"
+        jwt = _fake_jwt({"iss": "https://appleid.apple.com", "aud": "someone-else", "exp": 9999999999, "sub": "x"})
+        with mock.patch.object(providers_mod, "_http_post_form", return_value={"id_token": jwt}):
+            with self.assertRaises(GoogleOAuthError):
+                a.complete_login("code")
 
     def test_wechat_authorize_url(self):
         w = WeChatOAuth()
@@ -247,9 +265,17 @@ class AuthRoutesTests(unittest.TestCase):
         self.assertIn("accounts.google.com", resp.headers["location"])
 
     def test_callback_invalid_state(self):
-        resp = self.client.get("/api/auth/google/callback?code=c&state=bogus", follow_redirects=False)
+        # Provider must be configured to reach the state check (else it's 503).
+        with mock.patch.object(auth_routes, "get_provider", lambda name: _StubProvider(configured=True)):
+            resp = self.client.get("/api/auth/google/callback?code=c&state=bogus", follow_redirects=False)
         self.assertEqual(resp.status_code, 400)
         self.assertEqual(resp.json()["error"]["code"], "invalid_state")
+
+    def test_callback_unconfigured_provider_503(self):
+        with mock.patch.object(auth_routes, "get_provider", lambda name: _StubProvider(configured=False)):
+            resp = self.client.get("/api/auth/google/callback?code=c&state=x", follow_redirects=False)
+        self.assertEqual(resp.status_code, 503)
+        self.assertEqual(resp.json()["error"]["code"], "provider_not_configured")
 
     def test_callback_success_sets_session(self):
         from backend.auth.sessions import now_seconds

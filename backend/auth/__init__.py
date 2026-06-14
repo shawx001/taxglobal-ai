@@ -1,11 +1,13 @@
-"""Authentication: real Google OAuth login + an in-memory session store.
+"""Authentication: multi-provider OAuth login + an in-memory session store.
 
-Login follows the standard OIDC redirect flow (authorize -> callback code ->
-token exchange -> Google userinfo -> session). A configured GOOGLE_CLIENT_ID
-sends the user to Google's real consent screen; without credentials the dev
-login (sandbox) keeps the flow demonstrable. Sessions are in-memory so login
-works with PostgreSQL disabled (graceful degradation); identity comes from
-Google's verified userinfo, never fabricated.
+A provider registry (Google / Apple / WeChat) drives the standard OIDC/OAuth
+redirect flow (authorize -> callback code -> token exchange -> identity ->
+session) behind the provider-agnostic ``/api/auth/{provider}/*`` routes. A
+configured provider sends the user to its real consent screen; without
+credentials the dev login (sandbox) keeps every button demonstrable. Sessions
+are in-memory so login works with PostgreSQL disabled (graceful degradation);
+identity always comes from the provider's token/userinfo response, never
+fabricated.
 """
 
 from .google import GoogleOAuth, GoogleOAuthError, google_oauth

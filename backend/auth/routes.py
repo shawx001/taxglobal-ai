@@ -106,6 +106,13 @@ def provider_callback(provider: str, request: Request, code: str = "", state: st
         return _error(
             request, status_code=404, code="unknown_provider", message=f"Unknown login provider '{provider}'."
         )
+    if not oauth.configured:
+        return _error(
+            request,
+            status_code=503,
+            code="provider_not_configured",
+            message=f"{provider} OAuth is not configured.",
+        )
     if not state_store.consume(state, now=now_seconds()):
         return _error(
             request, status_code=400, code="invalid_state", message="OAuth state is missing, expired, or reused."

@@ -1,0 +1,497 @@
+{
+  "overall": 0.86,
+  "gate": 0.8,
+  "passed": true,
+  "weights": {
+    "intent": 0.5,
+    "factcheck": 0.5
+  },
+  "dimensions": {
+    "intent": {
+      "score": 0.72,
+      "correct": 36,
+      "total": 50,
+      "rows": [
+        {
+          "query": "我在加州年薪15万要交多少税",
+          "expected": [
+            "income_tax"
+          ],
+          "predicted": "income_tax",
+          "ok": true
+        },
+        {
+          "query": "单身在纽约挣12万，税后能拿多少",
+          "expected": [
+            "income_tax"
+          ],
+          "predicted": "clarify",
+          "ok": false
+        },
+        {
+          "query": "I make 200k in Texas, what is my federal tax",
+          "expected": [
+            "income_tax"
+          ],
+          "predicted": "knowledge",
+          "ok": false
+        },
+        {
+          "query": "自雇收入8万要交多少税",
+          "expected": [
+            "income_tax"
+          ],
+          "predicted": "income_tax",
+          "ok": true
+        },
+        {
+          "query": "我的W-2工资是95000，帮我算税",
+          "expected": [
+            "income_tax"
+          ],
+          "predicted": "clarify",
+          "ok": false
+        },
+        {
+          "query": "加州州税多少",
+          "expected": [
+            "income_tax",
+            "knowledge"
+          ],
+          "predicted": "income_tax",
+          "ok": true
+        },
+        {
+          "query": "年收入50万的边际税率是多少",
+          "expected": [
+            "income_tax",
+            "knowledge"
+          ],
+          "predicted": "income_tax",
+          "ok": true
+        },
+        {
+          "query": "我和老婆联合报税收入30万要交多少",
+          "expected": [
+            "income_tax"
+          ],
+          "predicted": "income_tax",
+          "ok": true
+        },
+        {
+          "query": "self employment tax on 120000 profit",
+          "expected": [
+            "income_tax"
+          ],
+          "predicted": "clarify",
+          "ok": false
+        },
+        {
+          "query": "工资10万在西雅图，要交州税吗",
+          "expected": [
+            "income_tax"
+          ],
+          "predicted": "income_tax",
+          "ok": true
+        },
+        {
+          "query": "我在日本工作了340天，收入20万，FEIE能免多少",
+          "expected": [
+            "feie"
+          ],
+          "predicted": "feie",
+          "ok": true
+        },
+        {
+          "query": "海外收入怎么免税",
+          "expected": [
+            "feie",
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "I lived in Singapore for 11 months, can I exclude my income",
+          "expected": [
+            "feie"
+          ],
+          "predicted": "clarify",
+          "ok": false
+        },
+        {
+          "query": "Form 2555 怎么用",
+          "expected": [
+            "feie",
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "330天测试怎么算",
+          "expected": [
+            "feie",
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "我去年在德国住了300天挣了18万美元，能用海外收入豁免吗",
+          "expected": [
+            "feie"
+          ],
+          "predicted": "feie",
+          "ok": true
+        },
+        {
+          "query": "expat 报税收入排除怎么申请",
+          "expected": [
+            "feie",
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "我的RSU下个月vest 500股，怎么交税",
+          "expected": [
+            "rsu"
+          ],
+          "predicted": "knowledge",
+          "ok": false
+        },
+        {
+          "query": "RSU归属时按什么价格计税",
+          "expected": [
+            "rsu",
+            "knowledge"
+          ],
+          "predicted": "rsu",
+          "ok": true
+        },
+        {
+          "query": "公司股票归属了，要算税吗",
+          "expected": [
+            "rsu"
+          ],
+          "predicted": "rsu",
+          "ok": true
+        },
+        {
+          "query": "equity compensation 怎么报税",
+          "expected": [
+            "rsu",
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "1000股restricted stock vest，FMV是50块，税是多少",
+          "expected": [
+            "rsu"
+          ],
+          "predicted": "rsu",
+          "ok": true
+        },
+        {
+          "query": "RSU vest 后马上卖会怎样",
+          "expected": [
+            "rsu",
+            "knowledge"
+          ],
+          "predicted": "rsu",
+          "ok": true
+        },
+        {
+          "query": "受限股票单位的税务处理",
+          "expected": [
+            "rsu",
+            "knowledge"
+          ],
+          "predicted": "rsu",
+          "ok": true
+        },
+        {
+          "query": "我卖了比特币赚了5万，资本利得税多少",
+          "expected": [
+            "crypto"
+          ],
+          "predicted": "crypto",
+          "ok": true
+        },
+        {
+          "query": "crypto tax 怎么算",
+          "expected": [
+            "crypto",
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "以太坊亏损能抵税吗",
+          "expected": [
+            "crypto"
+          ],
+          "predicted": "crypto",
+          "ok": true
+        },
+        {
+          "query": "NFT 出售要交税吗",
+          "expected": [
+            "crypto"
+          ],
+          "predicted": "crypto",
+          "ok": true
+        },
+        {
+          "query": "加密货币的成本基础怎么算",
+          "expected": [
+            "crypto",
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "wash sale 规则适用于crypto吗",
+          "expected": [
+            "crypto",
+            "knowledge"
+          ],
+          "predicted": "crypto",
+          "ok": true
+        },
+        {
+          "query": "卖币的钱要报税吗",
+          "expected": [
+            "crypto"
+          ],
+          "predicted": "income_tax",
+          "ok": false
+        },
+        {
+          "query": "我在加州卖了60万的货，要交销售税吗",
+          "expected": [
+            "nexus"
+          ],
+          "predicted": "nexus",
+          "ok": true
+        },
+        {
+          "query": "economic nexus 阈值是多少",
+          "expected": [
+            "nexus",
+            "knowledge"
+          ],
+          "predicted": "nexus",
+          "ok": true
+        },
+        {
+          "query": "远程电商在德州有nexus吗",
+          "expected": [
+            "nexus"
+          ],
+          "predicted": "nexus",
+          "ok": true
+        },
+        {
+          "query": "Wayfair案对我有什么影响",
+          "expected": [
+            "nexus",
+            "knowledge"
+          ],
+          "predicted": "nexus",
+          "ok": true
+        },
+        {
+          "query": "我的网店在多个州有销售，需要注册吗",
+          "expected": [
+            "nexus"
+          ],
+          "predicted": "clarify",
+          "ok": false
+        },
+        {
+          "query": "marketplace facilitator 代缴后我还要申报吗",
+          "expected": [
+            "nexus",
+            "knowledge"
+          ],
+          "predicted": "clarify",
+          "ok": false
+        },
+        {
+          "query": "销售税什么时候需要收",
+          "expected": [
+            "nexus",
+            "knowledge"
+          ],
+          "predicted": "nexus",
+          "ok": true
+        },
+        {
+          "query": "什么是standard deduction",
+          "expected": [
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "QBI扣除怎么算的",
+          "expected": [
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "报税截止日期是哪天",
+          "expected": [
+            "knowledge"
+          ],
+          "predicted": "income_tax",
+          "ok": false
+        },
+        {
+          "query": "what is the difference between tax credit and deduction",
+          "expected": [
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "AMT是什么意思",
+          "expected": [
+            "knowledge"
+          ],
+          "predicted": "knowledge",
+          "ok": true
+        },
+        {
+          "query": "401k供款能抵税吗",
+          "expected": [
+            "knowledge"
+          ],
+          "predicted": "clarify",
+          "ok": false
+        },
+        {
+          "query": "Roth IRA 和 traditional IRA 有什么区别",
+          "expected": [
+            "knowledge"
+          ],
+          "predicted": "clarify",
+          "ok": false
+        },
+        {
+          "query": "海外账户超过1万美元要申报什么表",
+          "expected": [
+            "knowledge",
+            "feie"
+          ],
+          "predicted": "clarify",
+          "ok": false
+        },
+        {
+          "query": "你好",
+          "expected": [
+            "clarify"
+          ],
+          "predicted": "clarify",
+          "ok": true
+        },
+        {
+          "query": "今天天气怎么样",
+          "expected": [
+            "clarify"
+          ],
+          "predicted": "knowledge",
+          "ok": false
+        },
+        {
+          "query": "帮我写首诗",
+          "expected": [
+            "clarify"
+          ],
+          "predicted": "clarify",
+          "ok": true
+        },
+        {
+          "query": "asdfgh",
+          "expected": [
+            "clarify"
+          ],
+          "predicted": "clarify",
+          "ok": true
+        }
+      ]
+    },
+    "factcheck": {
+      "score": 1.0,
+      "correct": 9,
+      "total": 9,
+      "rows": [
+        {
+          "answer_text": "您的联邦所得税约为 $24,734.00。",
+          "expected": "pass",
+          "verdict": "pass",
+          "ok": true
+        },
+        {
+          "answer_text": "工资 $100,000.00，联邦所得税 $13,170.00。",
+          "expected": "pass",
+          "verdict": "pass",
+          "ok": true
+        },
+        {
+          "answer_text": "联邦税 $24,734.00，来源 irs_pub_17。",
+          "expected": "pass",
+          "verdict": "pass",
+          "ok": true
+        },
+        {
+          "answer_text": "联邦税 $24,734.00，建议你去做投资理财。",
+          "expected": "warn",
+          "verdict": "warn",
+          "ok": true
+        },
+        {
+          "answer_text": "联邦税 $24,734.00。",
+          "expected": "warn",
+          "verdict": "warn",
+          "ok": true
+        },
+        {
+          "answer_text": "这样保证能帮你省税。",
+          "expected": "warn",
+          "verdict": "warn",
+          "ok": true
+        },
+        {
+          "answer_text": "联邦税 $99,999.00。",
+          "expected": "block",
+          "verdict": "block",
+          "ok": true
+        },
+        {
+          "answer_text": "大约十三万美元。",
+          "expected": "block",
+          "verdict": "block",
+          "ok": true
+        },
+        {
+          "answer_text": "联邦税 $24,734.50。",
+          "expected": "block",
+          "verdict": "block",
+          "ok": true
+        }
+      ]
+    }
+  }
+}

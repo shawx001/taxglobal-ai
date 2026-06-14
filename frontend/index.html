@@ -1130,16 +1130,24 @@ function showSignedOut(){
 /* ════════ 电商连接器面板（后端 sandbox → nexus 引擎）════════ */
 async function renderConnectorPanel(){
   const list=document.getElementById('connectorList'); if(!list) return;
-  list.innerHTML='<span style="color:var(--ink3);font-size:12px">加载连接器…</span>';
+  list.textContent='加载连接器…';
   try{
     const r=await TaxGlobalApi.connectors();
     const conns=(r&&r.connectors)||[];
-    list.innerHTML=conns.map(c=>{
+    list.innerHTML='';
+    if(!conns.length){ list.textContent='无可用连接器'; return; }
+    // Build buttons via DOM + addEventListener so backend-provided platform
+    // strings are never interpolated into HTML / onclick (XSS-safe).
+    conns.forEach(c=>{
       const fac=c.is_marketplace_facilitator?'平台代缴':'自申报';
       const cfg=c.configured?'已配置':'sandbox';
-      return `<button class="btn" onclick="syncConnector('${c.platform}')" style="text-transform:capitalize">${c.platform} · ${fac} · ${cfg} 同步</button>`;
-    }).join('')||'<span style="color:var(--ink3);font-size:12px">无可用连接器</span>';
-  }catch(e){ list.innerHTML='<span style="color:var(--ink3);font-size:12px">后端不可用（确认 FastAPI 在 8000 运行）</span>'; }
+      const btn=document.createElement('button');
+      btn.className='btn'; btn.style.textTransform='capitalize';
+      btn.textContent=`${c.platform} · ${fac} · ${cfg} 同步`;
+      btn.addEventListener('click', ()=>syncConnector(c.platform));
+      list.appendChild(btn);
+    });
+  }catch(e){ list.textContent='后端不可用（确认 FastAPI 在 8000 运行）'; }
 }
 async function syncConnector(platform){
   const box=document.getElementById('connectorResult'); if(!box) return;
@@ -1147,20 +1155,24 @@ async function syncConnector(platform){
   try{
     const s=await TaxGlobalApi.connectorNexus(platform,{tax_year:2025,sandbox:true});
     if(!s||!s.states){ box.innerHTML='<div class="alert-box"><div class="alert-ico">!</div><div>同步失败</div></div>'; return; }
-    const badgeOf=l=>({triggered:'🔴 已触发',approaching:'🟡 接近',below:'⚪ 未达',not_covered:'— 未覆盖'}[l]||l||'—');
+    // All backend-provided strings are escaped; numbers are coerced (untrusted input).
+    const badgeOf=l=>({triggered:'🔴 已触发',approaching:'🟡 接近',below:'⚪ 未达',not_covered:'— 未覆盖'}[l]||escapeHtml(String(l||'—')));
     const rows=(s.states||[]).map(st=>{
       const res=(st.nexus&&st.nexus.result)||{};
       const label=res.status_label||(st.nexus&&st.nexus.status)||'—';
-      return `<tr style="border-top:0.5px solid var(--bd)"><td style="padding:7px 10px;font-weight:600">${st.state}</td><td style="padding:7px 10px;text-align:right" class="mono">$${f(st.sales_amount)}</td><td style="padding:7px 10px;text-align:right" class="mono">${st.transaction_count}</td><td style="padding:7px 10px">${badgeOf(label)}</td></tr>`;
+      return `<tr style="border-top:0.5px solid var(--bd)"><td style="padding:7px 10px;font-weight:600">${escapeHtml(String(st.state))}</td><td style="padding:7px 10px;text-align:right" class="mono">$${f(Number(st.sales_amount)||0)}</td><td style="padding:7px 10px;text-align:right" class="mono">${Number(st.transaction_count)||0}</td><td style="padding:7px 10px">${badgeOf(label)}</td></tr>`;
     }).join('');
     box.innerHTML=`
-      <div style="font-size:12px;color:var(--ink2);margin-bottom:8px;text-transform:capitalize">${s.platform} · 总销售 <strong>$${f(s.total_sales)}</strong> · ${s.is_marketplace_facilitator?'平台代缴':'自申报'} · ${s.sandbox?'sandbox':'live'} · ${s.tax_year}</div>
+      <div style="font-size:12px;color:var(--ink2);margin-bottom:8px;text-transform:capitalize">${escapeHtml(String(s.platform))} · 总销售 <strong>$${f(Number(s.total_sales)||0)}</strong> · ${s.is_marketplace_facilitator?'平台代缴':'自申报'} · ${s.sandbox?'sandbox':'live'} · ${escapeHtml(String(s.tax_year))}</div>
       <table style="width:100%;border-collapse:collapse;font-size:13px">
         <thead><tr style="color:var(--ink3);font-size:11px;text-align:left"><th style="padding:7px 10px">州</th><th style="padding:7px 10px;text-align:right">销售额</th><th style="padding:7px 10px;text-align:right">订单</th><th style="padding:7px 10px">Nexus 判定</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      <div style="font-size:11px;color:var(--ink4);margin-top:10px;line-height:1.5">${s.facilitator_note||''}</div>`;
-  }catch(e){ box.innerHTML='<div class="alert-box"><div class="alert-ico">!</div><div>后端不可用（确认 FastAPI 在 8000 运行）</div></div>'; }
+      <div style="font-size:11px;color:var(--ink4);margin-top:10px;line-height:1.5">${escapeHtml(String(s.facilitator_note||''))}</div>`;
+  }catch(e){
+    const msg=(e&&e.message)?e.message:'后端不可用（确认 FastAPI 在 8000 运行）';
+    box.innerHTML='<div class="alert-box"><div class="alert-ico">!</div><div>'+escapeHtml(msg)+'</div></div>';
+  }
 }
 
 async function refreshAuth(){

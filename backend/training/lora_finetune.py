@@ -62,22 +62,38 @@ def require_training_deps() -> None:
         raise ImportError(f"missing optional training deps {missing}; install with: {_INSTALL_HINT}")
 
 
+def _lazy_import_error(exc: Exception) -> ImportError:
+    """Wrap a lazy-import failure with the install hint.
+
+    ``find_spec`` can report a dep as present even when it cannot actually import
+    (broken sub-dependency), so the real ``from x import y`` is wrapped to still
+    point the user at the install/repair command.
+    """
+
+    return ImportError(f"a training dependency failed to import ({exc}); install/repair with: {_INSTALL_HINT}")
+
+
 def load_sft_examples(path: str | Path) -> list[dict[str, Any]]:
     """Load a chat-format SFT JSONL produced by M4.2 and validate its shape."""
 
     lines = Path(path).read_text(encoding="utf-8").splitlines()
     examples: list[dict[str, Any]] = []
-    for index, line in enumerate(lines):
-        line = line.strip()
+    for line_no, raw in enumerate(lines, start=1):
+        line = raw.strip()
         if not line:
             continue
-        record = json.loads(line)
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"line {line_no}: invalid JSON ({exc.msg})") from exc
+        if not isinstance(record, dict):
+            raise ValueError(f"line {line_no}: SFT example must be a JSON object")
         messages = record.get("messages")
         if not isinstance(messages, list) or not messages:
-            raise ValueError(f"line {index}: SFT example missing non-empty 'messages' list")
+            raise ValueError(f"line {line_no}: SFT example missing non-empty 'messages' list")
         for message in messages:
             if not (isinstance(message, dict) and message.get("role") and "content" in message):
-                raise ValueError(f"line {index}: each message needs 'role' and 'content'")
+                raise ValueError(f"line {line_no}: each message needs 'role' and 'content'")
         examples.append(record)
     if not examples:
         raise ValueError(f"no SFT examples found in {path}")
@@ -88,7 +104,10 @@ def build_peft_config(spec: LoraConfigSpec):  # noqa: ANN201 - lazy peft type
     """Build a ``peft.LoraConfig`` (lazy import)."""
 
     require_training_deps()
-    from peft import LoraConfig  # noqa: PLC0415 - optional dep, imported on demand
+    try:
+        from peft import LoraConfig  # noqa: PLC0415 - optional dep, imported on demand
+    except ImportError as exc:
+        raise _lazy_import_error(exc) from exc
 
     return LoraConfig(
         r=spec.r,
@@ -109,9 +128,12 @@ def make_model_intent_classifier(model_dir: str | Path, base_model: str | None =
     """
 
     require_training_deps()
-    import torch  # noqa: PLC0415
-    from peft import PeftModel  # noqa: PLC0415
-    from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: PLC0415
+    try:
+        import torch  # noqa: PLC0415
+        from peft import PeftModel  # noqa: PLC0415
+        from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: PLC0415
+    except ImportError as exc:
+        raise _lazy_import_error(exc) from exc
 
     model_dir = str(model_dir)
     base = base_model or DEFAULT_BASE_MODEL
@@ -157,9 +179,14 @@ def finetune(
     spec = spec or LoraConfigSpec()
     output_dir = str(output_dir)
 
-    from datasets import Dataset  # noqa: PLC0415
-    from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: PLC0415
-    from trl import SFTConfig, SFTTrainer  # noqa: PLC0415
+    try:
+        import inspect  # noqa: PLC0415
+
+        from datasets import Dataset  # noqa: PLC0415
+        from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: PLC0415
+        from trl import SFTConfig, SFTTrainer  # noqa: PLC0415
+    except ImportError as exc:
+        raise _lazy_import_error(exc) from exc
 
     examples = load_sft_examples(train_path)
     dataset = Dataset.from_list(examples)
@@ -167,17 +194,24 @@ def finetune(
     tokenizer = AutoTokenizer.from_pretrained(spec.base_model)
     model = AutoModelForCausalLM.from_pretrained(spec.base_model)
 
-    sft_config = SFTConfig(
-        output_dir=output_dir,
-        num_train_epochs=spec.epochs,
-        per_device_train_batch_size=spec.per_device_batch_size,
-        gradient_accumulation_steps=spec.gradient_accumulation_steps,
-        learning_rate=spec.learning_rate,
-        max_length=spec.max_seq_length,
-        logging_steps=1,
-        save_strategy="no",
-        report_to=[],
-    )
+    config_kwargs: dict[str, Any] = {
+        "output_dir": output_dir,
+        "num_train_epochs": spec.epochs,
+        "per_device_train_batch_size": spec.per_device_batch_size,
+        "gradient_accumulation_steps": spec.gradient_accumulation_steps,
+        "learning_rate": spec.learning_rate,
+        "logging_steps": 1,
+        "save_strategy": "no",
+        "report_to": [],
+    }
+    # TRL renamed the sequence-length field across releases (max_seq_length ->
+    # max_length); pass whichever the installed SFTConfig actually accepts.
+    sft_params = inspect.signature(SFTConfig).parameters
+    for seq_field in ("max_length", "max_seq_length"):
+        if seq_field in sft_params:
+            config_kwargs[seq_field] = spec.max_seq_length
+            break
+    sft_config = SFTConfig(**config_kwargs)
     trainer = SFTTrainer(
         model=model,
         args=sft_config,

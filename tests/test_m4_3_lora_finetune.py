@@ -69,6 +69,21 @@ class SftLoadingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 load_sft_examples(p)
 
+    def test_invalid_json_raises_with_1based_line(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "sft.jsonl"
+            p.write_text(json.dumps(_GOOD) + "\n{not json}\n", encoding="utf-8")
+            with self.assertRaises(ValueError) as ctx:
+                load_sft_examples(p)
+            self.assertIn("line 2", str(ctx.exception))
+
+    def test_non_object_json_raises(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "sft.jsonl"
+            p.write_text("[1, 2, 3]\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_sft_examples(p)
+
     def test_empty_file_raises(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "sft.jsonl"

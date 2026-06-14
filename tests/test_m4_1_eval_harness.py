@@ -103,6 +103,16 @@ class EvalHarnessTests(unittest.TestCase):
         report = run_eval_harness(weights={"factcheck": 1.0})
         self.assertEqual(report.overall, report.dimensions["factcheck"].score)
 
+    def test_zero_weight_dimension_is_skipped(self):
+        # weight 0 for a dimension disables it: its (here expensive/booming)
+        # evaluator is never run and it is absent from the report.
+        def boom(_query):
+            raise AssertionError("intent classifier should be skipped at weight 0")
+
+        report = run_eval_harness(intent_classifier=boom, weights={"factcheck": 1.0})
+        self.assertEqual(set(report.dimensions), {"factcheck"})
+        self.assertEqual(report.overall, report.dimensions["factcheck"].score)
+
     def test_as_dict_is_json_serializable(self):
         import json
 

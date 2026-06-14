@@ -1,7 +1,8 @@
 """Labeled evaluation datasets for the M4 eval harness.
 
-Canonical, dependency-free home for the labeled sets that score model-facing
-quality. Kept deterministic so the harness runs in CI without a live LLM.
+Canonical home for the labeled sets that score model-facing quality. The only
+import is the fact-checker's verdict constants (so expected verdicts stay in
+sync with the checker); no I/O and no LLM, so the harness runs in CI.
 
 - ``INTENT_TESTSET``: 50 natural-language queries with their acceptable intent
   label(s). Some queries legitimately serve the user through either of two

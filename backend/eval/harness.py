@@ -132,11 +132,14 @@ def run_eval_harness(
     if total_weight <= 0:
         raise ValueError("weights must sum to a positive total over the eval dimensions")
 
-    dimensions = {
-        "intent": evaluate_intent(intent_classifier),
-        "factcheck": evaluate_factcheck(),
-    }
-    overall = sum(dimensions[name].score * weights.get(name, 0.0) for name in dimensions) / total_weight
+    # Only evaluate dimensions with positive weight, so a caller can disable an
+    # expensive dimension (e.g. a model-backed intent classifier) via weight 0.
+    dimensions: dict[str, DimensionScore] = {}
+    if weights.get("intent", 0.0) > 0:
+        dimensions["intent"] = evaluate_intent(intent_classifier)
+    if weights.get("factcheck", 0.0) > 0:
+        dimensions["factcheck"] = evaluate_factcheck()
+    overall = sum(dimensions[name].score * weights[name] for name in dimensions) / total_weight
     return EvalReport(
         dimensions=dimensions,
         overall=overall,

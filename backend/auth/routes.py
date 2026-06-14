@@ -14,6 +14,8 @@ from fastapi import APIRouter, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.errors import error_response
+
 from .google import GoogleOAuthError, google_oauth
 from .sessions import AuthUser, now_seconds, session_store, state_store
 
@@ -29,8 +31,24 @@ class DevLoginRequest(BaseModel):
     name: str = Field(default="", max_length=200)
 
 
+def _request_id(request: Request) -> str:
+    return str(getattr(request.state, "request_id", ""))
+
+
+def _error(request: Request, *, status_code: int, code: str, message: str, details: list | None = None) -> JSONResponse:
+    rid = _request_id(request)
+    return JSONResponse(
+        status_code=status_code,
+        headers={"X-Request-ID": rid},
+        content=error_response(code=code, message=message, request_id=rid, details=details),
+    )
+
+
 def _dev_login_enabled() -> bool:
-    return os.environ.get("TAXGLOBAL_ENABLE_DEV_LOGIN", "true").strip().lower() in {"1", "true", "yes"}
+    # Disabled by default: an enabled dev login lets anyone forge a session with
+    # any email and bypass Google. Operators must opt in explicitly (and only in
+    # trusted/dev environments).
+    return os.environ.get("TAXGLOBAL_ENABLE_DEV_LOGIN", "false").strip().lower() in {"1", "true", "yes"}
 
 
 def _cookie_secure() -> bool:
@@ -63,16 +81,13 @@ def auth_me(request: Request) -> dict[str, object]:
 @router.get("/api/auth/google/login")
 def google_login(request: Request) -> Response:
     if not google_oauth.configured:
-        return JSONResponse(
+        return _error(
+            request,
             status_code=503,
-            content={
-                "error": {
-                    "code": "google_oauth_not_configured",
-                    "message": "Google OAuth is not configured; set TAXGLOBAL_GOOGLE_CLIENT_ID/_CLIENT_SECRET/"
-                    "_REDIRECT_URI, or use POST /api/auth/dev-login in sandbox.",
-                    "dev_login_enabled": _dev_login_enabled(),
-                }
-            },
+            code="google_oauth_not_configured",
+            message="Google OAuth is not configured; set TAXGLOBAL_GOOGLE_CLIENT_ID/_CLIENT_SECRET/_REDIRECT_URI, "
+            "or use POST /api/auth/dev-login in sandbox.",
+            details=[{"dev_login_enabled": _dev_login_enabled()}],
         )
     state = state_store.issue(now=now_seconds())
     return RedirectResponse(url=google_oauth.build_authorize_url(state), status_code=302)
@@ -81,14 +96,16 @@ def google_login(request: Request) -> Response:
 @router.get("/api/auth/google/callback")
 def google_callback(request: Request, code: str = "", state: str = "") -> Response:
     if not state_store.consume(state, now=now_seconds()):
-        return JSONResponse(
+        return _error(
+            request,
             status_code=400,
-            content={"error": {"code": "invalid_state", "message": "OAuth state is missing, expired, or reused."}},
+            code="invalid_state",
+            message="OAuth state is missing, expired, or reused.",
         )
     try:
         user = google_oauth.complete_login(code)
     except GoogleOAuthError as exc:
-        return JSONResponse(status_code=400, content={"error": {"code": "google_login_failed", "message": str(exc)}})
+        return _error(request, status_code=400, code="google_login_failed", message=str(exc))
     token = session_store.create(user)
     response = RedirectResponse(url=_post_login_redirect(), status_code=302)
     _set_session_cookie(response, token)
@@ -96,11 +113,13 @@ def google_callback(request: Request, code: str = "", state: str = "") -> Respon
 
 
 @router.post("/api/auth/dev-login", response_model=None)
-def dev_login(payload: DevLoginRequest, response: Response) -> Response | dict[str, object]:
+def dev_login(payload: DevLoginRequest, request: Request, response: Response) -> Response | dict[str, object]:
     if not _dev_login_enabled():
-        return JSONResponse(
+        return _error(
+            request,
             status_code=403,
-            content={"error": {"code": "dev_login_disabled", "message": "Dev login is disabled."}},
+            code="dev_login_disabled",
+            message="Dev login is disabled; set TAXGLOBAL_ENABLE_DEV_LOGIN=true in a trusted environment.",
         )
     user = AuthUser(sub=f"dev:{payload.email}", email=payload.email, name=payload.name, provider="dev")
     token = session_store.create(user)

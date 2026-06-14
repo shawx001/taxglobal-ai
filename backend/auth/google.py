@@ -103,6 +103,9 @@ class GoogleOAuth:
         email = info.get("email")
         if not (sub and email):
             raise GoogleOAuthError("userinfo missing sub/email")
+        # Reject an explicitly unverified email; tolerate the field being absent.
+        if info.get("email_verified") is False:
+            raise GoogleOAuthError("Google reports this email as not verified")
         return AuthUser(sub=str(sub), email=str(email), name=str(info.get("name") or ""), provider="google")
 
 

@@ -26,6 +26,12 @@ class SessionStoreTests(unittest.TestCase):
     def test_get_none_token(self):
         self.assertIsNone(SessionStore().get(None))
 
+    def test_session_expires(self):
+        store = SessionStore(ttl_seconds=100)
+        token = store.create(AuthUser(sub="s", email="a@b.com"), now=1000.0)
+        self.assertIsNotNone(store.get(token, now=1050.0))
+        self.assertIsNone(store.get(token, now=1101.0))  # past TTL -> pruned
+
     def test_tokens_unique(self):
         store = SessionStore()
         u = AuthUser(sub="s", email="a@b.com")
@@ -96,6 +102,19 @@ class GoogleOAuthTests(unittest.TestCase):
             with self.assertRaises(GoogleOAuthError):
                 g.complete_login("authcode")
 
+    def test_complete_login_rejects_unverified_email(self):
+        g = GoogleOAuth(client_id="cid", client_secret="sec", redirect_uri="https://app/cb")
+        with (
+            mock.patch.object(google_mod, "_http_post_form", return_value={"access_token": "at"}),
+            mock.patch.object(
+                google_mod,
+                "_http_get_json",
+                return_value={"sub": "g", "email": "u@x.com", "email_verified": False},
+            ),
+        ):
+            with self.assertRaises(GoogleOAuthError):
+                g.complete_login("authcode")
+
 
 class _StubGoogle:
     def __init__(self, configured: bool):
@@ -119,7 +138,8 @@ class AuthRoutesTests(unittest.TestCase):
         self.assertFalse(resp.json()["authenticated"])
 
     def test_dev_login_then_me_then_logout(self):
-        resp = self.client.post("/api/auth/dev-login", json={"email": "shaw@example.com", "name": "Shaw"})
+        with mock.patch.dict("os.environ", {"TAXGLOBAL_ENABLE_DEV_LOGIN": "true"}, clear=False):
+            resp = self.client.post("/api/auth/dev-login", json={"email": "shaw@example.com", "name": "Shaw"})
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(resp.json()["authenticated"])
         self.assertEqual(resp.json()["user"]["email"], "shaw@example.com")
@@ -132,10 +152,12 @@ class AuthRoutesTests(unittest.TestCase):
         self.assertFalse(out.json()["authenticated"])
         self.assertFalse(self.client.get("/api/auth/me").json()["authenticated"])
 
-    def test_dev_login_disabled(self):
-        with mock.patch.dict("os.environ", {"TAXGLOBAL_ENABLE_DEV_LOGIN": "false"}, clear=False):
+    def test_dev_login_disabled_by_default(self):
+        # Unset/empty -> dev login must be OFF (safe default), returning 403.
+        with mock.patch.dict("os.environ", {"TAXGLOBAL_ENABLE_DEV_LOGIN": ""}, clear=False):
             resp = self.client.post("/api/auth/dev-login", json={"email": "x@y.com"})
         self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp.json()["error"]["code"], "dev_login_disabled")
 
     def test_google_login_not_configured(self):
         with mock.patch.object(auth_routes, "google_oauth", _StubGoogle(configured=False)):

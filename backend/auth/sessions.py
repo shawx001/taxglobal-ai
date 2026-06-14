@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass
 
 DEFAULT_STATE_TTL_SECONDS = 600  # OAuth round-trip should complete quickly
+DEFAULT_SESSION_TTL_SECONDS = 7 * 24 * 3600  # 7 days
 
 
 @dataclass(frozen=True)
@@ -29,23 +30,38 @@ class AuthUser:
 
 
 class SessionStore:
-    """Thread-safe in-memory session table keyed by an opaque token."""
+    """Thread-safe in-memory session table keyed by an opaque token.
 
-    def __init__(self) -> None:
-        self._sessions: dict[str, AuthUser] = {}
+    Sessions carry a TTL and are pruned on access so the store cannot grow
+    without bound or hand out stale sessions in a long-running process.
+    """
+
+    def __init__(self, ttl_seconds: int = DEFAULT_SESSION_TTL_SECONDS) -> None:
+        self._sessions: dict[str, tuple[AuthUser, float]] = {}
+        self._ttl = ttl_seconds
         self._lock = threading.Lock()
 
-    def create(self, user: AuthUser) -> str:
+    def create(self, user: AuthUser, *, now: float | None = None) -> str:
+        ts = now_seconds() if now is None else now
         token = secrets.token_urlsafe(32)
         with self._lock:
-            self._sessions[token] = user
+            self._prune(ts)
+            self._sessions[token] = (user, ts + self._ttl)
         return token
 
-    def get(self, token: str | None) -> AuthUser | None:
+    def get(self, token: str | None, *, now: float | None = None) -> AuthUser | None:
         if not token:
             return None
+        ts = now_seconds() if now is None else now
         with self._lock:
-            return self._sessions.get(token)
+            entry = self._sessions.get(token)
+            if entry is None:
+                return None
+            user, expiry = entry
+            if expiry < ts:
+                self._sessions.pop(token, None)
+                return None
+            return user
 
     def delete(self, token: str | None) -> None:
         if not token:
@@ -56,6 +72,11 @@ class SessionStore:
     def clear(self) -> None:
         with self._lock:
             self._sessions.clear()
+
+    def _prune(self, now: float) -> None:
+        expired = [token for token, (_user, expiry) in self._sessions.items() if expiry < now]
+        for token in expired:
+            self._sessions.pop(token, None)
 
 
 class StateStore:
